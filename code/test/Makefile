@@ -17,7 +17,9 @@
 # GCCDIR = /home/ostl/cs120f/public/mips-x86.linux-xgcc/
 # UCSD uAPE (Sparc/Solaris)
 # GCCDIR = /home/solaris/ieng9/cs120f/public/mips-sparc.solaris-xgcc/
-GCCDIR = $(CSE120_GCC)
+
+# GCCDIR = $(CSE120_GCC)
+GCCDIR = mips-xgcc/
 
 LDFLAGS = -T script -N
 ASFLAGS = -mips2
@@ -37,7 +39,8 @@ LD = $(GCCDIR)ld
 
 CPP = gcc -E
 INCDIR =-I../userprog -I../threads
-CFLAGS = -G 0 -c $(INCDIR)
+# CFLAGS = -G 0 -c $(INCDIR)
+CFLAGS = -c $(INCDIR)
 
 all: halt shell matmult sort
 

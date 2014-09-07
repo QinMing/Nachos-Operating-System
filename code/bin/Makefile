@@ -11,14 +11,14 @@
 # If the host is big endian (SPARC, SNAKE, etc):
 # change to (disassemble and coff2flat don't support big endian yet):
 
-CC=gcc
+CC=gcc -m32
 # UCSD uAPE (Sparc/Solaris)
 # CFLAGS= -I./ -I../threads -DHOST_IS_BIG_ENDIAN
 # UCSD OSTL (Linux)
 # CFLAGS=-I./ -I../threads -g
 CFLAGS = $(CSE120_CFLAGS) $(CSE120_HOST)
 
-LD=gcc
+LD=gcc -m32
 
 all: coff2noff
 

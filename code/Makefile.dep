@@ -20,9 +20,9 @@
 # 386, 386BSD Unix, or NetBSD Unix (available via anon ftp 
 #    from agate.berkeley.edu)
 # also, Linux
-# HOST = -DHOST_i386
-HOST = $(CSE120_HOST)
-LDFLAGS = $(CSE120_LDFLAGS)
+HOST = -DHOST_i386
+# HOST = $(CSE120_HOST)
+# LDFLAGS = $(CSE120_LDFLAGS)
 
 # slight variant for 386 FreeBSD
 # HOST = -DHOST_i386 -DFreeBSD

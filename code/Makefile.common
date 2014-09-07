@@ -26,14 +26,14 @@
 # of liability and disclaimer of warranty provisions.
 
 # -fwritable-strings: deprecated
-CFLAGS = -g -Wall -Wshadow $(INCPATH) $(DEFINES) $(HOST) -DCHANGED 
+CFLAGS = -g -Wall -Wshadow $(INCPATH) $(DEFINES) $(HOST) -DCHANGED -Wno-write-strings
 
 # These definitions may change as the software is updated.
 # Some of them are also system dependent
 CPP= gcc -E
-CC = g++
-LD = g++
-AS = as
+CC = g++ -m32
+LD = g++ -m32
+AS = as --32
 
 PROGRAM = nachos
 

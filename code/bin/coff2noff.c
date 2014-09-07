@@ -164,8 +164,10 @@ main (int argc, char **argv)
     printf("Loading %d sections:\n", numsections);
     for (i = 0; i < numsections; i++) {
 	printf("\t\"%s\", filepos 0x%x, mempos 0x%x, size 0x%x\n",
-	      sections[i].s_name, sections[i].s_scnptr,
-	      sections[i].s_paddr, sections[i].s_size);
+	      sections[i].s_name, 
+          (unsigned int)(sections[i].s_scnptr),
+	      (unsigned int)(sections[i].s_paddr), 
+          (unsigned int)(sections[i].s_size));
 	if (sections[i].s_size == 0) {
 		/* do nothing! */	
 	} else if (!strcmp(sections[i].s_name, ".text")) {
