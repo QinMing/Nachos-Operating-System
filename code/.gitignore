@@ -1,0 +1,4 @@
+*.o
+nachos
+swtch.s
+*.coff
