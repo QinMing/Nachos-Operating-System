@@ -2,7 +2,7 @@
 # All rights reserved.  See copyright.h for copyright notice and limitation 
 # of liability and disclaimer of warranty provisions.
 
-MAKE=make
+MAKE=make --no-print-directory
 LPR=lpr
 
 all: 
@@ -16,8 +16,8 @@ all:
 	cd filesys; $(MAKE) nachos 
 	cd network; $(MAKE) depend
 	cd network; $(MAKE) nachos 
-	cd bin; make all
-	cd test; make all
+	cd bin; $(MAKE) all
+	cd test; $(MAKE) all
 
 # don't delete executables in "test" in case there is no cross-compiler
 clean:
