@@ -140,6 +140,9 @@ depend: $(CFILES) $(HFILES)
 	@ echo building dependencies
 	@ $(CC) $(INCPATH) $(DEFINES) $(HOST) -DCHANGED -M $(CFILES) > deps.mk
 
-.PHONY: fmt
+.PHONY: fmt tags
 fmt:
 	astyle *.h *.cc -nQ
+
+tags:
+	ctags -h=.h.cc -R ..
