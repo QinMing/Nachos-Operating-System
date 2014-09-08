@@ -2,8 +2,8 @@
 # All rights reserved.  See copyright.h for copyright notice and limitation 
 # of liability and disclaimer of warranty provisions.
 
-MAKE = gmake
-LPR = lpr
+MAKE=make
+LPR=lpr
 
 all: 
 	cd threads; $(MAKE) depend
@@ -22,6 +22,17 @@ all:
 # don't delete executables in "test" in case there is no cross-compiler
 clean:
 	/bin/csh -c "rm -f *~ */{core,nachos,DISK,*.o,swtch.s,*~} test/{*.coff} bin/{coff2flat,coff2noff,disassemble,out}"
+
+.PHONY: tags fmt ubuntu
+
+tags:
+	ctags -h=.cc.h -R
+
+fmt:
+	astyle `find . -name *.c` `find . -name *.h` -nQ
+
+ubuntu:
+	sudo apt-get install gcc-multilib g++-multilib lib32stdc++6 
 
 print:
 	/bin/csh -c "$(LPR) Makefile* */Makefile"
