@@ -33,3 +33,7 @@ coff2flat: coff2flat.o
 # dis-assembles a COFF file
 disassemble: out.o opstrings.o
 	$(LD) out.o opstrings.o -o disassemble
+
+%.o: %.c *.h
+	@ echo $<
+	$(CC) $< -c -o $@
