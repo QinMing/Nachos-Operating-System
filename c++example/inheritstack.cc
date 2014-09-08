@@ -16,10 +16,12 @@ extern "C" {
 const bool FALSE = false;
 const bool TRUE = true;
 
-#include <iostream.h>
+#include <iostream>
 #include "copyright.h"
 #include "list.h"
 #include "inheritstack.h"
+
+using std::cout;
 
 //----------------------------------------------------------------------
 // Stack::Stack, Stack::~Stack

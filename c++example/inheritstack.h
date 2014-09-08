@@ -83,4 +83,4 @@ class ListStack : public Stack {
     List *stack;
 };
 
-#endif INHERITSTACK_H
+#endif // INHERITSTACK_H
