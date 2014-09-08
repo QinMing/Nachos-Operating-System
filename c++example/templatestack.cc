@@ -1,12 +1,12 @@
 // templatestack.cc
 //	Routines to implement a LIFO stack of arbitrary things.
-//	
+//
 //	The stack is represented as an array; we return an error
 //	if the caller tries to push more things onto the stack than we have
 //	room for.
 //
 // Copyright (c) 1992,1993,1995 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 
@@ -65,7 +65,7 @@ template <class T>
 void
 Stack<T>::Push(T value) {
     ASSERT(!Full());
-    
+
     stack[top++] = value;
 }
 
@@ -80,7 +80,7 @@ T
 Stack<T>::Pop() {
 
     ASSERT(!Empty());
-    
+
     return (stack[--top]);
 }
 
@@ -108,7 +108,7 @@ Stack<T>::Empty() {
 
 //----------------------------------------------------------------------
 // Stack<T>::SelfTest
-// 	Test our stack implementation by pushing 10 T's onto the 
+// 	Test our stack implementation by pushing 10 T's onto the
 //	stack, and then print them as it pops them off.
 //----------------------------------------------------------------------
 
@@ -116,16 +116,16 @@ template <class T>
 void
 Stack<T>::SelfTest(T start) {
     T count = start;
-    
+
     // Put a bunch of stuff in the stack...
     while (!Full()) {
-	cout << "pushing " << count << "\n";
-	Push(count++);
+        cout << "pushing " << count << "\n";
+        Push(count++);
     }
-    
+
     // ... and take it out again.
     while (!Empty()) {
-	cout << "popping " << Pop() << "\n";
+        cout << "popping " << Pop() << "\n";
     }
 }
 
@@ -136,8 +136,8 @@ Stack<T>::SelfTest(T start) {
 
 int
 main() {
-    Stack<int> *s1 = new Stack<int>(10);   
-    Stack<char> *s2 = new Stack<char>(10);   
+    Stack<int> *s1 = new Stack<int>(10);
+    Stack<char> *s2 = new Stack<char>(10);
 
     cout << "Testing Stack<int>\n";
     s1->SelfTest(17);

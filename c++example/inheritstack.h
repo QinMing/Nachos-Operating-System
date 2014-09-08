@@ -5,7 +5,7 @@
 //	illustrate C++ inheritance.
 //
 // Copyright (c) 1992,1993,1995 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #ifndef INHERITSTACK_H		// to prevent recursive includes
@@ -21,23 +21,23 @@
 // classes that inherit from it.
 
 class Stack {
-  public:
+public:
     virtual ~Stack();   // Destructor
-    
+
     virtual void Push(int value) = 0; // Push an integer on the stack
     virtual int Pop() = 0;      // Pop an integer off the stack
-    
+
     virtual bool Full() = 0;    // Returns TRUE if the stack is full
     virtual bool Empty() = 0;   // Returns TRUE if the stack is empty
 
     void SelfTest(int numToPush); // Test whether the implementation works.
-                        // Note that the test routine is shared among
-			// all derived classes because it shouldn't 
-			// matter to the test code which version we're using!
+    // Note that the test routine is shared among
+    // all derived classes because it shouldn't
+    // matter to the test code which version we're using!
 
-  protected:
-    Stack();            // Constructor is protected to prevent anyone but 
-			// derived classes from calling constructor.
+protected:
+    Stack();            // Constructor is protected to prevent anyone but
+    // derived classes from calling constructor.
 };
 
 
@@ -46,17 +46,17 @@ class Stack {
 // except we don't need a SelfTest() because that's defined above by Stack!
 
 class ArrayStack : public Stack {
-  public:
+public:
     ArrayStack(int sz);    // Constructor:  initialize variables, allocate space.
     ~ArrayStack();         // Destructor:   deallocate space allocated above.
-    
+
     void Push(int value); // Push an integer on the stack
     int Pop();        // Pop an integer off the stack
-    
+
     bool Full();       // Returns TRUE if the stack is full
     bool Empty();      // Returns TRUE if the stack is empty
 
-  private:
+private:
     int size;         // The maximum capacity of the stack.
     int top;          // Index of the next position to be used.
     int *stack;       // A pointer to an array that holds the contents.
@@ -69,17 +69,17 @@ class ArrayStack : public Stack {
 // need to pass a maximum size into the constructor.
 
 class ListStack : public Stack {
-  public:
+public:
     ListStack();    // Constructor:  initialize variables, allocate space.
     ~ListStack();   // Destructor:   deallocate space allocated above.
-    
+
     void Push(int value); // Push an integer on the stack
     int Pop();     // Pop an integer off the stack
-    
+
     bool Full();   // Always return FALSE, this implementation never overflows
     bool Empty();  // Returns TRUE if the stack is empty
 
-  private:
+private:
     List *stack;
 };
 

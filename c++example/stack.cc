@@ -1,12 +1,12 @@
 // stack.cc
 //	Routines to implement a LIFO stack of integers.
-//	
+//
 //	The stack is represented as an array; we return an error
 //	if the caller tries to push more things onto the stack than we have
 //	room for.
 //
 // Copyright (c) 1992,1993,1995 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 
@@ -61,7 +61,7 @@ Stack::~Stack() {
 void
 Stack::Push(int value) {
     ASSERT(!Full());
-    
+
     stack[top++] = value;
 }
 
@@ -75,7 +75,7 @@ int
 Stack::Pop() {
 
     ASSERT(!Empty());
-    
+
     return (stack[--top]);
 }
 
@@ -101,23 +101,23 @@ Stack::Empty() {
 
 //----------------------------------------------------------------------
 // Stack::SelfTest
-// 	Test our stack implementation by pushing 10 numbers onto the 
+// 	Test our stack implementation by pushing 10 numbers onto the
 //	stack, and then print them as it pops them off.
 //----------------------------------------------------------------------
 
 void
 Stack::SelfTest() {
     int count = 17;
-    
+
     // Put a bunch of stuff in the stack...
     while (!Full()) {
-	cout << "pushing " << count << "\n";
-	Push(count++);
+        cout << "pushing " << count << "\n";
+        Push(count++);
     }
-    
+
     // ... and take it out again.
     while (!Empty()) {
-	cout << "popping " << Pop() << "\n";
+        cout << "popping " << Pop() << "\n";
     }
 }
 

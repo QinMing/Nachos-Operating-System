@@ -23,6 +23,6 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 */
 
 static const char *copyright = "Copyright (c) 1992,1993,1995"
-" The Regents of the University of California.  All rights reserved.";
+                               " The Regents of the University of California.  All rights reserved.";
 
 #endif  /* COPYRIGHT_H */
