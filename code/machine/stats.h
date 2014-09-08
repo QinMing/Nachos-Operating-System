@@ -1,11 +1,11 @@
-// stats.h 
+// stats.h
 //	Data structures for gathering statistics about Nachos performance.
 //
 // DO NOT CHANGE -- these stats are maintained by the machine emulation
 //
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #ifndef STATS_H
@@ -20,13 +20,13 @@
 // The fields in this class are public to make it easier to update.
 
 class Statistics {
-  public:
+public:
     int totalTicks;      	// Total time running Nachos
     int idleTicks;       	// Time spent idle (no threads to run)
     int systemTicks;	 	// Time spent executing system code
     int userTicks;       	// Time spent executing user code
-				// (this is also equal to # of
-				// user instructions executed)
+    // (this is also equal to # of
+    // user instructions executed)
 
     int numDiskReads;		// number of disk read requests
     int numDiskWrites;		// number of disk write requests
@@ -42,7 +42,7 @@ class Statistics {
 };
 
 // Constants used to reflect the relative time an operation would
-// take in a real system.  A "tick" is a just a unit of time -- if you 
+// take in a real system.  A "tick" is a just a unit of time -- if you
 // like, a microsecond.
 //
 // Since Nachos kernel code is directly executed, and the time spent

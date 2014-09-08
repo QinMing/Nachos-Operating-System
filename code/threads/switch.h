@@ -10,7 +10,7 @@
 
 /*
  Copyright (c) 1992-1993 The Regents of the University of California.
- All rights reserved.  See copyright.h for copyright notice and limitation 
+ All rights reserved.  See copyright.h for copyright notice and limitation
  of liability and disclaimer of warranty provisions.
  */
 
@@ -21,8 +21,8 @@
 
 #ifdef HOST_MIPS
 
-/* Registers that must be saved during a context switch. 
- * These are the offsets from the beginning of the Thread object, 
+/* Registers that must be saved during a context switch.
+ * These are the offsets from the beginning of the Thread object,
  * in bytes, used in switch.s
  */
 #define SP 0
@@ -63,7 +63,7 @@
 
 #ifdef HOST_SPARC
 
-/* Registers that must be saved during a context switch.  See comment above. */ 
+/* Registers that must be saved during a context switch.  See comment above. */
 #define I0 4
 #define I1 8
 #define I2 12
@@ -92,7 +92,7 @@
 
 #ifdef HOST_SNAKE
 
-/* Registers that must be saved during a context switch.  See comment above. */ 
+/* Registers that must be saved during a context switch.  See comment above. */
 #define   SP   0
 #define   S0   4
 #define   S1   8

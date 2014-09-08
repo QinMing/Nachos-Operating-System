@@ -1,10 +1,10 @@
-// mipssim.h 
+// mipssim.h
 //	Internal data structures for simulating the MIPS instruction set.
 //
 //  DO NOT CHANGE -- part of the machine emulation
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #ifndef MIPSSIM_H
@@ -152,7 +152,7 @@ static int specialTable[] = {
 
 // Stuff to help print out each instruction, for debugging
 
-enum RegType { NONE, RS, RT, RD, EXTRA }; 
+enum RegType { NONE, RS, RT, RD, EXTRA };
 
 struct OpString {
     char *string;	// Printed version of instruction
@@ -160,70 +160,70 @@ struct OpString {
 };
 
 static struct OpString opStrings[] = {
-	{"Shouldn't happen", {NONE, NONE, NONE}},
-	{"ADD r%d,r%d,r%d", {RD, RS, RT}},
-	{"ADDI r%d,r%d,%d", {RT, RS, EXTRA}},
-	{"ADDIU r%d,r%d,%d", {RT, RS, EXTRA}},
-	{"ADDU r%d,r%d,r%d", {RD, RS, RT}},
-	{"AND r%d,r%d,r%d", {RD, RS, RT}},
-	{"ANDI r%d,r%d,%d", {RT, RS, EXTRA}},
-	{"BEQ r%d,r%d,%d", {RS, RT, EXTRA}},
-	{"BGEZ r%d,%d", {RS, EXTRA, NONE}},
-	{"BGEZAL r%d,%d", {RS, EXTRA, NONE}},
-	{"BGTZ r%d,%d", {RS, EXTRA, NONE}},
-	{"BLEZ r%d,%d", {RS, EXTRA, NONE}},
-	{"BLTZ r%d,%d", {RS, EXTRA, NONE}},
-	{"BLTZAL r%d,%d", {RS, EXTRA, NONE}},
-	{"BNE r%d,r%d,%d", {RS, RT, EXTRA}},
-	{"Shouldn't happen", {NONE, NONE, NONE}},
-	{"DIV r%d,r%d", {RS, RT, NONE}},
-	{"DIVU r%d,r%d", {RS, RT, NONE}},
-	{"J %d", {EXTRA, NONE, NONE}},
-	{"JAL %d", {EXTRA, NONE, NONE}},
-	{"JALR r%d,r%d", {RD, RS, NONE}},
-	{"JR r%d,r%d", {RD, RS, NONE}},
-	{"LB r%d,%d(r%d)", {RT, EXTRA, RS}},
-	{"LBU r%d,%d(r%d)", {RT, EXTRA, RS}},
-	{"LH r%d,%d(r%d)", {RT, EXTRA, RS}},
-	{"LHU r%d,%d(r%d)", {RT, EXTRA, RS}},
-	{"LUI r%d,%d", {RT, EXTRA, NONE}},
-	{"LW r%d,%d(r%d)", {RT, EXTRA, RS}},
-	{"LWL r%d,%d(r%d)", {RT, EXTRA, RS}},
-	{"LWR r%d,%d(r%d)", {RT, EXTRA, RS}},
-	{"Shouldn't happen", {NONE, NONE, NONE}},
-	{"MFHI r%d", {RD, NONE, NONE}},
-	{"MFLO r%d", {RD, NONE, NONE}},
-	{"Shouldn't happen", {NONE, NONE, NONE}},
-	{"MTHI r%d", {RS, NONE, NONE}},
-	{"MTLO r%d", {RS, NONE, NONE}},
-	{"MULT r%d,r%d", {RS, RT, NONE}},
-	{"MULTU r%d,r%d", {RS, RT, NONE}},
-	{"NOR r%d,r%d,r%d", {RD, RS, RT}},
-	{"OR r%d,r%d,r%d", {RD, RS, RT}},
-	{"ORI r%d,r%d,%d", {RT, RS, EXTRA}},
-	{"RFE", {NONE, NONE, NONE}},
-	{"SB r%d,%d(r%d)", {RT, EXTRA, RS}},
-	{"SH r%d,%d(r%d)", {RT, EXTRA, RS}},
-	{"SLL r%d,r%d,%d", {RD, RT, EXTRA}},
-	{"SLLV r%d,r%d,r%d", {RD, RT, RS}},
-	{"SLT r%d,r%d,r%d", {RD, RS, RT}},
-	{"SLTI r%d,r%d,%d", {RT, RS, EXTRA}},
-	{"SLTIU r%d,r%d,%d", {RT, RS, EXTRA}},
-	{"SLTU r%d,r%d,r%d", {RD, RS, RT}},
-	{"SRA r%d,r%d,%d", {RD, RT, EXTRA}},
-	{"SRAV r%d,r%d,r%d", {RD, RT, RS}},
-	{"SRL r%d,r%d,%d", {RD, RT, EXTRA}},
-	{"SRLV r%d,r%d,r%d", {RD, RT, RS}},
-	{"SUB r%d,r%d,r%d", {RD, RS, RT}},
-	{"SUBU r%d,r%d,r%d", {RD, RS, RT}},
-	{"SW r%d,%d(r%d)", {RT, EXTRA, RS}},
-	{"SWL r%d,%d(r%d)", {RT, EXTRA, RS}},
-	{"SWR r%d,%d(r%d)", {RT, EXTRA, RS}},
-	{"XOR r%d,r%d,r%d", {RD, RS, RT}},
-	{"XORI r%d,r%d,%d", {RT, RS, EXTRA}},
-	{"SYSCALL", {NONE, NONE, NONE}},
-	{"Unimplemented", {NONE, NONE, NONE}},
-	{"Reserved", {NONE, NONE, NONE}}
-      };
+    {"Shouldn't happen", {NONE, NONE, NONE}},
+    {"ADD r%d,r%d,r%d", {RD, RS, RT}},
+    {"ADDI r%d,r%d,%d", {RT, RS, EXTRA}},
+    {"ADDIU r%d,r%d,%d", {RT, RS, EXTRA}},
+    {"ADDU r%d,r%d,r%d", {RD, RS, RT}},
+    {"AND r%d,r%d,r%d", {RD, RS, RT}},
+    {"ANDI r%d,r%d,%d", {RT, RS, EXTRA}},
+    {"BEQ r%d,r%d,%d", {RS, RT, EXTRA}},
+    {"BGEZ r%d,%d", {RS, EXTRA, NONE}},
+    {"BGEZAL r%d,%d", {RS, EXTRA, NONE}},
+    {"BGTZ r%d,%d", {RS, EXTRA, NONE}},
+    {"BLEZ r%d,%d", {RS, EXTRA, NONE}},
+    {"BLTZ r%d,%d", {RS, EXTRA, NONE}},
+    {"BLTZAL r%d,%d", {RS, EXTRA, NONE}},
+    {"BNE r%d,r%d,%d", {RS, RT, EXTRA}},
+    {"Shouldn't happen", {NONE, NONE, NONE}},
+    {"DIV r%d,r%d", {RS, RT, NONE}},
+    {"DIVU r%d,r%d", {RS, RT, NONE}},
+    {"J %d", {EXTRA, NONE, NONE}},
+    {"JAL %d", {EXTRA, NONE, NONE}},
+    {"JALR r%d,r%d", {RD, RS, NONE}},
+    {"JR r%d,r%d", {RD, RS, NONE}},
+    {"LB r%d,%d(r%d)", {RT, EXTRA, RS}},
+    {"LBU r%d,%d(r%d)", {RT, EXTRA, RS}},
+    {"LH r%d,%d(r%d)", {RT, EXTRA, RS}},
+    {"LHU r%d,%d(r%d)", {RT, EXTRA, RS}},
+    {"LUI r%d,%d", {RT, EXTRA, NONE}},
+    {"LW r%d,%d(r%d)", {RT, EXTRA, RS}},
+    {"LWL r%d,%d(r%d)", {RT, EXTRA, RS}},
+    {"LWR r%d,%d(r%d)", {RT, EXTRA, RS}},
+    {"Shouldn't happen", {NONE, NONE, NONE}},
+    {"MFHI r%d", {RD, NONE, NONE}},
+    {"MFLO r%d", {RD, NONE, NONE}},
+    {"Shouldn't happen", {NONE, NONE, NONE}},
+    {"MTHI r%d", {RS, NONE, NONE}},
+    {"MTLO r%d", {RS, NONE, NONE}},
+    {"MULT r%d,r%d", {RS, RT, NONE}},
+    {"MULTU r%d,r%d", {RS, RT, NONE}},
+    {"NOR r%d,r%d,r%d", {RD, RS, RT}},
+    {"OR r%d,r%d,r%d", {RD, RS, RT}},
+    {"ORI r%d,r%d,%d", {RT, RS, EXTRA}},
+    {"RFE", {NONE, NONE, NONE}},
+    {"SB r%d,%d(r%d)", {RT, EXTRA, RS}},
+    {"SH r%d,%d(r%d)", {RT, EXTRA, RS}},
+    {"SLL r%d,r%d,%d", {RD, RT, EXTRA}},
+    {"SLLV r%d,r%d,r%d", {RD, RT, RS}},
+    {"SLT r%d,r%d,r%d", {RD, RS, RT}},
+    {"SLTI r%d,r%d,%d", {RT, RS, EXTRA}},
+    {"SLTIU r%d,r%d,%d", {RT, RS, EXTRA}},
+    {"SLTU r%d,r%d,r%d", {RD, RS, RT}},
+    {"SRA r%d,r%d,%d", {RD, RT, EXTRA}},
+    {"SRAV r%d,r%d,r%d", {RD, RT, RS}},
+    {"SRL r%d,r%d,%d", {RD, RT, EXTRA}},
+    {"SRLV r%d,r%d,r%d", {RD, RT, RS}},
+    {"SUB r%d,r%d,r%d", {RD, RS, RT}},
+    {"SUBU r%d,r%d,r%d", {RD, RS, RT}},
+    {"SW r%d,%d(r%d)", {RT, EXTRA, RS}},
+    {"SWL r%d,%d(r%d)", {RT, EXTRA, RS}},
+    {"SWR r%d,%d(r%d)", {RT, EXTRA, RS}},
+    {"XOR r%d,r%d,r%d", {RD, RS, RT}},
+    {"XORI r%d,r%d,%d", {RT, RS, EXTRA}},
+    {"SYSCALL", {NONE, NONE, NONE}},
+    {"Unimplemented", {NONE, NONE, NONE}},
+    {"Reserved", {NONE, NONE, NONE}}
+};
 
 #endif // MIPSSIM_H

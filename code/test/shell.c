@@ -14,22 +14,22 @@ main()
 
     while( 1 )
     {
-	Write(prompt, 2, output);
+        Write(prompt, 2, output);
 
-	i = 0;
-	
-	do {
-	
-	    Read(&buffer[i], 1, input); 
+        i = 0;
 
-	} while( buffer[i++] != '\n' );
+        do {
 
-	buffer[--i] = '\0';
+            Read(&buffer[i], 1, input);
 
-	if( i > 0 ) {
-		newProc = Exec(buffer);
-		Join(newProc);
-	}
+        } while( buffer[i++] != '\n' );
+
+        buffer[--i] = '\0';
+
+        if( i > 0 ) {
+            newProc = Exec(buffer);
+            Join(newProc);
+        }
     }
 }
 

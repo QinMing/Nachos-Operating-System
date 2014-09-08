@@ -1,11 +1,11 @@
-// sysdep.h 
+// sysdep.h
 //	System-dependent interface.  Nachos uses the routines defined
 //	here, rather than directly calling the UNIX library functions, to
 //	simplify porting between versions of UNIX, and even to
 //	other systems, such as MSDOS and the Macintosh.
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #ifndef SYSDEP_H
@@ -58,9 +58,9 @@ extern void DeallocBoundedArray(char *p, int size);
 // Other C library routines that are used by Nachos.
 // These are assumed to be portable, so we don't include a wrapper.
 extern "C" {
-int atoi(const char *str);
-double atof(const char *str);
-int abs(int i);
+    int atoi(const char *str);
+    double atof(const char *str);
+    int abs(int i);
 
 #include <stdio.h>		// for printf, fprintf
 #include <string.h>		// for DEBUG, etc.
