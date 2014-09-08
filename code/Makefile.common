@@ -34,6 +34,7 @@ CPP= gcc -E
 CC = g++ -m32
 LD = g++ -m32
 AS = as --32
+MAKE = make
 
 PROGRAM = nachos
 
@@ -118,23 +119,23 @@ S_OFILES = switch.o
 
 OFILES = $(C_OFILES) $(S_OFILES)
 
+all:
+	@ $(MAKE) depend --no-print-directory
+	@ $(MAKE) $(PROGRAM) --no-print-directory
+
 $(PROGRAM): $(OFILES)
-	$(LD) $(OFILES) $(LDFLAGS) -o $(PROGRAM)
+	@ echo $@
+	@ $(LD) $(OFILES) $(LDFLAGS) -o $(PROGRAM)
 
 $(C_OFILES): %.o:
-	$(CC) $(CFLAGS) -c $<
+	@ echo $<
+	@ $(CC) $(CFLAGS) -c $<
 
 switch.o: ../threads/switch.s
-	$(CPP) -P -x c $(INCPATH) $(HOST) ../threads/switch.s > swtch.s
-	$(AS) -o switch.o swtch.s
+	@ echo $<
+	@ $(CPP) -P -x c $(INCPATH) $(HOST) ../threads/switch.s > swtch.s
+	@ $(AS) -o switch.o swtch.s
 
 depend: $(CFILES) $(HFILES)
-	$(CC) $(INCPATH) $(DEFINES) $(HOST) -DCHANGED -M $(CFILES) > makedep
-	echo '/^# DO NOT DELETE THIS LINE/+2,$$d' >eddep
-	echo '$$r makedep' >>eddep
-	echo 'w' >>eddep
-	ed - Makefile < eddep
-	rm eddep makedep 
-	echo '# DEPENDENCIES MUST END AT END OF FILE' >> Makefile
-	echo '# IF YOU PUT STUFF HERE IT WILL GO AWAY' >> Makefile
-	echo '# see make depend above' >> Makefile
+	@ echo building dependencies
+	@ $(CC) $(INCPATH) $(DEFINES) $(HOST) -DCHANGED -M $(CFILES) > deps.mk

@@ -2,3 +2,4 @@
 nachos
 swtch.s
 *.coff
+deps.mk
