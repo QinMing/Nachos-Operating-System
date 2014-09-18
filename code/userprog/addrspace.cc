@@ -125,7 +125,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 
 AddrSpace::~AddrSpace()
 {
-   delete pageTable;
+   delete [] pageTable;
 }
 
 //----------------------------------------------------------------------
