@@ -1,10 +1,10 @@
-// stats.h 
+// stats.h
 //	Routines for managing statistics about Nachos performance.
 //
 // DO NOT CHANGE -- these stats are maintained by the machine emulation.
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
@@ -33,12 +33,12 @@ Statistics::Statistics()
 void
 Statistics::Print()
 {
-    printf("Ticks: total %d, idle %d, system %d, user %d\n", totalTicks, 
-	idleTicks, systemTicks, userTicks);
+    printf("Ticks: total %d, idle %d, system %d, user %d\n", totalTicks,
+           idleTicks, systemTicks, userTicks);
     printf("Disk I/O: reads %d, writes %d\n", numDiskReads, numDiskWrites);
-    printf("Console I/O: reads %d, writes %d\n", numConsoleCharsRead, 
-	numConsoleCharsWritten);
+    printf("Console I/O: reads %d, writes %d\n", numConsoleCharsRead,
+           numConsoleCharsWritten);
     printf("Paging: faults %d\n", numPageFaults);
-    printf("Network I/O: packets received %d, sent %d\n", numPacketsRecvd, 
-	numPacketsSent);
+    printf("Network I/O: packets received %d, sent %d\n", numPacketsRecvd,
+           numPacketsSent);
 }

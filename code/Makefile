@@ -31,7 +31,7 @@ tags:
 	ctags -h=.cc.h -R
 
 fmt:
-	astyle `find . -name *.c` `find . -name *.h` -nQ
+	astyle `find . -name *.c` `find . -name *.h` `find . -name *.cc` -nQ
 
 ubuntu:
 	sudo apt-get install gcc-multilib g++-multilib lib32stdc++6 

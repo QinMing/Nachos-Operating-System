@@ -8,3 +8,7 @@ inheritstack: inheritstack.h inheritstack.cc list.h list.cc
 
 templatestack: templatestack.h templatestack.cc
 	g++ -o templatestack templatestack.cc
+
+.PHONY: fmt
+fmt:
+	astyle *.cc *.h -nQ

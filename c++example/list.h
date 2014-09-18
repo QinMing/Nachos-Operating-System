@@ -1,8 +1,8 @@
-// list.h 
-//	Data structures to manage LISP-like lists.  
+// list.h
+//	Data structures to manage LISP-like lists.
 //
 // Copyright (c) 1992,1993,1995 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #ifndef LIST_H
@@ -16,18 +16,18 @@ class ListElement;
 // list elements, each of which contains an integer.
 
 class List {
-  public:
+public:
     List();			// initialize the list
     ~List();			// de-allocate the list
 
     void Prepend(int value); 	// Put item at the beginning of the list
     int Remove(); 	 	// Take item off the front of the list
 
-    bool Empty();		// is the list empty? 
+    bool Empty();		// is the list empty?
 
     void SelfTest();
-    
-  private:
+
+private:
     ListElement *first;  	// Head of the list, NULL if list is empty
     ListElement *last;		// Last element of list
 };
