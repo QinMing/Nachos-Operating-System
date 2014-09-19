@@ -40,35 +40,32 @@ LD = $(GCCDIR)ld
 CPP = gcc -E
 INCDIR =-I../userprog -I../threads
 # CFLAGS = -G 0 -c $(INCDIR)
-CFLAGS = -c $(INCDIR)
+CFLAGS = -G 0 -c $(INCDIR)
 
-all: halt shell matmult sort
+CFILES = $(wildcard *.c)
+OFILES = $(patsubst %.c,_/%.o,$(CFILES))
+TARGETS = $(patsubst %.c,_/%,$(CFILES))
 
-start.o: start.s ../userprog/syscall.h
-	$(CPP) $(CPPFLAGS) start.c > strt.s
-	$(AS) $(ASFLAGS) -o start.o strt.s
-	rm strt.s
+.PRECIOUS: $(OFILES)
 
-halt.o: halt.c
-	$(CC) $(CFLAGS) -c halt.c
-halt: halt.o start.o
-	$(LD) $(LDFLAGS) start.o halt.o -o halt.coff
-	../bin/coff2noff halt.coff halt
+all: $(TARGETS)
 
-shell.o: shell.c
-	$(CC) $(CFLAGS) -c shell.c
-shell: shell.o start.o
-	$(LD) $(LDFLAGS) start.o shell.o -o shell.coff
-	../bin/coff2noff shell.coff shell
+_/start.o: start.cc ../userprog/syscall.h
+	@mkdir -p _
+	$(CPP) $(CPPFLAGS) start.cc > _/strt.s
+	$(AS) $(ASFLAGS) -o _/start.o _/strt.s
 
-sort.o: sort.c
-	$(CC) $(CFLAGS) -c sort.c
-sort: sort.o start.o
-	$(LD) $(LDFLAGS) start.o sort.o -o sort.coff
-	../bin/coff2noff sort.coff sort
+_/%: _/%.o _/start.o
+	@mkdir -p _
+	$(LD) $(LDFLAGS) $^ -o $@.coff
+	../bin/coff2noff $@.coff $@ > $@.log
+	@cp $@ $(notdir $@)
 
-matmult.o: matmult.c
-	$(CC) $(CFLAGS) -c matmult.c
-matmult: matmult.o start.o
-	$(LD) $(LDFLAGS) start.o matmult.o -o matmult.coff
-	../bin/coff2noff matmult.coff matmult
+_/%.o: %.c
+	@mkdir -p _
+	$(CC) $(CFLAGS) -c halt.c -o $@
+
+.PHONY: clean
+
+clean:
+	rm -rf _
