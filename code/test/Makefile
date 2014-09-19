@@ -55,7 +55,7 @@ _/start.o: start.cc ../userprog/syscall.h
 	$(CPP) $(CPPFLAGS) start.cc > _/strt.s
 	$(AS) $(ASFLAGS) -o _/start.o _/strt.s
 
-_/%: _/%.o _/start.o
+_/%: _/start.o _/%.o
 	@mkdir -p _
 	$(LD) $(LDFLAGS) $^ -o $@.coff
 	../bin/coff2noff $@.coff $@ > $@.log
@@ -63,7 +63,7 @@ _/%: _/%.o _/start.o
 
 _/%.o: %.c
 	@mkdir -p _
-	$(CC) $(CFLAGS) -c halt.c -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 .PHONY: clean
 
