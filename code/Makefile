@@ -2,6 +2,8 @@
 # All rights reserved.  See copyright.h for copyright notice and limitation 
 # of liability and disclaimer of warranty provisions.
 
+.PHONY: clean tags fmt ubuntu print turnin
+
 MAKE=make --no-print-directory
 LPR=lpr
 
@@ -45,3 +47,7 @@ print:
 	$(LPR) machine/*.h machine/*.cc
 	$(LPR) bin/noff.h bin/coff.h bin/coff2noff.c
 	$(LPR) test/*.h test/*.c test/*.s
+
+turnin: clean
+	cd .. && tar czf code.tgz code
+	turnin ../code.tgz
