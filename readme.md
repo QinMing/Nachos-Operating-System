@@ -25,5 +25,5 @@ a Ubuntu 14.4 LTS 64-bit:
 $ sudo apt-get install gcc-multilib g++-multilib lib32stdc++6
 ```
 
-(Not sure if this works with other versions of Ubuntu or Linux.)
+(Not sure if this works with other versions of Ubuntu or Linux dists.)
 
