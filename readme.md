@@ -2,7 +2,7 @@
 
 CSE 120 Project for UCSD
 
-## Install on the lab machines
+## Install on the Lab Machines
 
 To start and test:
 
@@ -14,12 +14,12 @@ $ cd threads
 $ ./nachos
 ```
 
-This should work on ieng machines.
+This should work on the ieng machines.
 
-## Install on a 64-bit Ubuntu machine
+## Install on a 64-bit Ubuntu 
 
 Nachos requires 32-bit headers and libraries. To install these on
-Ubuntu 14.4 LTS 64-bit:
+a Ubuntu 14.4 LTS 64-bit:
 
 ```
 $ sudo apt-get install gcc-multilib g++-multilib lib32stdc++6
