@@ -22,9 +22,9 @@ main()
     }
 
     /* then sort! */
-    for (i = 0; i < 1023; i++) {
+    for (i = 0; i < 1024; i++) {
         for (j = 0; j < i; j++) {
-            if (A[i] > A[j]) {	/* out of order -> need to swap ! */
+            if (A[i] < A[j]) {	/* out of order -> need to swap ! */
                 tmp = A[j];
                 A[j] = A[i];
                 A[i] = tmp;
