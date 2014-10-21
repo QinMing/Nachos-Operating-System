@@ -100,12 +100,66 @@ Semaphore::V()
 // Dummy functions -- so we can compile our later assignments
 // Note -- without a correct implementation of Condition::Wait(),
 // the test case in the network assignment won't work!
-Lock::Lock(char* debugName) {}
-Lock::~Lock() {}
-void Lock::Acquire() {}
-void Lock::Release() {}
+Lock::Lock(char* debugName) {
+  name = debugName;
+  held = 0;
+  thread = NULL;
+  queue = new List();
+}
 
-Condition::Condition(char* debugName) { }
+Lock::~Lock() {
+  delete queue;
+}
+
+void Lock::Acquire() {
+  // disable interrupts
+  IntStatus oldLevel = interrupt->SetLevel(IntOff);
+  
+  while (held) {
+    // block the thread
+    queue->Append((void*)currentThread);
+    currentThread->Sleep();
+  }
+
+  thread = currentThread;  
+  held = 1;
+  
+  // enable interrupts
+  (void) interrupt->SetLevel(oldLevel);
+}
+
+
+void Lock::Release() {
+
+  // disable interrupts
+  IntStatus oldLevel = interrupt->SetLevel(IntOff);
+
+  ASSERT(isHeldByCurrentThread()); // panic if lock is held by another thread
+
+  if (isHeldByCurrentThread()) {
+    // release the lock
+    held = 0;
+    thread = NULL;
+    Thread* t = (Thread*)queue->Remove();
+
+    if (t != NULL) {
+      // allow next thread to run
+      scheduler->ReadyToRun(t);
+    }
+  }
+  
+  // enable interrupts
+  (void) interrupt->SetLevel(oldLevel);
+}
+
+
+bool Lock::isHeldByCurrentThread() {
+  return thread == currentThread;
+}
+
+Condition::Condition(char* debugName) {
+  name = debugName;
+}
 Condition::~Condition() { }
 void Condition::Wait(Lock* conditionLock) {
     ASSERT(FALSE);

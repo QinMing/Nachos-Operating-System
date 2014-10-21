@@ -84,6 +84,9 @@ public:
 private:
     char* name;				// for debugging
     // plus some other stuff you'll need to define
+    int held; // 0 == FREE, 1 == BUSY
+    Thread* thread; // the thread that holds this lock
+    List* queue; // list of sleeping threads
 };
 
 // The following class defines a "condition variable".  A condition
