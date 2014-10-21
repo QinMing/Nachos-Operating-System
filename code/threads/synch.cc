@@ -152,17 +152,41 @@ void Lock::Release() {
   (void) interrupt->SetLevel(oldLevel);
 }
 
-
 bool Lock::isHeldByCurrentThread() {
   return thread == currentThread;
 }
 
+
+
 Condition::Condition(char* debugName) {
   name = debugName;
+  queue = new List();
 }
-Condition::~Condition() { }
+
+Condition::~Condition() {
+  delete queue;
+}
+
 void Condition::Wait(Lock* conditionLock) {
-    ASSERT(FALSE);
+
+  // disable interrupts
+  IntStatus oldLevel = interrupt->SetLevel(IntOff);
+  
+  if (conditionLock->isHeldByCurrentThread()) {
+    conditionLock->Release();
+    queue->Append((void*)currentThread);
+    currentThread->Sleep();
+    conditionLock->Acquire();
+  }
+
+  // enable interrupts
+  (void) interrupt->SetLevel(oldLevel);
 }
-void Condition::Signal(Lock* conditionLock) { }
-void Condition::Broadcast(Lock* conditionLock) { }
+
+void Condition::Signal(Lock* conditionLock) {
+
+}
+
+void Condition::Broadcast(Lock* conditionLock) {
+
+}
