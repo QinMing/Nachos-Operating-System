@@ -11,6 +11,7 @@
 
 #include "copyright.h"
 #include "system.h"
+#include "synch.h"
 
 // testnum is set in main.cc
 int testnum = 1;
@@ -53,6 +54,48 @@ ThreadTest1()
 }
 
 //----------------------------------------------------------------------
+// LockTest1
+//----------------------------------------------------------------------
+
+Lock *locktest1 = NULL;
+
+void
+LockThread1(int param)
+{
+    printf("L1:0\n");
+    locktest1->Acquire();
+    printf("L1:1\n");
+    currentThread->Yield();
+    printf("L1:2\n");
+    locktest1->Release();
+    printf("L1:3\n");
+}
+
+void
+LockThread2(int param)
+{
+    printf("L2:0\n");
+    locktest1->Acquire();
+    printf("L2:1\n");
+    currentThread->Yield();
+    printf("L2:2\n");
+    locktest1->Release();
+    printf("L2:3\n");
+}
+
+void
+LockTest1()
+{
+    DEBUG('t', "Entering LockTest1");
+
+    locktest1 = new Lock("LockTest1");
+
+    Thread *t = new Thread("one");
+    t->Fork(LockThread1, 0);
+    t = new Thread("two");
+    t->Fork(LockThread2, 0);
+}
+//----------------------------------------------------------------------
 // ThreadTest
 // 	Invoke a test routine.
 //----------------------------------------------------------------------
@@ -64,6 +107,9 @@ ThreadTest()
     case 1:
         ThreadTest1();
         break;
+    case 2:
+	LockTest1();
+	break;
     default:
         printf("No test specified.\n");
         break;
