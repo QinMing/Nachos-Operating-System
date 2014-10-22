@@ -117,6 +117,10 @@ void Lock::Acquire() {
   
   while (held) {
     // block the thread
+    if (isHeldByCurrentThread()) {
+      printf("Error: Attempt to acquire the same lock twice\n");
+      return;
+    }
     queue->Append((void*)currentThread);
     currentThread->Sleep();
   }
@@ -134,7 +138,7 @@ void Lock::Release() {
   // disable interrupts
   IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
-  ASSERT(isHeldByCurrentThread()); // panic if lock is held by another thread
+  // ASSERT(isHeldByCurrentThread()); // panic if lock is held by another thread
 
   if (isHeldByCurrentThread()) {
     // release the lock
@@ -146,7 +150,7 @@ void Lock::Release() {
       // allow next thread to run
       scheduler->ReadyToRun(t);
     }
-  }
+  } else printf("Error: Attempt to release a lock that isn't held\n");
   
   // enable interrupts
   (void) interrupt->SetLevel(oldLevel);
