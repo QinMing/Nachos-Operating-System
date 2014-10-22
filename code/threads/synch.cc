@@ -184,9 +184,32 @@ void Condition::Wait(Lock* conditionLock) {
 }
 
 void Condition::Signal(Lock* conditionLock) {
+  // disable interrupts
+  IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
+  if (conditionLock->isHeldByCurrentThread()) {
+    Thread* t = (Thread*)queue->Remove();
+    if (t != NULL) {
+      scheduler->ReadyToRun(t);
+    }
+  }
+
+  // enable interrupts
+  (void) interrupt->SetLevel(oldLevel);
 }
 
 void Condition::Broadcast(Lock* conditionLock) {
+  // disable interrupts
+  IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
+  if (conditionLock->isHeldByCurrentThread()) {
+    Thread* t = (Thread*)queue->Remove();
+    while (t != NULL) {
+      scheduler->ReadyToRun(t);
+      t = (Thread*)queue->Remove();
+    }
+  }
+
+  // enable interrupts
+  (void) interrupt->SetLevel(oldLevel);
 }
