@@ -113,6 +113,7 @@ Lock::~Lock() {
 
 void Lock::Acquire() {
   // disable interrupts
+  ASSERT(!isHeldByCurrentThread());
   IntStatus oldLevel = interrupt->SetLevel(IntOff);
   
   while (held) {
