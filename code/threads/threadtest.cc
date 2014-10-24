@@ -12,6 +12,7 @@
 #include "copyright.h"
 #include "system.h"
 #include "synch.h"
+//#include "cTest1.h"
 
 // testnum is set in main.cc
 int testnum = 1;
@@ -83,6 +84,22 @@ LockThread2(int param)
     printf("L2:3\n");
 }
 
+//This is Kevin.
+//These are tests for Lock(). Uncomment these if you want to see if 
+//they make the program abort(which it should)
+void
+LockThread3(int param){
+  //printf("testing: releasing lock that isn't held\n");
+  //locktest1->Release();
+}
+
+void
+LockThread4(int param){
+ // printf("testing: deleting a lock that is held\n");
+  //locktest1->~Lock();
+
+}
+
 void
 LockTest1()
 {
@@ -94,6 +111,10 @@ LockTest1()
     t->Fork(LockThread1, 0);
     t = new Thread("two");
     t->Fork(LockThread2, 0);
+    t = new Thread("three");
+    t->Fork(LockThread3, 0);
+    t = new Thread("four");
+    t->Fork(LockThread4, 0);
 }
 //----------------------------------------------------------------------
 // ThreadTest
@@ -103,16 +124,21 @@ LockTest1()
 void
 ThreadTest()
 {
-    switch (testnum) {
-    case 1:
-        ThreadTest1();
-        break;
-    case 2:
-	LockTest1();
-	break;
-    default:
-        printf("No test specified.\n");
-        break;
-    }
+	switch (testnum) {
+	case 1:
+		ThreadTest1();
+		break;
+	case 2:
+		LockTest1();
+		break;
+	//case 3:
+	//	cTest1 test;
+	//	test.run();
+	//	break;
+	default:
+		printf("No test specified.\n");
+
+		break;
+	}
 }
 

@@ -108,20 +108,22 @@ Lock::Lock(char* debugName) {
 }
 
 Lock::~Lock() {
+  ASSERT(held==0); 
   delete queue;
 }
 
 void Lock::Acquire() {
   // disable interrupts
+
   ASSERT(!isHeldByCurrentThread());
   IntStatus oldLevel = interrupt->SetLevel(IntOff);
   
   while (held) {
     // block the thread
-    if (isHeldByCurrentThread()) {
+   /* if (isHeldByCurrentThread()) {
       printf("Error: Attempt to acquire the same lock twice\n");
       return;
-    }
+    }*/
     queue->Append((void*)currentThread);
     currentThread->Sleep();
   }
@@ -140,7 +142,8 @@ void Lock::Release() {
   IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
   // ASSERT(isHeldByCurrentThread()); // panic if lock is held by another thread
-
+  ASSERT(isHeldByCurrentThread());
+  
   if (isHeldByCurrentThread()) {
     // release the lock
     held = 0;
