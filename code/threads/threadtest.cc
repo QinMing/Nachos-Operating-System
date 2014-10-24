@@ -101,6 +101,23 @@ LockThread4(int param){
 }
 
 void
+LockThreadDelete1(int param){
+    printf("LTD\n");
+    locktest1->Acquire();
+    locktest1->~Lock();
+}
+
+void
+LockThreadDelete2(int param){
+    locktest1->Acquire();
+}
+
+void
+LockThreadDelete3(int param){
+    locktest1->~Lock();
+}
+
+void
 LockTest1()
 {
     DEBUG('t', "Entering LockTest1");
@@ -115,6 +132,35 @@ LockTest1()
     t->Fork(LockThread3, 0);
     t = new Thread("four");
     t->Fork(LockThread4, 0);
+}
+
+//tests a thread deleting its own held lock before releasing
+void
+LockTestDelete1()
+{
+    DEBUG('t', "Entering LockTestDelete");
+
+    locktest1 = new Lock("LockTestDelete1");
+
+    Thread *t = new Thread("one");
+    t->Fork(LockThreadDelete1, 0);
+    t = new Thread("two");
+    t->Fork(LockThreadDelete2, 0);
+}
+
+
+//tests a thread holding a lock, and another thread trying to delete that lock
+void
+LockTestDelete2()
+{
+    DEBUG('t', "Entering LockTestDelete2");
+
+    locktest1 = new Lock("LockTestDelete1");
+
+    Thread *t = new Thread("one");
+    t->Fork(LockThreadDelete2, 0);
+    t = new Thread("two");
+    t->Fork(LockThreadDelete3, 0);
 }
 //----------------------------------------------------------------------
 // ThreadTest
@@ -131,11 +177,18 @@ ThreadTest()
 	case 2:
 		LockTest1();
 		break;
+    case 3:
+        LockTestDelete1();
+        break;
+    case 4:
+        LockTestDelete2();
+        break;
 	//case 3:
 	//	cTest1 test;
 	//	test.run();
 	//	break;
 	default:
+
 		printf("No test specified.\n");
 
 		break;
