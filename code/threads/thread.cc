@@ -32,7 +32,7 @@
 //	"threadName" is an arbitrary string, useful for debugging.
 //----------------------------------------------------------------------
 
-Thread::Thread(char* threadName)
+Thread::Thread(char* threadName, int join)
 {
     name = threadName;
     stackTop = NULL;
@@ -41,6 +41,8 @@ Thread::Thread(char* threadName)
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
+
+	if (join) Join();
 }
 
 //----------------------------------------------------------------------
@@ -62,6 +64,17 @@ Thread::~Thread()
     ASSERT(this != currentThread);
     if (stack != NULL)
         DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
+}
+
+
+//----------------------------------------------------------------------
+// Thread::Join
+//----------------------------------------------------------------------
+
+void Thread::Join() {
+	// A thread cannot call join on itself
+	ASSERT(this != currentThread);
+
 }
 
 //----------------------------------------------------------------------

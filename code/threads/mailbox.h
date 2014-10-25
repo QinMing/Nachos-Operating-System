@@ -15,12 +15,15 @@ public:
 	void Send(char* word);
 	char* Receive();
 
+	void Send(int message);
+	void Receive(int* message);
+
 private:
 	char* name;
 	Lock* lock;
 	Condition* canSend;
 	Condition* canReceive;
-	char* buff;
+	int* ibuff;
 	bool full;
 };
 

@@ -81,14 +81,14 @@ private:
     int machineState[MachineStateSize];  // all registers except for stackTop
 
 public:
-    Thread(char* debugName);		// initialize a Thread
+	Thread(char* debugName, int join = 0;);		// initialize a Thread
     ~Thread(); 				// deallocate a Thread
     // NOTE -- thread being deleted
     // must not be running when delete
     // is called
 
     // basic thread operations
-
+	void Join();
     void Fork(VoidFunctionPtr func, int arg); 	// Make thread run (*func)(arg)
     void Yield();  				// Relinquish the CPU if any
     // other thread is runnable
