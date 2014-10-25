@@ -15,6 +15,29 @@ Mailbox::~Mailbox(){
 	delete canReceive;
 }
 
+void Mailbox::Send(char* word){
+	lock->Acquire();
+
+	if (full) canSend->Wait(lock);
+	buff=word;
+	full=true;
+	canReceive->Signal(lock);
+
+	lock->Release();
+}
+
+char* Mailbox::Receive(){
+	lock->Acquire();
+
+	canReceive->Wait(lock);
+	char* message=buff;
+	full = false;
+	canSend->Signal(lock);
+
+	lock->Release();
+	return message;
+}
+
 void Mailbox::Send(int message) {
   // acquire the lock
   lock->Acquire();
@@ -45,7 +68,7 @@ void Mailbox::Receive(int* message) {
   }
 
   // point to the message stored in the buffer
-  (*message)=(*ibuff);
+  message = ibuff;
   full = false;
 
   // signal sender

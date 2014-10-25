@@ -23,6 +23,7 @@ private:
 	Lock* lock;
 	Condition* canSend;
 	Condition* canReceive;
+	char* buff;
 	int* ibuff;
 	bool full;
 };
