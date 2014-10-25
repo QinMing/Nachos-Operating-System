@@ -37,3 +37,43 @@ char* Mailbox::Receive(){
 	lock->Release();
 	return message;
 }
+
+void Mailbox::Send(int message) {
+  // acquire the lock
+  lock->Acquire();
+
+  // wait for empty buffer
+  while (ifull > 0) {
+    canSend->Wait(lock);
+  }
+
+  // store message in buffer
+  ibuff = message;
+  ifull++;
+  
+  // signal receiver
+  canRecieve->Signal(lock);
+  
+  // release the lock
+  lock->Release();
+}
+
+void Mailbox::Receive(int* message) {
+  // acquire the lock
+  lock->Acquire();
+  
+  // wait for messages
+  while (ifull == 0) {
+    canReceive->Wait(lock);
+  }
+
+  // point to the message stored in the buffer
+  message = ibuff;
+  ifull--;
+
+  // signal sender
+  canSend->Signal(lock);
+  
+  // release the lock
+  lock->Release();
+}
