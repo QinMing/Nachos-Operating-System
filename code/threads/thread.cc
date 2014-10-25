@@ -38,6 +38,7 @@ Thread::Thread(char* threadName, int join)
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
+    int priority = 0;
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
@@ -336,5 +337,16 @@ Thread::RestoreUserState()
 {
     for (int i = 0; i < NumTotalRegs; i++)
         machine->WriteRegister(i, userRegisters[i]);
+}
+
+void
+Thread::setPriority(int newPriority){
+    priority=newPriority;
+}
+
+
+int
+getPriority(){
+    return priority;
 }
 #endif
