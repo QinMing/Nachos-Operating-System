@@ -102,19 +102,24 @@ LockThread4(int param){
 
 void
 LockThreadDelete1(int param){
-    printf("LTD\n");
     locktest1->Acquire();
+    printf("LTD1\n");
     locktest1->~Lock();
 }
 
 void
 LockThreadDelete2(int param){
     locktest1->Acquire();
+    printf("LTD2\n");
+    locktest1->Release();
 }
 
 void
 LockThreadDelete3(int param){
+    locktest1->Acquire();
+    printf("LTD3\n");
     locktest1->~Lock();
+    printf("successfully deleted\n");
 }
 
 void
@@ -162,6 +167,81 @@ LockTestDelete2()
     t = new Thread("two");
     t->Fork(LockThreadDelete3, 0);
 }
+
+//----------------------------------------------------------------------
+// Condition tests
+//----------------------------------------------------------------------
+
+Condition *Conditiontest1 = NULL;
+
+//waiting on a condition variable without holding a Lock
+//then system abort
+//q -5
+void
+WaitCvWithoutHold1(int param)
+{
+    printf("WCWH1\n");
+    Conditiontest1->Wait(locktest1);
+}
+
+void WaitCvWithoutHold()
+{
+   DEBUG('t', "WaitCvWithoutHold");
+
+   locktest1 = new Lock("WaitCvWithoutHoldL");
+   Conditiontest1 = new Condition("WaitCvWithoutHoldC");
+	 Thread *t = new Thread("one");
+   t->Fork(WaitCvWithoutHold1, 0);
+}
+
+//signaling a condition variable wakes only one thread and broadcasting wakes up all threads
+//q -6
+/*
+void
+SignalBroadcast1(int param)
+{
+    printf("C1\n");
+    SignalBroadcastL->Acquire();
+    SignalBroadcast1->Wait(locktest1);
+}
+
+void
+SignalBroadcast2(int param)
+{
+    printf("C2\n");
+    SignalBroadcast1->Wait(locktest1);
+}
+
+void
+SignalBroadcast3(int param)
+{
+    printf("C3\n");
+    SignalBroadcast1->Wait(locktest1);
+}
+
+void
+SignalBroadcast4(int param)
+{
+    printf("C4\n");
+    SignalBroadcast1->Wait(locktest1);
+}
+
+void SignalBroadcast()
+{
+   DEBUG('t', "SignalBroadcast");
+
+   locktest1 = new Lock("SignalBroadcastL");
+   Conditiontest1 = new Condition("SignalBroadcastC");
+	 Thread *t = new Thread("one");
+   t->Fork(SignalBroadcast1, 0);
+   Thread *t = new Thread("two");
+   t->Fork(SignalBroadcast2, 0);
+   Thread *t = new Thread("three");
+   t->Fork(SignalBroadcast3, 0);
+   Thread *t = new Thread("four");
+   t->Fork(SignalBroadcast4, 0);
+}
+*/
 //----------------------------------------------------------------------
 // ThreadTest
 // 	Invoke a test routine.
@@ -182,6 +262,9 @@ ThreadTest()
         break;
     case 4:
         LockTestDelete2();
+        break;
+    case 5:
+        WaitCvWithoutHold();
         break;
 	//case 3:
 	//	cTest1 test;
