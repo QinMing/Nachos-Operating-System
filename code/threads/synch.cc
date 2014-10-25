@@ -108,7 +108,8 @@ Lock::Lock(char* debugName) {
 }
 
 Lock::~Lock() {
-  ASSERT(held==0); 
+  ASSERT(held==0);
+  ASSERT(queue->IsEmpty());
   delete queue;
 }
 
@@ -172,6 +173,7 @@ Condition::Condition(char* debugName) {
 }
 
 Condition::~Condition() {
+  ASSERT(queue->IsEmpty());
   delete queue;
 }
 
