@@ -38,11 +38,10 @@ Thread::Thread(char* threadName, int join)
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
+    willJoin = join;
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
-
-	if (join) Join();
 }
 
 //----------------------------------------------------------------------
@@ -72,8 +71,14 @@ Thread::~Thread()
 //----------------------------------------------------------------------
 
 void Thread::Join() {
-	// A thread cannot call join on itself
-	ASSERT(this != currentThread);
+  if (willJoin <= 0) return;
+
+  willJoin--; // ensure Join() can only be called once
+
+  // A thread cannot call join on itself
+  ASSERT(this != currentThread);
+
+
 
 }
 
