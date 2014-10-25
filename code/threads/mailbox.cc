@@ -43,13 +43,13 @@ void Mailbox::Send(int message) {
   lock->Acquire();
 
   // wait for empty buffer
-  while (ifull > 0) {
+  while (full) {
     canSend->Wait(lock);
   }
 
   // store message in buffer
   ibuff = message;
-  ifull++;
+  full = true;
   
   // signal receiver
   canRecieve->Signal(lock);
@@ -63,13 +63,13 @@ void Mailbox::Receive(int* message) {
   lock->Acquire();
   
   // wait for messages
-  while (ifull == 0) {
+  while (!full) {
     canReceive->Wait(lock);
   }
 
   // point to the message stored in the buffer
   message = ibuff;
-  ifull--;
+  full = false;
 
   // signal sender
   canSend->Signal(lock);

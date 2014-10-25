@@ -26,7 +26,6 @@ private:
 	char* buff;
 	int* ibuff;
 	bool full;
-	int ifull;
 };
 
 #endif //MAILBOX_H
