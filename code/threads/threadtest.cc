@@ -117,7 +117,9 @@ LockThreadDelete2(int param){
 void
 LockThreadDelete3(int param){
     locktest1->Acquire();
-    printf("LTD3\n");
+    printf("L3:1\n");
+    //locktest1->Release();//uncomment if want to test it CAN delete a lock when no one's holding
+    printf("L3:2\n");
     locktest1->~Lock();
     printf("successfully deleted\n");
 }
@@ -287,7 +289,6 @@ void SignalBroadcast22(int param)
     printf("C2:0\n");
     locktest1->Acquire();
     printf("C2:1\n");
-    Conditiontest1->~Condition(); //deleting a lock or condition variable should have no threads on the wait queue
     Conditiontest1->Wait(locktest1);
     printf("C2:2\n");
 }
@@ -303,6 +304,48 @@ void SignalBroadcast2()
    t = new Thread("two");
    t->Fork(SignalBroadcast22, 0);
 }
+
+//Conditon Variable Deleting tests
+
+void ConditonDelete1(int param)
+{
+   // Conditiontest1->~Condition();      //uncomment to see it can delete when no threads are on queue
+   //printf("Conditiontest1 deleted\n");
+    
+    printf("C1:0\n");
+    locktest1->Acquire();
+    printf("C1:1\n");
+    Conditiontest1->Wait(locktest1);
+    printf("C1:2\n");
+    locktest1->Release();
+    printf("C1:3\n");
+    
+}
+
+void ConditonDelete2(int param)
+{
+    
+    printf("C2:0\n");
+    locktest1->Acquire();
+    printf("C2:1\n");
+    Conditiontest1->~Condition(); //deleting a lock while there are threads on queue
+    printf("C2:2\n");
+  
+    
+}
+
+void ConditonDelete()
+{
+   DEBUG('t', "SignalBroadcast");
+
+   locktest1 = new Lock("ConditonDeleteL");
+   Conditiontest1 = new Condition("ConditonDeleteC");
+   Thread *t = new Thread("one");
+   t->Fork(ConditonDelete1, 0);
+   t = new Thread("two");
+   t->Fork(ConditonDelete2, 0);
+}
+
 //----------------------------------------------------------------------
 // ThreadTest
 // 	Invoke a test routine.
@@ -333,8 +376,11 @@ ThreadTest()
     case 7:
         SignalBroadcast2();
         break;
+    case 8:
+        ConditonDelete();
+        break;
 	
-	default:
+        default:
 
 		printf("No test specified.\n");
 
