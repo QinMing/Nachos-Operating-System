@@ -29,7 +29,7 @@ void Mailbox::Send(int message) {
   full = true;
   
   // signal receiver
-  canRecieve->Signal(lock);
+  canReceive->Signal(lock);
   
   // release the lock
   lock->Release();
@@ -45,7 +45,7 @@ void Mailbox::Receive(int* message) {
   }
 
   // point to the message stored in the buffer
-  (*message)=(*ibuff);
+  (*message)=ibuff;
   full = false;
 
   // signal sender
