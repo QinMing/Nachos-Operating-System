@@ -194,7 +194,7 @@ void Condition::Wait(Lock* conditionLock) {
 void Condition::Signal(Lock* conditionLock) {
   // disable interrupts
   IntStatus oldLevel = interrupt->SetLevel(IntOff);
-
+s
   ASSERT(conditionLock->isHeldByCurrentThread());
 
   Thread* t = (Thread*)queue->Remove();
