@@ -22,6 +22,6 @@ private:
 	Condition* canReceive;
 	char* buff;
 	bool full;
-}
+};
 
 #endif //MAILBOX_H

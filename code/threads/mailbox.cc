@@ -8,7 +8,7 @@ Mailbox::Mailbox(char* debugName){
 	full=false;
 }
 Mailbox::~Mailbox(){
-	ASSERT(lock->held == 0);//make sure it's not in use
+	ASSERT(lock->isAcquired() == 0);//make sure it's not in use
 	DEBUG('t', "Deleting mailbox \"%s\"\n", name);
 	delete lock;
 	delete canSend;
@@ -16,9 +16,9 @@ Mailbox::~Mailbox(){
 }
 
 void Mailbox::Send(char* word){
-	lock->Aquire();
+	lock->Acquire();
 
-	if (full) canSend->Wait();
+	if (full) canSend->Wait(lock);
 	buff=word;
 	full=true;
 	canReceive->Signal(lock);
@@ -27,7 +27,7 @@ void Mailbox::Send(char* word){
 }
 
 char* Mailbox::Receive(){
-	lock->Aquire();
+	lock->Acquire();
 
 	canReceive->Wait(lock);
 	char* message=buff;
