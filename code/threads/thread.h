@@ -81,7 +81,7 @@ private:
     int machineState[MachineStateSize];  // all registers except for stackTop
 
 public:
-	Thread(char* debugName, int join = 0;);		// initialize a Thread
+	Thread(char* debugName, int join = 0);		// initialize a Thread
     ~Thread(); 				// deallocate a Thread
     // NOTE -- thread being deleted
     // must not be running when delete
