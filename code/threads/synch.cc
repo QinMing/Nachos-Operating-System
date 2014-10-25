@@ -174,6 +174,7 @@ Condition::Condition(char* debugName) {
 
 Condition::~Condition() {
   ASSERT(queue->IsEmpty());
+  ASSERT((Thread*)queue==NULL);
   delete queue;
 }
 
