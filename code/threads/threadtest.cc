@@ -306,14 +306,16 @@ void SignalBroadcast2()
 }
 
 //Conditon Variable Deleting tests
+//-q 8
 
 void ConditonDelete1(int param)
 {
-   // Conditiontest1->~Condition();      //uncomment to see it can delete when no threads are on queue
-   //printf("Conditiontest1 deleted\n");
+    
     
     printf("C1:0\n");
     locktest1->Acquire();
+    //Conditiontest1->~Condition();      //uncomment to see it can delete when no threads are on queue
+    //printf("Conditiontest1 deleted\n");//uncomment to see it can delete when no threads are on queue
     printf("C1:1\n");
     Conditiontest1->Wait(locktest1);
     printf("C1:2\n");
