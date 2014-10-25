@@ -209,6 +209,7 @@ SignalBroadcast1(int param)
     printf("C1:3\n");
     Conditiontest1->Wait(locktest1);
     printf("C1:4\n");
+    
 }
 
 void
@@ -265,6 +266,43 @@ void SignalBroadcast()
    t->Fork(SignalBroadcast4, 0);
 }
 
+//signaling and broadcasting to a condition variable with no waiters is a no-op, and future threads that wait will block
+//-q 7
+
+void SignalBroadcast11(int param)
+{
+    printf("C1:0\n");
+    locktest1->Acquire();
+    printf("C1:1\n");
+    Conditiontest1->Signal(locktest1);
+    printf("C1:3\n");
+    Conditiontest1->Broadcast(locktest1);
+    printf("C1:4\n");
+    Conditiontest1->Wait(locktest1);
+    printf("C1:5\n");
+}
+
+void SignalBroadcast22(int param)
+{
+    printf("C2:0\n");
+    locktest1->Acquire();
+    printf("C2:1\n");
+    Conditiontest1->~Condition(); //deleting a lock or condition variable should have no threads on the wait queue
+    Conditiontest1->Wait(locktest1);
+    printf("C2:2\n");
+}
+
+void SignalBroadcast2()
+{
+   DEBUG('t', "SignalBroadcast");
+
+   locktest1 = new Lock("SignalBroadcastL");
+   Conditiontest1 = new Condition("SignalBroadcastC");
+   Thread *t = new Thread("one");
+   t->Fork(SignalBroadcast11, 0);
+   t = new Thread("two");
+   t->Fork(SignalBroadcast22, 0);
+}
 //----------------------------------------------------------------------
 // ThreadTest
 // 	Invoke a test routine.
@@ -292,10 +330,10 @@ ThreadTest()
     case 6:
         SignalBroadcast();
         break;
-	//case 3:
-	//	cTest1 test;
-	//	test.run();
-	//	break;
+    case 7:
+        SignalBroadcast2();
+        break;
+	
 	default:
 
 		printf("No test specified.\n");
