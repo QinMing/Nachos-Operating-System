@@ -12,9 +12,6 @@ public:
 	char* getName(){
 		return name;
 	}
-	void Send(char* word);
-	char* Receive();
-
 	void Send(int message);
 	void Receive(int* message);
 
