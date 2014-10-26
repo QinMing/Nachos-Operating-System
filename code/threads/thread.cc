@@ -17,7 +17,6 @@
 #include "copyright.h"
 #include "thread.h"
 #include "switch.h"
-#include "synch.h"
 #include "system.h"
 
 #define STACK_FENCEPOST 0xdeadbeef	// this is put at the top of the
@@ -38,11 +37,14 @@ Thread::Thread(char* threadName, int join)
     stack = NULL;
     status = JUST_CREATED;
     priority = 0;
+
+    willJoin = join > 0 ? true : false;
+    lock = new Lock("Lock");
+    joinedOnMe = new Condition("JoinedOnMe");
+
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
-
-	if (join) Join();
 }
 
 //----------------------------------------------------------------------
@@ -64,21 +66,45 @@ Thread::~Thread()
     ASSERT(this != currentThread);
     if (stack != NULL)
         DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
+
+    delete lock;
+    delete joinedOnMe;
 }
 
 
 //----------------------------------------------------------------------
 // Thread::Join
+//
+// this == child
+// currentThread == parent
+//
 //----------------------------------------------------------------------
 
 void Thread::Join() {
-	// A thread cannot call join on itself
-	ASSERT(this != currentThread);
+  // disable interrupts
+  IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
-	//  [  Note from Ming ,  20:35:34 10/25/2014 ]
-	//Join() shouldn't be the method that's called by constructor function. 
-	//It should be called in "parent" thread
-	//So here should be a method that initiate the Join. Say, change the name to "initJoin()"
+  if (this == currentThread || !willJoin) {
+    // enable interrupts
+    (void) interrupt->SetLevel(oldLevel);
+    return; // Conditions for Join not satisfied
+  } else {
+    // get lock
+    lock->Acquire();
+    
+    // add currentThread to the queue
+    joinedOnMe->Wait(lock);
+
+    willJoin = false; // ensure Join() can only be called once
+
+    // release lock
+    lock->Release();
+
+    this->Sleep();
+  }
+
+  // enable interrupts
+  (void) interrupt->SetLevel(oldLevel);
 }
 
 //----------------------------------------------------------------------
@@ -166,6 +192,13 @@ Thread::Finish ()
     DEBUG('t', "Finishing thread \"%s\"\n", getName());
 
     threadToBeDestroyed = currentThread;
+
+    lock->Acquire();
+
+    // Added by Evan
+    joinedOnMe->Signal(lock);
+    lock->Release();
+    
     Sleep();					// invokes SWITCH
     // not reached
 }

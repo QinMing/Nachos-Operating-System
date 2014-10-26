@@ -39,6 +39,7 @@
 
 #include "copyright.h"
 #include "utility.h"
+#include "synch.h"
 
 #ifdef USER_PROGRAM
 #include "machine.h"
@@ -73,6 +74,9 @@ extern void ThreadPrint(int arg);
 //  Some threads also belong to a user address space; threads
 //  that only run in the kernel have a NULL address space.
 
+class Lock;
+class Condition;
+
 class Thread {
 private:
     // NOTE: DO NOT CHANGE the order of these first two members.
@@ -87,7 +91,7 @@ public:
     // must not be running when delete
     // is called
     // basic thread operations
-	void Join();
+    void Join();
     void Fork(VoidFunctionPtr func, int arg); 	// Make thread run (*func)(arg)
     void Yield();  				// Relinquish the CPU if any
     // other thread is runnable
@@ -120,7 +124,10 @@ private:
     char* name;
     int priority;
 
-    int willJoin; // 1 or 0 (whether the thread will join or not)
+    // Variables used for Thread::Join()
+    bool willJoin; // whether the thread will join or not
+    Lock* lock;
+    Condition* joinedOnMe;
 
     void StackAllocate(VoidFunctionPtr func, int arg);
     // Allocate a stack for thread.
