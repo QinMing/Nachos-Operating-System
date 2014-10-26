@@ -74,7 +74,7 @@ extern void ThreadPrint(int arg);
 //  Some threads also belong to a user address space; threads
 //  that only run in the kernel have a NULL address space.
 
-class Lock;
+class Lock; // forward declarations
 class Condition;
 
 class Thread {

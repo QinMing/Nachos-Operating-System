@@ -81,6 +81,10 @@ Thread::~Thread()
 //----------------------------------------------------------------------
 
 void Thread::Join() {
+
+  ASSERT(this != currentThread);
+  ASSERT(willJoin);
+
   // disable interrupts
   IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
@@ -88,6 +92,7 @@ void Thread::Join() {
     // enable interrupts
     (void) interrupt->SetLevel(oldLevel);
     return; // Conditions for Join not satisfied
+
   } else {
     // get lock
     lock->Acquire();
