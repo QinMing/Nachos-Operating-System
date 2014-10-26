@@ -117,6 +117,8 @@ private:
     ThreadStatus status;		// ready, running or blocked
     char* name;
 
+    int willJoin; // 1 or 0 (whether the thread will join or not)
+
     void StackAllocate(VoidFunctionPtr func, int arg);
     // Allocate a stack for thread.
     // Used internally by Fork()
