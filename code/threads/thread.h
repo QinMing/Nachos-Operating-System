@@ -86,7 +86,6 @@ public:
     // NOTE -- thread being deleted
     // must not be running when delete
     // is called
-
     // basic thread operations
 	void Join();
     void Fork(VoidFunctionPtr func, int arg); 	// Make thread run (*func)(arg)
@@ -107,6 +106,9 @@ public:
     void Print() {
         printf("%s, ", name);
     }
+    void setPriority(int newPriority);
+    int getPriority();
+    
 
 private:
     // some of the private data for this class is listed above
@@ -116,6 +118,7 @@ private:
     // (If NULL, don't deallocate stack)
     ThreadStatus status;		// ready, running or blocked
     char* name;
+    int priority;
 
     int willJoin; // 1 or 0 (whether the thread will join or not)
 

@@ -31,21 +31,18 @@
 //
 //	"threadName" is an arbitrary string, useful for debugging.
 //----------------------------------------------------------------------
-
 Thread::Thread(char* threadName, int join)
 {
     name = threadName;
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
-<<<<<<< HEAD
-    int priority = 0;
-=======
-    willJoin = join;
->>>>>>> 24878e8e834a811db18b246ef54974c69b6f1209
+    priority = 0;
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
+
+	if (join) Join();
 }
 
 //----------------------------------------------------------------------
@@ -75,14 +72,8 @@ Thread::~Thread()
 //----------------------------------------------------------------------
 
 void Thread::Join() {
-  if (willJoin <= 0) return;
-
-  willJoin--; // ensure Join() can only be called once
-
-  // A thread cannot call join on itself
-  ASSERT(this != currentThread);
-
-
+	// A thread cannot call join on itself
+	ASSERT(this != currentThread);
 
 }
 
@@ -266,6 +257,16 @@ void ThreadPrint(int arg) {
     t->Print();
 }
 
+void
+Thread::setPriority(int newPriority){
+    priority=newPriority;
+}
+
+
+int
+Thread::getPriority(){
+    return priority;
+}
 //----------------------------------------------------------------------
 // Thread::StackAllocate
 //	Allocate and initialize an execution stack.  The stack is
@@ -347,14 +348,4 @@ Thread::RestoreUserState()
         machine->WriteRegister(i, userRegisters[i]);
 }
 
-void
-Thread::setPriority(int newPriority){
-    priority=newPriority;
-}
-
-
-int
-getPriority(){
-    return priority;
-}
 #endif
