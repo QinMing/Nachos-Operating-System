@@ -349,6 +349,45 @@ void ConditonDelete()
    t->Fork(ConditonDelete2, 0);
 }
 
+void
+priorityThread1(int param){
+    locktest1->Acquire();
+    printf("in priorityThread1\n");
+    locktest1->Release();
+}
+
+void
+priorityThread2(int param){
+    locktest1->Acquire();
+    printf("in priorityThread2\n");
+    locktest1->Release();
+}
+
+void
+priorityThread3(int param){
+    locktest1->Acquire();
+    printf("in priorityThread3\n");
+    locktest1->Release();
+}
+
+void
+priorityTest(){
+    DEBUG('t', "entering priorityTest()\n");
+    locktest1 = new Lock("priorityLock");
+    Thread* t = new Thread("one");
+    Thread* s = new Thread("two");
+    Thread* x = new Thread("three");
+
+    t->setPriority(3);
+    printf("priority of thread1: %d\n", t->getPriority());
+    t->Fork(priorityThread1, 0);
+    s->setPriority(4);
+    printf("priority of thread2: %d\n", s->getPriority());
+    s->Fork(priorityThread2,0);
+    x->setPriority(1);
+    printf("priority of thread3: %d\n", x->getPriority());
+    x->Fork(priorityThread3, 0);
+}
 //----------------------------------------------------------------------
 // ThreadTest
 // 	Invoke a test routine.
@@ -390,11 +429,12 @@ ThreadTest()
 	break;
 	}
 
+    case 10:
+        priorityTest();
+        break;
 	
-        default:
-
+    default:
 		printf("No test specified.\n");
-
 		break;
 	}
 }
