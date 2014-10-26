@@ -12,7 +12,8 @@
 #include "copyright.h"
 #include "system.h"
 #include "synch.h"
-//#include "cTest1.h"
+#include "mailbox.h"
+#include "mailboxTest.h"
 
 // testnum is set in main.cc
 int testnum = 1;
@@ -378,9 +379,17 @@ ThreadTest()
     case 7:
         SignalBroadcast2();
         break;
+
     case 8:
         ConditonDelete();
         break;
+
+    case 9:{
+	MailboxTest mailboxTest;
+	mailboxTest.start();
+	break;
+	}
+
 	
         default:
 
