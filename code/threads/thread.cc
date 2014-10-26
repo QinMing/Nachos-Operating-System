@@ -39,6 +39,7 @@ Thread::Thread(char* threadName, int join)
     priority = 0;
 
     willJoin = join > 0 ? true : false;
+    hasJoined = false;
     lock = new Lock("Lock");
     joinedOnMe = new Condition("JoinedOnMe");
 
@@ -101,6 +102,7 @@ void Thread::Join() {
     joinedOnMe->Wait(lock);
 
     willJoin = false; // ensure Join() can only be called once
+    hasJoined = true;
 
     // release lock
     lock->Release();
@@ -191,21 +193,26 @@ Thread::CheckOverflow()
 void
 Thread::Finish ()
 {
-    (void) interrupt->SetLevel(IntOff);
-    ASSERT(this == currentThread);
 
-    DEBUG('t', "Finishing thread \"%s\"\n", getName());
-
-    threadToBeDestroyed = currentThread;
-
-    lock->Acquire();
-
-    // Added by Evan
-    joinedOnMe->Signal(lock);
-    lock->Release();
-    
-    Sleep();					// invokes SWITCH
-    // not reached
+  (void) interrupt->SetLevel(IntOff);
+  ASSERT(this == currentThread);
+  
+  DEBUG('t', "Finishing thread \"%s\"\n", getName());
+  
+  threadToBeDestroyed = currentThread;
+  
+  
+  lock->Acquire();
+  
+  if (!hasJoined && willJoin) {
+    joinedOnMe->Wait(lock);
+  }
+  
+  joinedOnMe->Signal(lock);
+  lock->Release();
+  
+  Sleep();					// invokes SWITCH
+  // not reached
 }
 
 //----------------------------------------------------------------------

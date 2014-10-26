@@ -126,6 +126,7 @@ private:
 
     // Variables used for Thread::Join()
     bool willJoin; // whether the thread will join or not
+    bool hasJoined;
     Lock* lock;
     Condition* joinedOnMe;
 
