@@ -135,16 +135,13 @@ void Lock::Acquire() {
   (void) interrupt->SetLevel(oldLevel);
 }
 
-
 void Lock::Release() {
 
   // disable interrupts
   IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
-  // ASSERT(isHeldByCurrentThread()); // panic if lock is held by another thread
-  ASSERT(isHeldByCurrentThread());
+  ASSERT(isHeldByCurrentThread()); // panic if lock is held by another thread
   
-  if (isHeldByCurrentThread()) {
     // release the lock
     held = 0;
     thread = NULL;
@@ -154,7 +151,6 @@ void Lock::Release() {
       // allow next thread to run
       scheduler->ReadyToRun(t);
     }
-  } else printf("Error: Attempt to release a lock that isn't held\n");
   
   // enable interrupts
   (void) interrupt->SetLevel(oldLevel);

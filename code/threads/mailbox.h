@@ -20,6 +20,7 @@ private:
 	Lock* lock;
 	Condition* canSend;
 	Condition* canReceive;
+	Condition* finish;
 	int ibuff;
 	bool full;
 };

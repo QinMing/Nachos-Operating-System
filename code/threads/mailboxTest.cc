@@ -20,5 +20,6 @@ void MailboxTest::start(){
 		t = new Thread("sender");
 		t->Fork(s,0);
 		//change the order of receive and send, and test
+		//add a time delay between s and r
 	}
 }

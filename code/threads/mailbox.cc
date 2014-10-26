@@ -31,6 +31,13 @@ void Mailbox::Send(int message) {
   // signal receiver
   canReceive->Signal(lock);
   
+  //waiting for a receiver to complete
+  finish->Wait(lock);
+  
+  // signal next sender
+  full = false;
+  canSend->Signal(lock);
+  
   // release the lock
   lock->Release();
 }
@@ -46,10 +53,9 @@ void Mailbox::Receive(int* message) {
 
   // point to the message stored in the buffer
   (*message)=ibuff;
-  full = false;
-
-  // signal sender
-  canSend->Signal(lock);
+  
+  //signal the sender
+  finish->Signal(lock);
   
   // release the lock
   lock->Release();
