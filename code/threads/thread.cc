@@ -75,6 +75,10 @@ void Thread::Join() {
 	// A thread cannot call join on itself
 	ASSERT(this != currentThread);
 
+	//  [  Note from Ming ,  20:35:34 10/25/2014 ]
+	//Join() shouldn't be the method that's called by constructor function. 
+	//It should be called in "parent" thread
+	//So here should be a method that initiate the Join. Say, change the name to "initJoin()"
 }
 
 //----------------------------------------------------------------------
