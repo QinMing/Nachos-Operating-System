@@ -39,7 +39,6 @@ Thread::Thread(char* threadName, int join)
     priority = 0;
 
     willBeJoined = (join > 0);
-    printf("%s------------------%i\n", name, willBeJoined);
     hasJoined = false;
     lock = new Lock("Lock");
     joinedOnMe = new Condition("JoinedOnMe");
@@ -89,8 +88,6 @@ Thread::~Thread()
 
 void Thread::Join() {
 
-  //printf("\nThread %s attempting to join %s. willBeJoined: %d, hasJoined: %d\n", currentThread->getName(), name, willBeJoined, hasJoined); 
-
   ASSERT(this != currentThread);
   ASSERT(willBeJoined);
 
@@ -111,15 +108,13 @@ void Thread::Join() {
 
     joinedOnMe->Signal(lock);
 
-    //printf("this is before the wait\n");
     // add currentThread to the queue
     joinedOnMe->Wait(lock);
-    //printf("This is after the wait\n");
+
     joinedOnMe->Signal(lock);
 
     // release lock
     lock->Release();
-    //printf("Lock released by %s", name);
 
     //currentThread->Sleep();
   }

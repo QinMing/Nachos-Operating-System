@@ -180,10 +180,8 @@ void Condition::Wait(Lock* conditionLock) {
 
 	conditionLock->Release();
 	queue->Append((void*)currentThread);
-	printf("%s added to Condition queue.\n", currentThread->getName());
 	currentThread->Sleep();
 	conditionLock->Acquire();
-	printf("%s: lock aquired.\n", currentThread->getName());
 	// enable interrupts
 	(void) interrupt->SetLevel(oldLevel);
 }
