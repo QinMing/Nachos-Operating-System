@@ -26,6 +26,7 @@ class Whale{
 	  Semaphore* newMember;
 	  int match;
 	  int matched;
+	  int pairNO;
 
   
 };
