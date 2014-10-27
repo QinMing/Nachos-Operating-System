@@ -14,6 +14,8 @@
 #include "synch.h"
 #include "mailbox.h"
 #include "mailboxTest.h"
+#include "whale.h"
+#include "whaleTest.h"
 
 // testnum is set in main.cc
 int testnum = 1;
@@ -334,7 +336,6 @@ void ConditonDelete2(int param)
     Conditiontest1->~Condition(); //deleting a lock while there are threads on queue
     printf("C2:2\n");
   
-    
 }
 
 void ConditonDelete()
@@ -486,8 +487,7 @@ ForkerThread()
 //----------------------------------------------------------------------
 // ThreadTest
 // 	Invoke a test routine.
-//----------------------------------------------------------------------
-
+//-----------------------------------------------------------------------
 void
 ThreadTest()
 {
@@ -518,13 +518,12 @@ ThreadTest()
         ConditonDelete();
         break;
 
-    case 9:{
-	MailboxTest mailboxTest;
-	mailboxTest.start();
-	break;
+	case 9:case 10:case 11:case 12: case 13:{
+		MailboxTest mailboxTest;
+		mailboxTest.start(testnum-9);
+		break;
 	}
-
-    case 10:
+    case 19:
         priorityTest();
         break;
 
@@ -534,6 +533,12 @@ ThreadTest()
 	case 14:
 	  ForkerThread();
 	  break;
+	
+    case 20:{
+	WhaleTest whaleTest;
+	whaleTest.start();
+	break;
+      }
 	
     default:
 		printf("No test specified.\n");

@@ -4,7 +4,8 @@ Mailbox::Mailbox(char* debugName){
 	name = debugName;
 	lock = new Lock("mailboxLock");
 	canSend = new Condition("canSend");
-	canReceive = new Condition("canReceive");;
+	canReceive = new Condition("canReceive");
+	finish = new Condition("finish");
 	full=false;
 }
 Mailbox::~Mailbox(){
@@ -13,6 +14,7 @@ Mailbox::~Mailbox(){
 	delete lock;
 	delete canSend;
 	delete canReceive;
+	delete finish;
 }
 
 void Mailbox::Send(int message) {
