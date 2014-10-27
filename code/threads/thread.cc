@@ -89,35 +89,30 @@ Thread::~Thread()
 void Thread::Join() {
 
   ASSERT(this != currentThread);
+  ASSERT(!hasJoined);
   ASSERT(willBeJoined);
 
   // disable interrupts
   //IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
-  if (this == currentThread || !willBeJoined) {
-    // enable interrupts
-    // (void) interrupt->SetLevel(oldLevel);
-    return; // Conditions for Join not satisfied
+  // get lock
+  lock->Acquire();
+  
+  willBeJoined = false; // ensure Join() can only be called once
+  hasJoined = true;
+  
+  joinedOnMe->Signal(lock);
+  
+  // add currentThread to the queue
+  joinedOnMe->Wait(lock);
+  
+  joinedOnMe->Signal(lock);
 
-  } else {
-    // get lock
-    lock->Acquire();
-
-    willBeJoined = false; // ensure Join() can only be called once
-    hasJoined = true;
-
-    joinedOnMe->Signal(lock);
-
-    // add currentThread to the queue
-    joinedOnMe->Wait(lock);
-
-    joinedOnMe->Signal(lock);
-
-    // release lock
-    lock->Release();
-
-    //currentThread->Sleep();
-  }
+  // release lock
+  lock->Release();
+  
+  //currentThread->Sleep();
+  
 
   // enable interrupts
   //(void) interrupt->SetLevel(oldLevel);
