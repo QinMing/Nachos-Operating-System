@@ -131,10 +131,12 @@ private:
     int priority;
 
     // Variables used for Thread::Join()
+    bool hasForked;
     bool willBeJoined; // whether the thread will be joined or not
     bool hasJoined;
     Lock* lock;
     Condition* joinedOnMe;
+	
     
 
     void StackAllocate(VoidFunctionPtr func, int arg);

@@ -32,6 +32,7 @@
 //----------------------------------------------------------------------
 Thread::Thread(char* threadName, int join)
 {
+	hasForked = false;
     name = threadName;
     stackTop = NULL;
     stack = NULL;
@@ -91,6 +92,7 @@ void Thread::Join() {
   ASSERT(this != currentThread);
   ASSERT(!hasJoined);
   ASSERT(willBeJoined);
+  ASSERT(hasForked);
 
   // disable interrupts
   //IntStatus oldLevel = interrupt->SetLevel(IntOff);
@@ -149,6 +151,7 @@ Thread::Fork(VoidFunctionPtr func, int arg)
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
     scheduler->ReadyToRun(this);	// ReadyToRun assumes that interrupts
     // are disabled!
+	hasForked = true;
     (void) interrupt->SetLevel(oldLevel);
 }
 
