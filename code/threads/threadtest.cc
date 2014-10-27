@@ -392,8 +392,7 @@ priorityTest(){
 //----------------------------------------------------------------------
 // ThreadTest
 // 	Invoke a test routine.
-//----------------------------------------------------------------------
-
+//-----------------------------------------------------------------------
 void
 ThreadTest()
 {
@@ -424,13 +423,12 @@ ThreadTest()
         ConditonDelete();
         break;
 
-    case 9:{
-	MailboxTest mailboxTest;
-	mailboxTest.start();
-	break;
+	case 9:case 10:case 11:case 12: case 13:{
+		MailboxTest mailboxTest;
+		mailboxTest.start(testnum-9);
+		break;
 	}
-    
-    case 10:
+    case 19:
         priorityTest();
         break;
 	

@@ -11,7 +11,7 @@ public:
 	~MailboxTest(){
 	//	delete mailbox;
 	}
-	void start();
+	void start(int testnum);
 private:
 	
 
