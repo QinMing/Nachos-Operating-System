@@ -38,7 +38,7 @@ Thread::Thread(char* threadName, int join)
     status = JUST_CREATED;
     priority = 0;
 
-    willJoin = join > 0 ? true : false;
+    canJoin = join > 0 ? true : false;
     hasJoined = false;
     lock = new Lock("Lock");
     joinedOnMe = new Condition("JoinedOnMe");
@@ -65,6 +65,11 @@ Thread::~Thread()
     DEBUG('t', "Deleting thread \"%s\"\n", name);
 
     ASSERT(this != currentThread);
+
+    // A thread that will be joined is only destroyed once
+    // Join has been called on it
+    ASSERT(hasJoined || !canJoin);
+
     if (stack != NULL)
         DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
 
@@ -83,35 +88,41 @@ Thread::~Thread()
 
 void Thread::Join() {
 
+  printf("\nThread %s attempting to join %s. canJoin: %d, hasJoined: %d\n", currentThread->getName(), name, canJoin, hasJoined); 
+
   ASSERT(this != currentThread);
-  ASSERT(willJoin);
+  ASSERT(canJoin);
 
   // disable interrupts
-  IntStatus oldLevel = interrupt->SetLevel(IntOff);
+  // IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
-  if (this == currentThread || !willJoin) {
+  if (this == currentThread || !canJoin) {
     // enable interrupts
-    (void) interrupt->SetLevel(oldLevel);
+    // (void) interrupt->SetLevel(oldLevel);
     return; // Conditions for Join not satisfied
 
   } else {
+   
     // get lock
+   
     lock->Acquire();
-    
+    canJoin = false; // ensure Join() can only be called once
+    hasJoined = true;
+
+    printf("this is before the wait\n");
     // add currentThread to the queue
     joinedOnMe->Wait(lock);
-
-    willJoin = false; // ensure Join() can only be called once
-    hasJoined = true;
+    printf("This is after the wait\n");
+   
 
     // release lock
     lock->Release();
 
-    this->Sleep();
+     this->Sleep();
   }
 
   // enable interrupts
-  (void) interrupt->SetLevel(oldLevel);
+  // (void) interrupt->SetLevel(oldLevel);
 }
 
 //----------------------------------------------------------------------
@@ -198,19 +209,22 @@ Thread::Finish ()
   ASSERT(this == currentThread);
   
   DEBUG('t', "Finishing thread \"%s\"\n", getName());
-  
-  threadToBeDestroyed = currentThread;
-  
+   
   
   lock->Acquire();
   
-  if (!hasJoined && willJoin) {
+  if (!hasJoined && canJoin) {
+    (void) interrupt->SetLevel(IntOn);
     joinedOnMe->Wait(lock);
+    (void) interrupt->SetLevel(IntOff);
   }
-  
+
+ 
+
   joinedOnMe->Signal(lock);
   lock->Release();
-  
+  threadToBeDestroyed = currentThread; 
+ 
   Sleep();					// invokes SWITCH
   // not reached
 }

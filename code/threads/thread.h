@@ -125,7 +125,7 @@ private:
     int priority;
 
     // Variables used for Thread::Join()
-    bool willJoin; // whether the thread will join or not
+    bool canJoin; // whether the thread will join or not
     bool hasJoined;
     Lock* lock;
     Condition* joinedOnMe;

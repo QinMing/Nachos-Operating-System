@@ -146,11 +146,13 @@ void Lock::Release() {
 	held = 0;
 	thread = NULL;
 	Thread* t = (Thread*)queue->Remove();
+	
 
 	if (t != NULL) {
+	  printf("t not null\n");
 		// allow next thread to run
 		scheduler->ReadyToRun(t);
-	}
+	} else printf("t is null\n");
 
 	// enable interrupts
 	(void) interrupt->SetLevel(oldLevel);
@@ -181,9 +183,10 @@ void Condition::Wait(Lock* conditionLock) {
 
 	conditionLock->Release();
 	queue->Append((void*)currentThread);
+	printf("currentThread: %s", currentThread->getName());
 	currentThread->Sleep();
 	conditionLock->Acquire();
-
+	printf("currentThread: %s", currentThread->getName());
 	// enable interrupts
 	(void) interrupt->SetLevel(oldLevel);
 }
