@@ -40,13 +40,13 @@ void Whale::Male(){
     matchmaker->V();	//and let other whales continue the match
     female->V();
     male->V();
-    printf("3 whale return from match NO.%d\n",pairNO);
+    printf("male whale return from match NO.%d\n",pairNO);
     printf("match NO. %d completed\n",pairNO);//before the third whale return, send a signal imply a match is completed
     pairNO++; 
   }
   else{                 //the first two whales complete the match,don't initialize flags, they just return
     matched ++; 
-    printf("%d whale return from match NO.%d\n",matched,pairNO);
+    printf("male whale return from match NO.%d\n",pairNO);
   }
 }
 
@@ -70,13 +70,13 @@ void Whale::Female(){
     matchmaker->V();
     female->V();
     male->V();
-    printf("3 whale return from match NO.%d\n",pairNO);
+    printf("female whale return from match NO.%d\n",pairNO);
     printf("match NO. %d completed\n",pairNO);
     pairNO++;
   }
   else{
     matched ++;
-    printf("%d whale return from match NO.%d\n",matched,pairNO);
+    printf("female whale return from match NO.%d\n",pairNO);
   }
   
   
@@ -101,12 +101,12 @@ void Whale::Matchmaker(){
     matchmaker->V();
     female->V();
     male->V();
-    printf("3 whale return from match NO.%d\n",pairNO);
+    printf("matchmaker whale return from match NO.%d\n",pairNO);
     printf("match NO. %d completed\n",pairNO);
     pairNO++;
   }
   else{
     matched ++;
-    printf("%d whale return from match NO.%d\n",matched,pairNO);   
+    printf("matchmaker whale return from match NO.%d\n",pairNO);   
   }
 }
