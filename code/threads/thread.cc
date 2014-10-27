@@ -38,7 +38,8 @@ Thread::Thread(char* threadName, int join)
     status = JUST_CREATED;
     priority = 0;
 
-    canJoin = join > 0 ? true : false;
+    willBeJoined = (join > 0);
+    printf("%s------------------%i\n", name, willBeJoined);
     hasJoined = false;
     lock = new Lock("Lock");
     joinedOnMe = new Condition("JoinedOnMe");
@@ -68,7 +69,7 @@ Thread::~Thread()
 
     // A thread that will be joined is only destroyed once
     // Join has been called on it
-    ASSERT(hasJoined || !canJoin);
+    ASSERT(hasJoined || !willBeJoined);
 
     if (stack != NULL)
         DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
@@ -88,41 +89,43 @@ Thread::~Thread()
 
 void Thread::Join() {
 
-  printf("\nThread %s attempting to join %s. canJoin: %d, hasJoined: %d\n", currentThread->getName(), name, canJoin, hasJoined); 
+  //printf("\nThread %s attempting to join %s. willBeJoined: %d, hasJoined: %d\n", currentThread->getName(), name, willBeJoined, hasJoined); 
 
   ASSERT(this != currentThread);
-  ASSERT(canJoin);
+  ASSERT(willBeJoined);
 
   // disable interrupts
-  // IntStatus oldLevel = interrupt->SetLevel(IntOff);
+  //IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
-  if (this == currentThread || !canJoin) {
+  if (this == currentThread || !willBeJoined) {
     // enable interrupts
     // (void) interrupt->SetLevel(oldLevel);
     return; // Conditions for Join not satisfied
 
   } else {
-   
     // get lock
-   
     lock->Acquire();
-    canJoin = false; // ensure Join() can only be called once
+
+    willBeJoined = false; // ensure Join() can only be called once
     hasJoined = true;
 
-    printf("this is before the wait\n");
+    joinedOnMe->Signal(lock);
+
+    //printf("this is before the wait\n");
     // add currentThread to the queue
     joinedOnMe->Wait(lock);
-    printf("This is after the wait\n");
-   
+    //printf("This is after the wait\n");
+    joinedOnMe->Signal(lock);
 
     // release lock
     lock->Release();
+    //printf("Lock released by %s", name);
 
-     this->Sleep();
+    //currentThread->Sleep();
   }
 
   // enable interrupts
-  // (void) interrupt->SetLevel(oldLevel);
+  //(void) interrupt->SetLevel(oldLevel);
 }
 
 //----------------------------------------------------------------------
@@ -188,6 +191,7 @@ Thread::CheckOverflow()
 //----------------------------------------------------------------------
 // Thread::Finish
 // 	Called by ThreadRoot when a thread is done executing the
+
 //	forked procedure.
 //
 // 	NOTE: we don't immediately de-allocate the thread data structure
@@ -203,17 +207,18 @@ Thread::CheckOverflow()
 //
 void
 Thread::Finish ()
-{
+{ 
+  ASSERT(this == currentThread);
 
   (void) interrupt->SetLevel(IntOff);
-  ASSERT(this == currentThread);
+ 
   
   DEBUG('t', "Finishing thread \"%s\"\n", getName());
    
   
   lock->Acquire();
   
-  if (!hasJoined && canJoin) {
+  if (!hasJoined && willBeJoined) {
     (void) interrupt->SetLevel(IntOn);
     joinedOnMe->Wait(lock);
     (void) interrupt->SetLevel(IntOff);
@@ -222,6 +227,7 @@ Thread::Finish ()
  
 
   joinedOnMe->Signal(lock);
+  joinedOnMe->Wait(lock);
   lock->Release();
   threadToBeDestroyed = currentThread; 
  

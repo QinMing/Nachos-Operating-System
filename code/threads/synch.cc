@@ -119,13 +119,13 @@ void Lock::Acquire() {
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
 	while (held) {
-		// block the thread
-		/* if (isHeldByCurrentThread()) {
-		printf("Error: Attempt to acquire the same lock twice\n");
-		return;
-		}*/
-		queue->Append((void*)currentThread);
-		currentThread->Sleep();
+	  // block the thread
+	  /* if (isHeldByCurrentThread()) {
+	     printf("Error: Attempt to acquire the same lock twice\n");
+	     return;
+	     }*/
+	  queue->Append((void*)currentThread);
+	  currentThread->Sleep();
 	}
 
 	thread = currentThread;  
@@ -136,23 +136,20 @@ void Lock::Acquire() {
 }
 
 void Lock::Release() {
-
+	ASSERT(isHeldByCurrentThread()); // panic if lock is held by another thread
 	// disable interrupts
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
-	ASSERT(isHeldByCurrentThread()); // panic if lock is held by another thread
 
 	// release the lock
 	held = 0;
 	thread = NULL;
 	Thread* t = (Thread*)queue->Remove();
 	
-
 	if (t != NULL) {
-	  printf("t not null\n");
-		// allow next thread to run
-		scheduler->ReadyToRun(t);
-	} else printf("t is null\n");
+	  // allow next thread to run
+	  scheduler->ReadyToRun(t);
+	}
 
 	// enable interrupts
 	(void) interrupt->SetLevel(oldLevel);
@@ -183,10 +180,10 @@ void Condition::Wait(Lock* conditionLock) {
 
 	conditionLock->Release();
 	queue->Append((void*)currentThread);
-	printf("currentThread: %s", currentThread->getName());
+	printf("%s added to Condition queue.\n", currentThread->getName());
 	currentThread->Sleep();
 	conditionLock->Acquire();
-	printf("currentThread: %s", currentThread->getName());
+	printf("%s: lock aquired.\n", currentThread->getName());
 	// enable interrupts
 	(void) interrupt->SetLevel(oldLevel);
 }

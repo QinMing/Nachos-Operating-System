@@ -112,6 +112,12 @@ public:
     }
     void setPriority(int newPriority);
     int getPriority();
+
+    void setLock(Lock* l) { this->lock = l; }
+    Lock* getLock() { return lock; }
+    
+    void setJoinedOnMe(Condition* cv) { this->joinedOnMe = cv; }
+    Condition* getJoinedOnMe() { return joinedOnMe; }
     
 
 private:
@@ -125,10 +131,11 @@ private:
     int priority;
 
     // Variables used for Thread::Join()
-    bool canJoin; // whether the thread will join or not
+    bool willBeJoined; // whether the thread will be joined or not
     bool hasJoined;
     Lock* lock;
     Condition* joinedOnMe;
+    
 
     void StackAllocate(VoidFunctionPtr func, int arg);
     // Allocate a stack for thread.
