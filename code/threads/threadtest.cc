@@ -518,24 +518,25 @@ ThreadTest()
         ConditonDelete();
         break;
 
-    case 9:case 10:case 11:case 12: case 13:{
+	case 9:case 10:case 11:case 12: case 13:{
 		MailboxTest mailboxTest;
 		mailboxTest.start(testnum-9);
 		break;
 	}
 
-    case 14:
+
+	case 14:
 	  JoinTest1();
 	  break;
-    case 15:
+	case 15:
 	  ForkerThread();
 	  break;
-    case 19:
+	case 19:
         priorityTest();
         break;
-    case 20:{
-	WhaleTest whaleTest;
-	whaleTest.start();
+	case 20:{
+		WhaleTest whaleTest;
+		whaleTest.start();
 	break;
       }
 	
