@@ -88,17 +88,13 @@ Thread::~Thread()
 //----------------------------------------------------------------------
 
 void Thread::Join() {
+  // get lock
+  lock->Acquire();
 
   ASSERT(this != currentThread);
   ASSERT(!hasJoined);
   ASSERT(willBeJoined);
   ASSERT(hasForked);
-
-  // disable interrupts
-  //IntStatus oldLevel = interrupt->SetLevel(IntOff);
-
-  // get lock
-  lock->Acquire();
   
   willBeJoined = false; // ensure Join() can only be called once
   hasJoined = true;
@@ -112,12 +108,6 @@ void Thread::Join() {
 
   // release lock
   lock->Release();
-  
-  //currentThread->Sleep();
-  
-
-  // enable interrupts
-  //(void) interrupt->SetLevel(oldLevel);
 }
 
 //----------------------------------------------------------------------
@@ -198,34 +188,47 @@ Thread::CheckOverflow()
 //----------------------------------------------------------------------
 
 //
-void
+void 
 Thread::Finish ()
 { 
-  ASSERT(this == currentThread);
+	ASSERT(this == currentThread);
 
-  (void) interrupt->SetLevel(IntOff);
- 
-  
-  DEBUG('t', "Finishing thread \"%s\"\n", getName());
-   
-  
-  lock->Acquire();
-  
-  if (!hasJoined && willBeJoined) {
-    (void) interrupt->SetLevel(IntOn);
-    joinedOnMe->Wait(lock);
-    (void) interrupt->SetLevel(IntOff);
-  }
+	if (hasJoined){
+		lock->Acquire();
 
- 
+		joinedOnMe->Signal(lock);
+		joinedOnMe->Wait(lock);
 
-  joinedOnMe->Signal(lock);
-  joinedOnMe->Wait(lock);
-  lock->Release();
-  threadToBeDestroyed = currentThread; 
- 
-  Sleep();					// invokes SWITCH
-  // not reached
+		lock->Release();
+	}
+	else if(willBeJoined)
+	{//will be joined but hasn't been 
+		lock->Acquire();
+		
+		joinedOnMe->Wait(lock);
+		joinedOnMe->Signal(lock);
+		joinedOnMe->Wait(lock);
+
+		lock->Release();
+	}
+	
+	/*Old Codes
+	(void) interrupt->SetLevel(IntOff);
+	lock->Acquire();
+	if (!hasJoined && willBeJoined) {
+		(void) interrupt->SetLevel(IntOn);
+		joinedOnMe->Wait(lock);
+		(void) interrupt->SetLevel(IntOff);
+	}
+	joinedOnMe->Signal(lock);
+	joinedOnMe->Wait(lock);
+	lock->Release();
+	*/
+	(void) interrupt->SetLevel(IntOff);
+	DEBUG('t', "Finishing thread \"%s\"\n", getName());
+	threadToBeDestroyed = currentThread; 
+	Sleep();					// invokes SWITCH
+	// not reached
 }
 
 //----------------------------------------------------------------------

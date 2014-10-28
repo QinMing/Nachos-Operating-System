@@ -407,51 +407,53 @@ priorityTest(){
 //--------------------------------------
  
 void child() {
- Thread* childThread = new Thread("Child", 1); 
- locktest1->Acquire();
-  printf("in child thread");
-  childThread->Join();
-  locktest1->Release();
-  
+	Thread* childThread = new Thread("Child", 1); 
+	locktest1->Acquire();
+	printf("in child thread");
+	childThread->Join();
+	locktest1->Release();
+
 
 }
 void JoinTest1() {
-  Thread* parent = new Thread("Parent", 1);
-
-  locktest1 = new Lock("Lock");
-  
-  
-  parent->Fork((VoidFunctionPtr)child, 0);
-  
-  
+	Thread* parent = new Thread("Parent", 1);
+	locktest1 = new Lock("Lock");
+	parent->Fork((VoidFunctionPtr)child, 0);
 }
 
 
 void
-Joiner(Thread *joinee)
+	Joiner(Thread *joinee)
 {
-  currentThread->Yield();
-  currentThread->Yield();
 
-  printf("Waiting for the Joinee to finish executing.\n");
+#if 0	
+	//1=Joiner finishes first
+	//0=Joinee finishes first. The debug argument "-d t" is needed to test this case.
 
-  currentThread->Yield();
-  currentThread->Yield();
+	currentThread->Yield();
+	currentThread->Yield();
+	printf("Waiting for the Joinee to finish executing.\n");
+	currentThread->Yield();
+	currentThread->Yield();
+#else
+	currentThread->Yield();currentThread->Yield();
+	currentThread->Yield();currentThread->Yield();
+	currentThread->Yield();currentThread->Yield();
+	currentThread->Yield();currentThread->Yield();
+	currentThread->Yield();currentThread->Yield();
+	currentThread->Yield();currentThread->Yield();
+	printf("Joiner is ready. About to call Join().\n");
+#endif
 
-  // Note that, in this program, the "joinee" has not finished
-  // when the "joiner" calls Join().  You will also need to handle
-  // and test for the case when the "joinee" _has_ finished when
-  // the "joiner" calls Join().
+	joinee->Join();
 
-  joinee->Join();
+	currentThread->Yield();
+	currentThread->Yield();
 
-  currentThread->Yield();
-  currentThread->Yield();
+	printf("Joinee has finished executing, we can continue.\n");
 
-  printf("Joinee has finished executing, we can continue.\n");
-
-  currentThread->Yield();
-  currentThread->Yield();
+	currentThread->Yield();
+	currentThread->Yield();
 }
 
 void
@@ -479,9 +481,6 @@ ForkerThread()
   // fork off the two threads and let them do their business
   joiner->Fork((VoidFunctionPtr) Joiner, (int) joinee);
   joinee->Fork((VoidFunctionPtr) Joinee, 0);
-
-  // this thread is done and can go on its merry way
-  printf("Forked off the joiner and joiner threads.\n");
 }
 
 //----------------------------------------------------------------------
