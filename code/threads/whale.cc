@@ -22,24 +22,25 @@ Whale::~Whale(){
 
 
 void Whale::Male(){
-  
+  DEBUG('x', "a male is going to acquire male lock\n");
   male->P(); //block other male
-  
+  DEBUG('x', "a male wake from male lock\n");
   match ++; 
   
   
   while(match<3){  	//only when there are three whales from different classes are waiting, can the match continues
     newMember->P();	//wait for the other two
   }
-  newMember->V(); 	//when the match completed, wake up the other two on the newMember list
-  newMember->V();	 //there must be two whales on the newMember list, when the third whale find it can complete the match
-		       //it's easier using broadcast with CV 
+  DEBUG('x', "a male wake from newMember lock\n");
+  newMember->V(); 	//when the match completed, wake up the other two on the newMember list, one by one 
+
   if(matched==2){	 //when the third whale completes the match, initialize the flags before it returns
     match=0;
     matched=0;
     matchmaker->V();	//and let other whales continue the match
     female->V();
     male->V();
+	DEBUG('x', "male->signal from male\n");
     printf("male whale return from match NO.%d\n",pairNO);
     printf("match NO. %d completed\n",pairNO);//before the third whale return, send a signal imply a match is completed
     pairNO++; 
@@ -62,7 +63,7 @@ void Whale::Female(){
   }
   
   newMember->V();
-  newMember->V();
+  //newMember->V();
   
   if(matched==2){
     match=0;
@@ -70,6 +71,7 @@ void Whale::Female(){
     matchmaker->V();
     female->V();
     male->V();
+	DEBUG('x', "male->signal from female\n");
     printf("female whale return from match NO.%d\n",pairNO);
     printf("match NO. %d completed\n",pairNO);
     pairNO++;
@@ -93,7 +95,7 @@ void Whale::Matchmaker(){
   }
   
   newMember->V();
-  newMember->V();
+  //newMember->V();
   
   if(matched==2){
     match=0;
@@ -101,6 +103,7 @@ void Whale::Matchmaker(){
     matchmaker->V();
     female->V();
     male->V();
+	DEBUG('x', "male->signal from mm\n");
     printf("matchmaker whale return from match NO.%d\n",pairNO);
     printf("match NO. %d completed\n",pairNO);
     pairNO++;
