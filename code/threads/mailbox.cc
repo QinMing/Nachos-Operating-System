@@ -1,7 +1,7 @@
 #include "mailbox.h"
 
-Mailbox::Mailbox(char* debugName){
-	name = debugName;
+Mailbox::Mailbox(char* newName){
+	name = newName;
 	lock = new Lock("mailboxLock");
 	canSend = new Condition("canSend");
 	canReceive = new Condition("canReceive");

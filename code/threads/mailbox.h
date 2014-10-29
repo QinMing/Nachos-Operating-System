@@ -7,7 +7,7 @@
 
 class Mailbox {
 public:
-	Mailbox(char* debugName = "");
+	Mailbox(char* newName);
 	~Mailbox();
 	char* getName(){
 		return name;

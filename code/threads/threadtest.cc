@@ -351,44 +351,35 @@ void ConditonDelete()
 }
 
 void
-priorityThread1(int param){
-    locktest1->Acquire();
-    printf("in priorityThread1\n");
-    locktest1->Release();
+priorityThread(int param){
+    printf("priorityThread[priority=%3d ][thread pointer=%d] started\n",currentThread->getPriority(),(int)currentThread);
+	for (int i=0;i<5;i++){
+		//pretend to work. and do normal context switch
+		currentThread->Yield();
+	}
+	printf("priorityThread[priority=%3d ][thread pointer=%d] ended\n",currentThread->getPriority(),(int)currentThread);
+	
 }
 
 void
-priorityThread2(int param){
+priorityThreadLock(int param){
     locktest1->Acquire();
-    printf("in priorityThread2\n");
+	printf("priorityThread[priority=%3d ][thread pointer=%d] lock acquired\n",currentThread->getPriority(),(int)currentThread);
     locktest1->Release();
 }
-
 void
-priorityThread3(int param){
-    locktest1->Acquire();
-    printf("in priorityThread3\n");
-    locktest1->Release();
+priorityThreadSema(int sema){
+	((Semaphore*)sema)->P();
+	printf("priorityThread[priority=%3d ][thread pointer=%d] wakes up from p()\n",currentThread->getPriority(),(int)currentThread);
+}
+void 
+priorityThreadCond(int cond){
+	locktest1->Acquire();
+	((Condition*)cond)->Wait(locktest1);
+	printf("priorityThread[priority=%3d ][thread pointer=%d] wakes up from Wait()\n",currentThread->getPriority(),(int)currentThread);
+	locktest1->Release();
 }
 
-void
-priorityTest(){
-    DEBUG('t', "entering priorityTest()\n");
-    locktest1 = new Lock("priorityLock");
-    Thread* t = new Thread("one");
-    Thread* s = new Thread("two");
-    Thread* x = new Thread("three");
-
-    t->setPriority(3);
-    printf("priority of thread1: %d\n", t->getPriority());
-    t->Fork(priorityThread1, 0);
-    s->setPriority(4);
-    printf("priority of thread2: %d\n", s->getPriority());
-    s->Fork(priorityThread2,0);
-    x->setPriority(1);
-    printf("priority of thread3: %d\n", x->getPriority());
-    x->Fork(priorityThread3, 0);
-}
 
 //--------------------------------------
 // Thread::Join() Tests
@@ -426,7 +417,7 @@ void
 	Joiner(Thread *joinee)
 {
 
-#if 0	
+#if 0
 	//1=Joiner finishes first
 	//0=Joinee finishes first. The debug argument "-d t" is needed to test this case.
 
@@ -525,19 +516,118 @@ ThreadTest()
 
 
 	case 14:
+		
 	  JoinTest1();
 	  break;
 	case 15:
 	  ForkerThread();
 	  break;
-	case 19:
-        priorityTest();
+	case 19:{//priority test 
+		
+		printf("==== priority test for Scheduler ====\n");
+		Thread* t = new Thread("-1");		
+		t->setPriority(-1);
+		t->Fork(priorityThread, 0);
+		
+		t = new Thread("3");
+		t->setPriority(3);
+		t->Fork(priorityThread,0);
+		
+		t = new Thread("0");
+		t->Fork(priorityThread,0);
+		
+		t = new Thread("3");
+		t->setPriority(3);
+		t->Fork(priorityThread, 0);
+		
+		for (int i=0;i<20;i++)//waiting for previous test to complete
+			currentThread->Yield();
+		printf("==== priority test for synch primitives : lock====\n");
+		
+		locktest1 = new Lock("priorityLock");
+		t = new Thread("4");
+		t->setPriority(4);
+		t->Fork(priorityThreadLock,0);
+		
+		t = new Thread("-1");
+		t->setPriority(-1);
+		t->Fork(priorityThreadLock,0);
+		
+		t = new Thread("2");
+		t->setPriority(2);
+		t->Fork(priorityThreadLock,0);
+		
+		t = new Thread("3");
+		t->setPriority(3);
+		t->Fork(priorityThreadLock,0);
+		
+		for (int i=0;i<20;i++){//waiting for previous test to complete
+			currentThread->Yield();
+		}
+		printf("==== priority test for synch primitives : semaphore ====\n");
+		
+		Semaphore * sema = new Semaphore("test",0);
+		t = new Thread("4");
+		t->setPriority(4);
+		t->Fork(priorityThreadSema,(int)sema);
+		
+		t = new Thread("-1");
+		t->setPriority(-1);
+		t->Fork(priorityThreadSema,(int)sema);
+		
+		t = new Thread("2");
+		t->setPriority(2);
+		t->Fork(priorityThreadSema,(int)sema);
+		
+		t = new Thread("3");
+		t->setPriority(3);
+		t->Fork(priorityThreadSema,(int)sema);
+		
+		for (int i=0;i<20;i++)//waiting for previous test to complete
+			currentThread->Yield();
+		sema->V();printf("sema->V() is sended\n");
+		sema->V();printf("sema->V() is sended\n");
+		sema->V();printf("sema->V() is sended\n");
+		sema->V();printf("sema->V() is sended\n");
+		
+		for (int i=0;i<20;i++){//waiting for previous test to complete
+			currentThread->Yield();
+		}
+		printf("==== priority test for synch primitives : Condition Var ====\n");
+		
+		Condition * cond = new Condition ("test");
+		t = new Thread("4");
+		t->setPriority(4);
+		t->Fork(priorityThreadCond,(int)cond);
+		
+		t = new Thread("-1");
+		t->setPriority(-1);
+		t->Fork(priorityThreadCond,(int)cond);
+		
+		t = new Thread("2");
+		t->setPriority(2);
+		t->Fork(priorityThreadCond,(int)cond);
+		
+		t = new Thread("3");
+		t->setPriority(3);
+		t->Fork(priorityThreadCond,(int)cond);
+		
+		for (int i=0;i<20;i++)//waiting for previous test to complete
+			currentThread->Yield();
+		locktest1->Acquire();
+		cond->Signal(locktest1);printf("cond->Signal() is sended\n");
+		cond->Signal(locktest1);printf("cond->Signal() is sended\n");
+		cond->Signal(locktest1);printf("cond->Signal() is sended\n");
+		cond->Signal(locktest1);printf("cond->Signal() is sended\n");
+		locktest1->Release();
+		
         break;
+	}
 	case 20:{
 		WhaleTest whaleTest;
 		whaleTest.start();
-	break;
-      }
+		break;
+    }
 	
     default:
 		printf("No test specified.\n");

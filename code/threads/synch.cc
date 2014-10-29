@@ -67,7 +67,7 @@ void
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
 
 	while (value == 0) { 			// semaphore not available
-		queue->Append((void *)currentThread);	// so go to sleep
+		queue->SortedInsert((void *)currentThread, -currentThread->getPriority());	// so go to sleep
 		currentThread->Sleep();
 	}
 	value--; 					// semaphore available,
@@ -115,17 +115,12 @@ Lock::~Lock() {
 void Lock::Acquire() {
 	// disable interrupts
 
-	ASSERT(!isHeldByCurrentThread());
+	ASSERT(!isHeldByCurrentThread());//Error: Attempt to acquire the same lock twice
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
 	while (held) {
-	  // block the thread
-	  /* if (isHeldByCurrentThread()) {
-	     printf("Error: Attempt to acquire the same lock twice\n");
-	     return;
-	     }*/
-	  queue->Append((void*)currentThread);
-	  currentThread->Sleep();
+		queue->SortedInsert((void*)currentThread,-currentThread->getPriority());
+		currentThread->Sleep();
 	}
 
 	thread = currentThread;  
@@ -179,7 +174,7 @@ void Condition::Wait(Lock* conditionLock) {
 	ASSERT(conditionLock->isHeldByCurrentThread());
 
 	conditionLock->Release();
-	queue->Append((void*)currentThread);
+	queue->SortedInsert((void*)currentThread,-currentThread->getPriority());
 	currentThread->Sleep();
 	conditionLock->Acquire();
 	// enable interrupts
