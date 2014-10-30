@@ -806,12 +806,6 @@ ThreadTest()
 	case 19:
 		priorityTest();
 		break;
-	case 20:
-		{
-			WhaleTest whaleTest;
-			whaleTest.start();
-			break;
-		}
 
 	case 21:
 		//a thread that will be joined only is destroyed once Join has been called on it, 
@@ -843,6 +837,30 @@ ThreadTest()
 		// Join is not called more than once on a thread
 		JoinTest8();
 		break;
+	case 30://9 whales in 3 pairs, 3 male, 3 female, 3 matchmaker, three match succeed
+	{
+		WhaleTest whaleTest;
+		whaleTest.start(testnum);
+		break;
+	}
+	case 31://8 whales , 3 male, 3 female, 2 matchmaker, only two matches succeed
+	{
+		WhaleTest whaleTest;
+		whaleTest.start(testnum);
+		break;
+	}
+	case 32://7 whales , 3 male, 1 female, 3 matchmaker, only one match succeed
+	{
+		WhaleTest whaleTest;
+		whaleTest.start(testnum);
+		break;
+	}
+	case 33://9 whales in 3 matchess, 3 male, 3 female, 3 matchmaker, in a different order, three matches succeed
+	{
+		WhaleTest whaleTest;
+		whaleTest.start(testnum);
+		break;
+	}
 	default:
 		printf("No test specified.\n");
 		break;

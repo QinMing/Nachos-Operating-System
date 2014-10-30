@@ -8,7 +8,8 @@ class WhaleTest{
   public:
 	WhaleTest(){}
 	~WhaleTest(){}
-        void start();
+	void start(int testnum);
+
   private:
     
 

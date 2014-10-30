@@ -47,7 +47,6 @@ void Whale::Male(){
     matchmaker->V();	//and let other whales continue the match
     female->V();
     male->V();
-	
   }
   else{                 //the first two whales complete the match,don't initialize flags, they just return
     matched ++; 
@@ -55,6 +54,7 @@ void Whale::Male(){
   }
 }
 
+//the same as Male(), simpley changed male to female
 void Whale::Female(){
   
   female->P(); //block other female
@@ -89,6 +89,7 @@ void Whale::Female(){
   
 }
 
+//the same as Male(), simpley changed male to matchmaker
 void Whale::Matchmaker(){
   
   matchmaker->P(); //block other matchmaker
