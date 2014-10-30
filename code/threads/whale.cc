@@ -24,7 +24,7 @@ Whale::~Whale(){
 void Whale::Male(){
   DEBUG('x', "a male is going to acquire male lock\n");
   male->P(); //block other male
-  DEBUG('x', "a male wake from male lock\n");
+  DEBUG('x', "a male wake from male lock \n");
   match ++; 
   
   
@@ -32,18 +32,22 @@ void Whale::Male(){
     newMember->P();	//wait for the other two
   }
   DEBUG('x', "a male wake from newMember lock\n");
-  newMember->V(); 	//when the match completed, wake up the other two on the newMember list, one by one 
+
+  if (matched < 2){
+	  newMember->V(); 	//when the match completed, wake up the other two on the newMember list, one by one 
+  }
 
   if(matched==2){	 //when the third whale completes the match, initialize the flags before it returns
     match=0;
     matched=0;
+	DEBUG('x', "male->signal from male\n");
+	printf("male whale return from match NO.%d\n", pairNO);
+	printf("match NO. %d completed\n", pairNO);//before the third whale return, send a signal imply a match is completed
+	pairNO++;
     matchmaker->V();	//and let other whales continue the match
     female->V();
     male->V();
-	DEBUG('x', "male->signal from male\n");
-    printf("male whale return from match NO.%d\n",pairNO);
-    printf("match NO. %d completed\n",pairNO);//before the third whale return, send a signal imply a match is completed
-    pairNO++; 
+	
   }
   else{                 //the first two whales complete the match,don't initialize flags, they just return
     matched ++; 
@@ -62,19 +66,20 @@ void Whale::Female(){
     newMember->P();
   }
   
-  newMember->V();
-  //newMember->V();
-  
+  if (matched < 2){
+	  newMember->V();
+  }
+
   if(matched==2){
     match=0;
     matched=0;
+	DEBUG('x', "male->signal from female\n");
+	printf("female whale return from match NO.%d\n", pairNO);
+	printf("match NO. %d completed\n", pairNO);
+	pairNO++;
     matchmaker->V();
     female->V();
-    male->V();
-	DEBUG('x', "male->signal from female\n");
-    printf("female whale return from match NO.%d\n",pairNO);
-    printf("match NO. %d completed\n",pairNO);
-    pairNO++;
+    male->V();	
   }
   else{
     matched ++;
@@ -94,19 +99,20 @@ void Whale::Matchmaker(){
     newMember->P();
   }
   
-  newMember->V();
-  //newMember->V();
-  
+  if (matched < 2){
+	  newMember->V();
+  }
+
   if(matched==2){
     match=0;
     matched=0;
+	DEBUG('x', "male->signal from mm\n");
+	printf("matchmaker whale return from match NO.%d\n", pairNO);
+	printf("match NO. %d completed\n", pairNO);
+	pairNO++;
     matchmaker->V();
     female->V();
     male->V();
-	DEBUG('x', "male->signal from mm\n");
-    printf("matchmaker whale return from match NO.%d\n",pairNO);
-    printf("match NO. %d completed\n",pairNO);
-    pairNO++;
   }
   else{
     matched ++;

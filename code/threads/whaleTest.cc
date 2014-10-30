@@ -64,24 +64,24 @@ void WhaleTest::start(){
     
     whale = new Whale("test");
     
-    Thread *t = new Thread("one");
+    Thread *t = new Thread("m1");
     t->Fork(m1, 0);
-    t = new Thread("two");
+    t = new Thread("mm2");
     t->Fork(mm2, 0);
-    t = new Thread("three");
+    t = new Thread("m3");
     t->Fork(m3, 0);
-    t = new Thread("three");
+    t = new Thread("f1");
     t->Fork(f1, 0);
-    t = new Thread("four");
+    t = new Thread("f2");
     t->Fork(f2, 0);
-    t = new Thread("five");
+    t = new Thread("f3");
     t->Fork(f3, 0);
-    t = new Thread("six");
+    t = new Thread("mm1");
     t->Fork(mm1, 0);
-    t = new Thread("seven");
+    t = new Thread("m2");
     t->Fork(m2, 0);
-    t = new Thread("eight");
-   // t->Fork(mm3, 0);
+    t = new Thread("mm3");
+    t->Fork(mm3, 0);
     //t = new Thread("nine");
     
 }
