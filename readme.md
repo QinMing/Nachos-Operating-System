@@ -47,9 +47,15 @@ Group 44 - Ming Qin, Xinyu Qian, Evan Carey, Kevin Caasi
 ---------------
 
 ###Join
-    We added several member variables to the Thread class, including booleans that indicate whether the thread has forked (hasForked), whether the thread is joinable (willBeJoined - set based on constructor argument), and whether the thread has already been joined (hasJoined), as well as a lock and a condition variable.
-    When a parent invokes Join() on a child, the child acquires the lock and puts the parent to sleep until the child thread has finished.
-    Once a thread finishes, via a call to Finish(), it checks its hasJoined and willBeJoined status. If it is going to be joined but hasn't yet, it will wait for Join to be invoked and returned. Afterward, it will set itself as ready to be destoryed.
+    We added several member variables to the Thread class, including booleans 
+    that indicate whether the thread has forked (hasForked), whether the thread is 
+    joinable (willBeJoined - set based on constructor argument), and whether the thread 
+    has already been joined (hasJoined), as well as a lock and a condition variable.
+    When a parent invokes Join() on a child, the child acquires the lock and puts the 
+    parent to sleep until the child thread has finished.
+    Once a thread finishes, via a call to Finish(), it checks its hasJoined and willBeJoined status. 
+    If it is going to be joined but hasn't yet, it will wait for Join to be invoked and returned. 
+    Afterward, it will set itself as ready to be destroyed.
 
     Test switch case numbers used:
         21: a thread that will be joined only is destroyed once Join has been called on it
@@ -57,7 +63,7 @@ Group 44 - Ming Qin, Xinyu Qian, Evan Carey, Kevin Caasi
         23: if a parent calls Join on a child and the child has finished executing, the parent does not block
         24: a thread does not call join on itself 
         25: join is only invoked on threads created to be joined
-        26: join is only called on a thread taht has forked
+        26: join is only called on a thread that has forked
         27: join is not called more than once on a thread
 ----------
 
