@@ -350,17 +350,18 @@ void ConditonDelete()
    t->Fork(ConditonDelete2, 0);
 }
 
+//--------------------------
+//priority tests
+//
 void
 priorityThread(int param){
     printf("priorityThread[priority=%3d ][thread pointer=%d] started\n",currentThread->getPriority(),(int)currentThread);
-	for (int i=0;i<5;i++){
+	for (int i=0;i<7;i++){
 		//pretend to work. and do normal context switch
 		currentThread->Yield();
 	}
 	printf("priorityThread[priority=%3d ][thread pointer=%d] ended\n",currentThread->getPriority(),(int)currentThread);
-	
 }
-
 void
 priorityThreadLock(int param){
     locktest1->Acquire();
@@ -379,7 +380,202 @@ priorityThreadCond(int cond){
 	printf("priorityThread[priority=%3d ][thread pointer=%d] wakes up from Wait()\n",currentThread->getPriority(),(int)currentThread);
 	locktest1->Release();
 }
+void priorityThreadExtraLock1(int param){
+	locktest1->Acquire();
+	printf("priorityThread[priority=%3d ][thread pointer=%d] lock acquired\n",currentThread->getPriority(),(int)currentThread);
+	currentThread->Yield();
+	locktest1->Release();
+	printf("priorityThread[priority=%3d ][thread pointer=%d] lock release, exiting\n",currentThread->getPriority(),(int)currentThread);
+}
+void priorityThreadExtraLock2(int param){
+	//simply keep CPU running
+	printf("priorityThread[priority=%3d ][thread pointer=%d] medium-priority thread starts\n",currentThread->getPriority(),(int)currentThread);
+	for (int i=0;i<200;i++)
+		currentThread->Yield();
+	printf("priorityThread[priority=%3d ][thread pointer=%d] medium-priority thread exits\n",currentThread->getPriority(),(int)currentThread);
+}
+void priorityThreadExtraLock3(int param){
+	currentThread->Yield();
+	locktest1->Acquire();
+	printf("priorityThread[priority=%3d ][thread pointer=%d] lock acquired\n",currentThread->getPriority(),(int)currentThread);
+	currentThread->Yield();
+	locktest1->Release();
+	printf("priorityThread[priority=%3d ][thread pointer=%d] lock release, exiting\n",currentThread->getPriority(),(int)currentThread);
+}
+void priorityThreadExtraJoinChild(int param){
+    printf("priorityThread[priority=%3d ][thread pointer=%d] child started\n",currentThread->getPriority(),(int)currentThread);
+	currentThread->Yield();
+	for (int i=0;i<10;i++)
+		currentThread->Yield();
+	printf("priorityThread[priority=%3d ][thread pointer=%d] child ended\n",currentThread->getPriority(),(int)currentThread);
+}
+void priorityThreadExtraJoinParrent(int param){
+    printf("priorityThread[priority=%3d ][thread pointer=%d] parent started\n",currentThread->getPriority(),(int)currentThread);
+	Thread *t = new Thread("child",1);
+	t->setPriority(0);
+	t->Fork(priorityThreadExtraJoinChild,0);
+	t->Join();
+    printf("priorityThread[priority=%3d ][thread pointer=%d] patent end\n",currentThread->getPriority(),(int)currentThread);
+}
+void priorityTest (){
+	locktest1 = new Lock("priorityLock");
+	Semaphore * sema = new Semaphore("test",0);
+	Condition * cond = new Condition ("test");
 
+	printf("======== priority test for Scheduler ========\n");
+	Thread* t = new Thread("-1");
+	t->setPriority(-1);
+	t->Fork(priorityThread, 0);
+
+	t = new Thread("3");
+	t->setPriority(3);
+	t->Fork(priorityThread,0);
+
+	t = new Thread("0");
+	t->Fork(priorityThread,0);
+
+	t = new Thread("3");
+	t->setPriority(3);
+	t->Fork(priorityThread, 0);
+
+	for (int i=0;i<20;i++)//waiting for previous test to complete
+		currentThread->Yield();
+	printf("======== priority test for synch primitives : lock========\n");
+
+	t = new Thread("4");
+	t->setPriority(4);
+	t->Fork(priorityThreadLock,0);
+
+	t = new Thread("-1");
+	t->setPriority(-1);
+	t->Fork(priorityThreadLock,0);
+
+	t = new Thread("2");
+	t->setPriority(2);
+	t->Fork(priorityThreadLock,0);
+
+	t = new Thread("3");
+	t->setPriority(3);
+	t->Fork(priorityThreadLock,0);
+
+	for (int i=0;i<20;i++){//waiting for previous test to complete
+		currentThread->Yield();
+	}
+	printf("======== priority test for synch primitives : semaphore ========\n");
+
+	t = new Thread("4");
+	t->setPriority(4);
+	t->Fork(priorityThreadSema,(int)sema);
+
+	t = new Thread("-1");
+	t->setPriority(-1);
+	t->Fork(priorityThreadSema,(int)sema);
+
+	t = new Thread("2");
+	t->setPriority(2);
+	t->Fork(priorityThreadSema,(int)sema);
+
+	t = new Thread("3");
+	t->setPriority(3);
+	t->Fork(priorityThreadSema,(int)sema);
+
+	for (int i=0;i<20;i++)//waiting for previous test to complete
+		currentThread->Yield();
+	sema->V();printf("sema->V() is sended\n");
+	sema->V();printf("sema->V() is sended\n");
+	sema->V();printf("sema->V() is sended\n");
+	sema->V();printf("sema->V() is sended\n");
+
+	for (int i=0;i<20;i++){//waiting for previous test to complete
+		currentThread->Yield();
+	}
+	printf("======== priority test for synch primitives : Condition Var ========\n");
+
+	t = new Thread("4");
+	t->setPriority(4);
+	t->Fork(priorityThreadCond,(int)cond);
+
+	t = new Thread("-1");
+	t->setPriority(-1);
+	t->Fork(priorityThreadCond,(int)cond);
+
+	t = new Thread("2");
+	t->setPriority(2);
+	t->Fork(priorityThreadCond,(int)cond);
+
+	t = new Thread("3");
+	t->setPriority(3);
+	t->Fork(priorityThreadCond,(int)cond);
+
+	for (int i=0;i<20;i++)//waiting
+		currentThread->Yield();
+	locktest1->Acquire();
+	cond->Signal(locktest1);printf("cond->Signal() is sended\n");
+	cond->Signal(locktest1);printf("cond->Signal() is sended\n");
+	cond->Signal(locktest1);printf("cond->Signal() is sended\n");
+	cond->Signal(locktest1);printf("cond->Signal() is sended\n");
+	locktest1->Release();
+
+	for (int i=0;i<20;i++){//waiting for previous test to complete
+		currentThread->Yield();
+	}
+	printf("======== priority test for synch primitives : Condition Var (Using Broadcast)========\n");
+
+	t = new Thread("4");
+	t->setPriority(4);
+	t->Fork(priorityThreadCond,(int)cond);
+
+	t = new Thread("-1");
+	t->setPriority(-1);
+	t->Fork(priorityThreadCond,(int)cond);
+
+	t = new Thread("2");
+	t->setPriority(2);
+	t->Fork(priorityThreadCond,(int)cond);
+
+	t = new Thread("3");
+	t->setPriority(3);
+	t->Fork(priorityThreadCond,(int)cond);
+
+	for (int i=0;i<20;i++)//waiting
+		currentThread->Yield();
+	locktest1->Acquire();
+	cond->Broadcast(locktest1);printf("cond->Broadcast() is sended\n");
+	locktest1->Release();
+
+	for (int i=0;i<20;i++)//waiting for previous test to complete
+		currentThread->Yield();
+	printf("======== [Extra credit] priority inversion test : Locks ========\n");
+	t = new Thread("1");
+	t->setPriority(1);
+	t->Fork(priorityThreadExtraLock1,0);
+	currentThread->Yield();//waiting for it to acquire lock
+
+	t = new Thread("2");
+	t->setPriority(2);
+	t->Fork(priorityThreadExtraLock2,0);
+	t = new Thread("2");
+	t->setPriority(2);
+	t->Fork(priorityThreadExtraLock2,0);
+
+	t = new Thread("3");
+	t->setPriority(3);
+	t->Fork(priorityThreadExtraLock3,0);
+
+	for (int i=0;i<20;i++)//waiting for previous test to complete
+		currentThread->Yield();
+	printf("======== [Extra credit] priority inversion test : Join() ========\n");
+	t = new Thread("parent");
+	t->setPriority(3);
+	t->Fork(priorityThreadExtraJoinParrent,0);
+
+	t = new Thread("2");
+	t->setPriority(2);
+	t->Fork(priorityThreadExtraLock2,0);
+	t = new Thread("2");
+	t->setPriority(2);
+	t->Fork(priorityThreadExtraLock2,0);
+}
 
 //--------------------------------------
 // Thread::Join() Tests
@@ -571,181 +767,84 @@ ThreadTest()
 	case 2:
 		LockTest1();
 		break;
-    case 3:
-        LockTestDelete1();
-        break;
-    case 4:
-        LockTestDelete2();
-        break;
-    case 5:
-        WaitCvWithoutHold();
-        break;
-    case 6:
-        SignalBroadcast();
-        break;
-    case 7:
-        SignalBroadcast2();
-        break;
-
-    case 8:
-        ConditonDelete();
-        break;
-
-	case 9:case 10:case 11:case 12: case 13:{
-		MailboxTest mailboxTest;
-		mailboxTest.start(testnum-9);
+	case 3:
+		LockTestDelete1();
 		break;
-	}
+	case 4:
+		LockTestDelete2();
+		break;
+	case 5:
+		WaitCvWithoutHold();
+		break;
+	case 6:
+		SignalBroadcast();
+		break;
+	case 7:
+		SignalBroadcast2();
+		break;
 
+	case 8:
+		ConditonDelete();
+		break;
 
+	case 9://sender first
+	case 10://receiver first
+	case 11://only sender
+	case 12://only receiver
+	case 13://interleaving
+		{
+			MailboxTest mailboxTest;
+			mailboxTest.start(testnum-9);
+			break;
+		}
 	case 14:
-		
-	  JoinTest1();
-	  break;
-	case 15:
-	  ForkerThread();
-	  break;
-	case 19:{//priority test 
-		
-		printf("==== priority test for Scheduler ====\n");
-		Thread* t = new Thread("-1");		
-		t->setPriority(-1);
-		t->Fork(priorityThread, 0);
-		
-		t = new Thread("3");
-		t->setPriority(3);
-		t->Fork(priorityThread,0);
-		
-		t = new Thread("0");
-		t->Fork(priorityThread,0);
-		
-		t = new Thread("3");
-		t->setPriority(3);
-		t->Fork(priorityThread, 0);
-		
-		for (int i=0;i<20;i++)//waiting for previous test to complete
-			currentThread->Yield();
-		printf("==== priority test for synch primitives : lock====\n");
-		
-		locktest1 = new Lock("priorityLock");
-		t = new Thread("4");
-		t->setPriority(4);
-		t->Fork(priorityThreadLock,0);
-		
-		t = new Thread("-1");
-		t->setPriority(-1);
-		t->Fork(priorityThreadLock,0);
-		
-		t = new Thread("2");
-		t->setPriority(2);
-		t->Fork(priorityThreadLock,0);
-		
-		t = new Thread("3");
-		t->setPriority(3);
-		t->Fork(priorityThreadLock,0);
-		
-		for (int i=0;i<20;i++){//waiting for previous test to complete
-			currentThread->Yield();
-		}
-		printf("==== priority test for synch primitives : semaphore ====\n");
-		
-		Semaphore * sema = new Semaphore("test",0);
-		t = new Thread("4");
-		t->setPriority(4);
-		t->Fork(priorityThreadSema,(int)sema);
-		
-		t = new Thread("-1");
-		t->setPriority(-1);
-		t->Fork(priorityThreadSema,(int)sema);
-		
-		t = new Thread("2");
-		t->setPriority(2);
-		t->Fork(priorityThreadSema,(int)sema);
-		
-		t = new Thread("3");
-		t->setPriority(3);
-		t->Fork(priorityThreadSema,(int)sema);
-		
-		for (int i=0;i<20;i++)//waiting for previous test to complete
-			currentThread->Yield();
-		sema->V();printf("sema->V() is sended\n");
-		sema->V();printf("sema->V() is sended\n");
-		sema->V();printf("sema->V() is sended\n");
-		sema->V();printf("sema->V() is sended\n");
-		
-		for (int i=0;i<20;i++){//waiting for previous test to complete
-			currentThread->Yield();
-		}
-		printf("==== priority test for synch primitives : Condition Var ====\n");
-		
-		Condition * cond = new Condition ("test");
-		t = new Thread("4");
-		t->setPriority(4);
-		t->Fork(priorityThreadCond,(int)cond);
-		
-		t = new Thread("-1");
-		t->setPriority(-1);
-		t->Fork(priorityThreadCond,(int)cond);
-		
-		t = new Thread("2");
-		t->setPriority(2);
-		t->Fork(priorityThreadCond,(int)cond);
-		
-		t = new Thread("3");
-		t->setPriority(3);
-		t->Fork(priorityThreadCond,(int)cond);
-		
-		for (int i=0;i<20;i++)//waiting for previous test to complete
-			currentThread->Yield();
-		locktest1->Acquire();
-		cond->Signal(locktest1);printf("cond->Signal() is sended\n");
-		cond->Signal(locktest1);printf("cond->Signal() is sended\n");
-		cond->Signal(locktest1);printf("cond->Signal() is sended\n");
-		cond->Signal(locktest1);printf("cond->Signal() is sended\n");
-		locktest1->Release();
-		
-        break;
-	}
-	case 20:{
-		WhaleTest whaleTest;
-		whaleTest.start();
+		JoinTest1();
 		break;
-    }
+	case 15:
+		ForkerThread();
+		break;
+	case 19:
+		priorityTest();
+		break;
+	case 20:
+		{
+			WhaleTest whaleTest;
+			whaleTest.start();
+			break;
+		}
 
-    case 21:
-        //a thread that will be joined only is destroyed once Join has been called on it, 
-        JoinTest2();
-        break;
+	case 21:
+		//a thread that will be joined only is destroyed once Join has been called on it, 
+		JoinTest2();
+		break;
 
-    case 22:
-        //if a parent calls Join on a child and the child is still executing, the parent waits
-        JoinTest3();
-        break;
-	
-    case 23:
-        //if a parent calls Join on a child and the child has finished executing, the parent does not block
-        JoinTest4();
-        break;
-    case 24:
-        //a thread does not call Join on itself
-        JoinTest5();
-        break;
-    case 25:
-        // Join is only invoked on threads created to be joined
-        JoinTest6();
-        break;
-    case 26:
-        //Join is only called on a thread that has forked
-        JoinTest7();
-        break;
-    case 27:
-        // Join is not called more than once on a thread
-        JoinTest8();
-        break;
+	case 22:
+		//if a parent calls Join on a child and the child is still executing, the parent waits
+		JoinTest3();
+		break;
 
-    default:
+	case 23:
+		//if a parent calls Join on a child and the child has finished executing, the parent does not block
+		JoinTest4();
+		break;
+	case 24:
+		//a thread does not call Join on itself
+		JoinTest5();
+		break;
+	case 25:
+		// Join is only invoked on threads created to be joined
+		JoinTest6();
+		break;
+	case 26:
+		//Join is only called on a thread that has forked
+		JoinTest7();
+		break;
+	case 27:
+		// Join is not called more than once on a thread
+		JoinTest8();
+		break;
+	default:
 		printf("No test specified.\n");
 		break;
 	}
 }
-

@@ -59,7 +59,7 @@ Priorities
     order. For this, we simply pass in a negation of the priority to the function
     to achieve the expected results.
     test switch case numbers used:
-        19: Expects to work successfully. threads run in priority order
+        19: Expects to work successfully. threads run in priority order. 
 
 
 Whales
