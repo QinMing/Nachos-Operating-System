@@ -40,7 +40,16 @@ Mailbox
 
 Join
 --------------------
-    
+   
+
+   test switch case numbers used:
+        21: a thread that will be joined only is destroyed once Join has been called on it
+        22: if a parent calls Join on a child and the child is still executing, the parent waits
+        23: if a parent calls Join on a child and the child has finished executing, the parent does not block
+        24: a thread does not call join on itself 
+        25: join is only invoked on threads created to be joined
+        26: join is only called on a thread taht has forked
+        27: join is not called more than once on a thread
 
 
 Priorities

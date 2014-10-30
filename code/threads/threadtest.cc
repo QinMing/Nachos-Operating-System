@@ -464,6 +464,89 @@ Joinee()
 }
 
 void
+JoinTest2(){
+    //tests to make sure you cannot delete thread that can be joined, before
+    //calling it actually calls
+    Thread* t1 = new Thread("t1",1);
+    
+    t1->~Thread();
+    t1->Join();
+}
+
+void
+JoinTester(){
+  printf("this is the child\n");
+  currentThread->Yield();
+  currentThread->Yield();
+  currentThread->Yield();
+  currentThread->Yield();
+  currentThread->Yield();
+  currentThread->Yield();
+  currentThread->Yield();
+  currentThread->Yield();
+  currentThread->Yield();
+}
+
+void
+JoinTest3(){
+    //if a parent calls Join on a child and the child is still executing, the parent waits
+    DEBUG('t', "Join test 3");
+    Thread *t = new Thread("thread pointer", 1);
+    
+    t->Fork((VoidFunctionPtr)JoinTester,1);
+    t->Join();
+    printf("child should've complete by this message\n");
+}
+
+void
+JoinTest4(){
+    //if a parent calls Join on a child and the child has finished executing, the parent does not block
+    Thread *t = new Thread("thread pointer", 1);
+
+    t->Fork((VoidFunctionPtr)JoinTester,1);
+    t->Join();
+    printf("Parent thread did not block as expected\n");
+
+}
+
+void
+JoinTest5(){
+    //tests to see if thread incorrectly calls fork on itself
+    currentThread->Fork((VoidFunctionPtr)currentThread,1);
+
+}
+void
+JoinTest6(){
+    // Join is only invoked on threads created to be joined. Should fail assert.
+    Thread *t = new Thread("thread pointer", 0);
+    t->Fork((VoidFunctionPtr)JoinTester,0);
+    t->Join();
+    
+
+}
+
+void
+JoinTest7(){
+    //Join is only called on a thread that has forked. Assert should fail.
+    Thread *t = new Thread("thread pointer", 0);
+    t->Join();
+    t->Fork((VoidFunctionPtr)JoinTester,0);
+    
+
+}
+
+void
+JoinTest8(){
+    //Join is not called more than once on a thread. Assert should fail
+    Thread *t = new Thread("thread pointer", 0);
+    t->Fork((VoidFunctionPtr)JoinTester,0);
+    t->Join();
+    t->Join();
+    
+
+}
+
+void
 ForkerThread()
 {
   Thread *joiner = new Thread("joiner", 0);  // will not be joined
@@ -628,7 +711,38 @@ ThreadTest()
 		whaleTest.start();
 		break;
     }
+
+    case 21:
+        //a thread that will be joined only is destroyed once Join has been called on it, 
+        JoinTest2();
+        break;
+
+    case 22:
+        //if a parent calls Join on a child and the child is still executing, the parent waits
+        JoinTest3();
+        break;
 	
+    case 23:
+        //if a parent calls Join on a child and the child has finished executing, the parent does not block
+        JoinTest4();
+        break;
+    case 24:
+        //a thread does not call Join on itself
+        JoinTest5();
+        break;
+    case 25:
+        // Join is only invoked on threads created to be joined
+        JoinTest6();
+        break;
+    case 26:
+        //Join is only called on a thread that has forked
+        JoinTest7();
+        break;
+    case 27:
+        // Join is not called more than once on a thread
+        JoinTest8();
+        break;
+
     default:
 		printf("No test specified.\n");
 		break;
