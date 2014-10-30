@@ -361,9 +361,7 @@ priorityThread(int param){
 		currentThread->Yield();
 	}
 	printf("priorityThread[priority=%3d ][thread pointer=%d] ended\n",currentThread->getPriority(),(int)currentThread);
-	
 }
-
 void
 priorityThreadLock(int param){
     locktest1->Acquire();
@@ -424,8 +422,8 @@ void priorityTest (){
 	Semaphore * sema = new Semaphore("test",0);
 	Condition * cond = new Condition ("test");
 
-	printf("==== priority test for Scheduler ====\n");
-	Thread* t = new Thread("-1");		
+	printf("======== priority test for Scheduler ========\n");
+	Thread* t = new Thread("-1");
 	t->setPriority(-1);
 	t->Fork(priorityThread, 0);
 
@@ -442,7 +440,7 @@ void priorityTest (){
 
 	for (int i=0;i<20;i++)//waiting for previous test to complete
 		currentThread->Yield();
-	printf("==== priority test for synch primitives : lock====\n");
+	printf("======== priority test for synch primitives : lock========\n");
 
 	t = new Thread("4");
 	t->setPriority(4);
@@ -463,7 +461,7 @@ void priorityTest (){
 	for (int i=0;i<20;i++){//waiting for previous test to complete
 		currentThread->Yield();
 	}
-	printf("==== priority test for synch primitives : semaphore ====\n");
+	printf("======== priority test for synch primitives : semaphore ========\n");
 
 	t = new Thread("4");
 	t->setPriority(4);
@@ -491,7 +489,7 @@ void priorityTest (){
 	for (int i=0;i<20;i++){//waiting for previous test to complete
 		currentThread->Yield();
 	}
-	printf("==== priority test for synch primitives : Condition Var ====\n");
+	printf("======== priority test for synch primitives : Condition Var ========\n");
 
 	t = new Thread("4");
 	t->setPriority(4);
@@ -521,7 +519,7 @@ void priorityTest (){
 	for (int i=0;i<20;i++){//waiting for previous test to complete
 		currentThread->Yield();
 	}
-	printf("==== priority test for synch primitives : Condition Var (Using Broadcast)====\n");
+	printf("======== priority test for synch primitives : Condition Var (Using Broadcast)========\n");
 
 	t = new Thread("4");
 	t->setPriority(4);
@@ -547,7 +545,7 @@ void priorityTest (){
 
 	for (int i=0;i<20;i++)//waiting for previous test to complete
 		currentThread->Yield();
-	printf("==== [Extra credit] priority inversion test : Locks ====\n");
+	printf("======== [Extra credit] priority inversion test : Locks ========\n");
 	t = new Thread("1");
 	t->setPriority(1);
 	t->Fork(priorityThreadExtraLock1,0);
@@ -566,7 +564,7 @@ void priorityTest (){
 
 	for (int i=0;i<20;i++)//waiting for previous test to complete
 		currentThread->Yield();
-	printf("==== [Extra credit] priority inversion test : Join() ====\n");
+	printf("======== [Extra credit] priority inversion test : Join() ========\n");
 	t = new Thread("parent");
 	t->setPriority(3);
 	t->Fork(priorityThreadExtraJoinParrent,0);
@@ -789,7 +787,11 @@ ThreadTest()
 		ConditonDelete();
 		break;
 
-	case 9:case 10:case 11:case 12: case 13:
+	case 9://sender first
+	case 10://receiver first
+	case 11://only sender
+	case 12://only receiver
+	case 13://interleaving
 		{
 			MailboxTest mailboxTest;
 			mailboxTest.start(testnum-9);
