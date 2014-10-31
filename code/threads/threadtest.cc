@@ -615,7 +615,7 @@ void priorityTest (){
 
 	for (int i=0;i<100;i++)//waiting for previous test to complete
 		currentThread->Yield();
-	printf("======== [Extra credit] priority inversion test : recursively promote ========\n");
+	printf("==<8>====== [Extra credit] priority inversion test : recursively promote ========\n");
 		t = new Thread("0");
 	t->setPriority(0);
 	//its priority must less than thread "main", so that it can Yield to main before it got the lock
