@@ -28,10 +28,10 @@ public:
     void Run(Thread* nextThread);	// Cause nextThread to start running
     void Print();			// Print contents of ready list
 	int ChangeThreadPriority(Thread* query, int newPriority){
-		return readyList->ChangeKey(query, -newPriority);
+		//return readyList->ChangeKey(query, -newPriority);
 	};
 	void ReSortReadyList(){
-		readyList->ReSort();
+		//readyList->ReSort();
 	};
 
 private:
