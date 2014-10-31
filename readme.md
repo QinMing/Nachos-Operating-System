@@ -79,13 +79,13 @@ to achieve the expected results.
 ------------
 
 ###Whales
-We used 4 semaphores to implement whale matching. There are 3 functions with similar codes male, female and matchmaker representing whales from each class. There are four semaphores thus four wait lists, one for each whale class to make sure only one whale from each class is waiting to be matched, and another for whales to wait for being matched. Only when 3 whales from each of the 3 classes come, can they form a match and then return, otherwise wait. To make things clear, we add a variable to indicate the number of match, when a male whale returns, the program will print "male whale return from match NO.#", when female and matchmaker returns the program will print similar message. And when a match 
+We used 4 semaphores to implement whale matching. There are 3 functions with similar codes male, female and matchmaker representing whales from each class. There are four semaphores thus four wait lists, one for each whale class to make sure only one whale from each class is waiting to be matched, and another for whales to wait for being matched. Only when 3 whales from each of the 3 classes come, can they form a match and then return, otherwise wait. To make things clear, we add variables to indicate the number of match and whales from each classes, when a male whale comes or returns, the program will print "one male whale come(return from match NO.#)" and then print out the number of male whales waiting to be matched, when female and matchmaker come or return, the program will print similar message. And when a match 
 completed it will print "match NO.# completed"
 
     Test switch case numbers used:
          30: 9 whales in 3 pairs, 3 male, 3 female, 3 matchmaker, three matches succeed
          31: 8 whales , 3 male, 3 female, 2 matchmaker, only two matches succeed
-         32: 7 whales , 3 male, 1 female, 3 matchmaker, only one match succeed
+         32: 7 whales , 3 male, 1 female, 3 matchmaker, only one match succeeds
          33: 9 whales in 3 pairs, 3 male, 3 female, 3 matchmaker, in a different order, three matches succeed
          
 	 we also tried -rs while testing and our program works fine in random switch circumstance

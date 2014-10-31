@@ -6,9 +6,12 @@ Whale::Whale(char* debugName){
 	female = new Semaphore("femaleWhale",1);
 	matchmaker = new Semaphore("matchmakerWhale",1);
 	newMember = new Semaphore("newMember",0);
-	match = 0; //number of whales waiting to be matched
+	match = 0; //number of whales currently waiting to be matched
 	matched=0; //number of whales have been matched
-	pairNO=1; 
+	pairNO=1;  //number of matched
+	maleNum = 0; //number of male whales waiting to be matched
+	femaleNum = 0;//number of female whales waiting to be matched
+	matchmakerNum = 0; //number of matchmaker whales waiting to be matched
 }
 
 Whale::~Whale(){
@@ -23,7 +26,9 @@ Whale::~Whale(){
 
 void Whale::Male(){
   DEBUG('x', "a male is going to acquire male lock\n");
-  male->P(); //block other male
+  maleNum++;
+  printf("COME: one male comes to match; %d male whale(s) to be matched now\n", maleNum);
+  male->P();		//block other male
   DEBUG('x', "a male wake from male lock \n");
   match ++; 
   
@@ -40,8 +45,9 @@ void Whale::Male(){
   if(matched==2){	 //when the third whale completes the match, initialize the flags before it returns
     match=0;
     matched=0;
+	maleNum--;
 	DEBUG('x', "male->signal from male\n");
-	printf("male whale return from match NO.%d\n", pairNO);
+	printf("RETURN: one male whale return from match NO.%d; %d male whale(s) to be matched now\n", pairNO, maleNum);
 	printf("match NO. %d completed\n", pairNO);//before the third whale return, send a signal imply a match is completed
 	pairNO++;
     matchmaker->V();	//and let other whales continue the match
@@ -50,13 +56,15 @@ void Whale::Male(){
   }
   else{                 //the first two whales complete the match,don't initialize flags, they just return
     matched ++; 
-    printf("male whale return from match NO.%d\n",pairNO);
+	maleNum--;
+	printf("RETURN: one male whale return from match NO.%d; %d male whale(s) to be matched now\n", pairNO, maleNum);
   }
 }
 
 //the same as Male(), simpley changed male to female
 void Whale::Female(){
-  
+  femaleNum++;
+  printf("COME: one female comes to match; %d female whale(s) to be matched now\n", femaleNum);
   female->P(); //block other female
   
   match ++;
@@ -73,8 +81,9 @@ void Whale::Female(){
   if(matched==2){
     match=0;
     matched=0;
+	femaleNum--;
 	DEBUG('x', "male->signal from female\n");
-	printf("female whale return from match NO.%d\n", pairNO);
+	printf("RETURN: one female whale return from match NO.%d; %d female whale(s) to be matched now\n", pairNO, femaleNum);
 	printf("match NO. %d completed\n", pairNO);
 	pairNO++;
     matchmaker->V();
@@ -83,7 +92,8 @@ void Whale::Female(){
   }
   else{
     matched ++;
-    printf("female whale return from match NO.%d\n",pairNO);
+	femaleNum--;
+	printf("RETURN: one female whale return from match NO.%d; %d female whale(s) to be matched now\n", pairNO, femaleNum);
   }
   
   
@@ -91,7 +101,8 @@ void Whale::Female(){
 
 //the same as Male(), simpley changed male to matchmaker
 void Whale::Matchmaker(){
-  
+  matchmakerNum++;
+  printf("COME: one matchmaker comes to match; %d matchmaker(s) to be matched now\n", matchmakerNum);
   matchmaker->P(); //block other matchmaker
   
   match ++;
@@ -107,8 +118,9 @@ void Whale::Matchmaker(){
   if(matched==2){
     match=0;
     matched=0;
+	matchmakerNum--;
 	DEBUG('x', "male->signal from mm\n");
-	printf("matchmaker whale return from match NO.%d\n", pairNO);
+	printf("RETURN: one matchmaker whale return from match NO.%d; %d matchmaker(s) to be matched now\n", pairNO, matchmakerNum);
 	printf("match NO. %d completed\n", pairNO);
 	pairNO++;
     matchmaker->V();
@@ -117,6 +129,7 @@ void Whale::Matchmaker(){
   }
   else{
     matched ++;
-    printf("matchmaker whale return from match NO.%d\n",pairNO);   
+	matchmakerNum--;
+	printf("RETURN: one matchmaker whale return from match NO.%d; %d matchmaker(s) to be matched now\n", pairNO, matchmakerNum);
   }
 }
