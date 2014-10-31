@@ -48,6 +48,7 @@ public:
     void Prepend(void *item); 	// Put item at the beginning of the list
     void Append(void *item); 	// Put item at the end of the list
     void *Remove(); 	 	// Take item off the front of the list
+
     void Mapcar(VoidFunctionPtr func);	// Apply "func" to every element
     // on the list
     bool IsEmpty();		// is the list empty?
@@ -56,6 +57,8 @@ public:
     // Routines to put/get items on/off list in order (sorted by key)
     void SortedInsert(void *item, int sortKey);	// Put item into list
     void *SortedRemove(int *keyPtr); 	  	// Remove first item from list
+	void ChangeKey(void* query, int newKey);
+	void ReSort(); //Re-sort the list
 
 private:
     ListElement *first;  	// Head of the list, NULL if list is empty

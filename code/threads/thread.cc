@@ -251,9 +251,13 @@ Thread::Yield ()
 
     DEBUG('t', "Yielding thread \"%s\"\n", getName());
 
+	scheduler->ReadyToRun(this);
+	//move the sentance here to let it continue execution if there's
+	//no thread with higher priority
+
     nextThread = scheduler->FindNextToRun();
     if (nextThread != NULL) {
-        scheduler->ReadyToRun(this);
+        //scheduler->ReadyToRun(this);
         scheduler->Run(nextThread);
     }
     (void) interrupt->SetLevel(oldLevel);
@@ -316,9 +320,13 @@ void ThreadPrint(int arg) {
 
 void
 Thread::setPriority(int newPriority){
-    priority=newPriority;
+	priority=newPriority;
+	if (currentThread != this)
+	{
+		scheduler->ChangeThreadPriority(this,newPriority);
+		scheduler->ReSortReadyList();
+	}
 }
-
 
 int
 Thread::getPriority(){

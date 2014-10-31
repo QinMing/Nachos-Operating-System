@@ -122,8 +122,10 @@ void Lock::Acquire() {
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
 	while (held) {
-		if (currentThread->getPriority() > holderPriority)
+		if (currentThread->getPriority() > thread->getPriority() ){
+			//if the priority is larger than lock holder's
 			thread -> setPriority( currentThread->getPriority() );
+		}
 		queue->SortedInsert((void*)currentThread,-currentThread->getPriority());
 		currentThread->Sleep();
 	}
@@ -137,14 +139,14 @@ void Lock::Acquire() {
 }
 
 void Lock::Release() {
-	ASSERT(isHeldByCurrentThread()); // panic if lock is held by another thread
-	
 	// disable interrupts
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);
+	ASSERT(isHeldByCurrentThread()); // panic if lock is held by another thread
 
 	// release the lock
 	held = 0;
-	thread->setPriority(holderPriority);
+	currentThread->setPriority(holderPriority);
+	holderPriority = 0;
 	thread = NULL;
 	Thread* t = (Thread*)queue->Remove();
 	
