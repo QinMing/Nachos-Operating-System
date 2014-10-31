@@ -72,12 +72,22 @@ Afterward, it will set itself as ready to be destroyed.
 We worked on priorities by utilizing the SortedInsert() function in list. However, this function originally sorts by ascending order. We want descending order. For this, we simply pass in a negation of the priority to the function to achieve the expected results. Later on, we modified Thread::Yield() so that high-priority thread will come back to itself if no other thread has higher priority.
 
     Test switch case numbers used:
-       19: Expects to work successfully. Outputs for all test cases will be display on the screen.
+       19: Expects to work successfully. Outputs for all test cases will be display on 
+the screen.
 
 Those test cases include:
 
-       <1> Priority test for scheduler. When Thread::Yield() is called, the scheduler always run the thread with the highest priority, or switch between threads that share the highest priority.
-       <2> Test for synch primiives Lock.
+       <1> Priority test for scheduler. When Thread::Yield() is called, the scheduler 
+always run the thread with the highest priority, or switch between threads that share 
+the highest priority.
+       <2> Priority test for synch primiives Lock.
+       <3> Priority test for Semaphore.
+       <4> Priority test for Condition Var, waking up by Signal();
+       <5> Priority test for Condition Var, waking up by Broadcast();
+       <6> [Extra Credit] The lock-holding thread is successfully promoted, so that it
+ exits before all mid-priority threads finish.
+       <7> [Extra Credit] The joinee is successfully promoted, so that it exits before 
+all mid-priority threads finish.
 
 ------------
 
