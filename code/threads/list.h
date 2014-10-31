@@ -57,7 +57,7 @@ public:
     // Routines to put/get items on/off list in order (sorted by key)
     void SortedInsert(void *item, int sortKey);	// Put item into list
     void *SortedRemove(int *keyPtr); 	  	// Remove first item from list
-	void ChangeKey(void* query, int newKey);
+	int ChangeKey(void* query, int newKey); //return 0:success. return -1:query not found
 	void ReSort(); //Re-sort the list
 
 private:

@@ -90,26 +90,32 @@ Thread::~Thread()
 //----------------------------------------------------------------------
 
 void Thread::Join() {
-  // get lock
-  lock->Acquire();
+	// get lock
+	lock->Acquire();
 
-  ASSERT(this != currentThread); // a thread cannot call join on itself
-  ASSERT(!hasJoined); // join is not called more that once on a thread
-  ASSERT(willBeJoined); // join is only invoked on threads created to be joined
-  ASSERT(hasForked); // join is only called on a thread that has forked
-  
-  willBeJoined = false; // ensure Join() can only be called once
-  hasJoined = true;
-  
-  joinedOnMe->Signal(lock);
-  
-  // add currentThread to the queue
-  joinedOnMe->Wait(lock);
-  
-  joinedOnMe->Signal(lock);
+	ASSERT(this != currentThread); // a thread cannot call join on itself
+	ASSERT(!hasJoined); // join is not called more that once on a thread
+	ASSERT(willBeJoined); // join is only invoked on threads created to be joined
+	ASSERT(hasForked); // join is only called on a thread that has forked
 
-  // release lock
-  lock->Release();
+	willBeJoined = false; // ensure Join() can only be called once
+	hasJoined = true;
+
+	joinedOnMe->Signal(lock);
+
+	//promote the joinee's priority if it's lower than joiner's
+	if (currentThread->getPriority() > this->getPriority() ){
+		//if the priority is larger than lock holder's
+		this -> setPriority( currentThread->getPriority() );
+	}
+
+	// add currentThread to the queue
+	joinedOnMe->Wait(lock);
+
+	joinedOnMe->Signal(lock);
+
+	// release lock
+	lock->Release();
 }
 
 //----------------------------------------------------------------------
@@ -323,8 +329,8 @@ Thread::setPriority(int newPriority){
 	priority=newPriority;
 	if (currentThread != this)
 	{
-		scheduler->ChangeThreadPriority(this,newPriority);
-		scheduler->ReSortReadyList();
+		if (scheduler->ChangeThreadPriority(this,newPriority) == 0)
+			scheduler->ReSortReadyList();
 	}
 }
 

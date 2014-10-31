@@ -236,16 +236,17 @@ List::SortedRemove(int *keyPtr)
     return thing;
 }
 
-void
+int
 List::ChangeKey(void* query, int newKey){
 	ListElement *ptr = first;
 	while(ptr!=NULL){
 		if (ptr->item == query){
 			ptr->key = newKey;
-			return;
+			return 0;
 		}
 		ptr = ptr->next;
 	}
+	return -1;
 }
 
 //Re-sort the list

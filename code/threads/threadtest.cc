@@ -355,61 +355,95 @@ void ConditonDelete()
 //
 void
 priorityThread(int param){
-    printf("priorityThread[priority=%3d ][thread pointer=%d] started\n",currentThread->getPriority(),(int)currentThread);
+    printf("priorityThread[priority=%3d ][Thread*=%d] started\n",currentThread->getPriority(),(int)currentThread);
 	for (int i=0;i<7;i++){
 		//pretend to work. and do normal context switch
 		currentThread->Yield();
 	}
-	printf("priorityThread[priority=%3d ][thread pointer=%d] ended\n",currentThread->getPriority(),(int)currentThread);
+	printf("priorityThread[priority=%3d ][Thread*=%d] ended\n",currentThread->getPriority(),(int)currentThread);
 }
 void
 priorityThreadLock(int param){
     locktest1->Acquire();
-	printf("priorityThread[priority=%3d ][thread pointer=%d] lock acquired\n",currentThread->getPriority(),(int)currentThread);
+	printf("priorityThread[priority=%3d ][Thread*=%d] lock acquired\n",currentThread->getPriority(),(int)currentThread);
     locktest1->Release();
 }
 void
 priorityThreadSema(int sema){
 	((Semaphore*)sema)->P();
-	printf("priorityThread[priority=%3d ][thread pointer=%d] wakes up from p()\n",currentThread->getPriority(),(int)currentThread);
+	printf("priorityThread[priority=%3d ][Thread*=%d] wakes up from p()\n",currentThread->getPriority(),(int)currentThread);
 }
 void 
 priorityThreadCond(int cond){
 	locktest1->Acquire();
 	((Condition*)cond)->Wait(locktest1);
-	printf("priorityThread[priority=%3d ][thread pointer=%d] wakes up from Wait()\n",currentThread->getPriority(),(int)currentThread);
+	printf("priorityThread[priority=%3d ][Thread*=%d] wakes up from Wait()\n",currentThread->getPriority(),(int)currentThread);
 	locktest1->Release();
 }
 void priorityThreadExtraLock1(int param){
-	printf("priorityThread[priority=%3d ][thread pointer=%d] begin, planning to acquire\n",currentThread->getPriority(),(int)currentThread);
+	printf("priorityThread[priority=%3d ][Thread*=%d] begin, planning to acquire\n",currentThread->getPriority(),(int)currentThread);
 	locktest1->Acquire();
-	printf("priorityThread[priority=%3d ][thread pointer=%d] lock acquired\n",currentThread->getPriority(),(int)currentThread);
+	printf("priorityThread[priority=%3d ][Thread*=%d] lock acquired\n",currentThread->getPriority(),(int)currentThread);
 	currentThread->Yield();currentThread->Yield();
 	currentThread->Yield();currentThread->Yield();
 	locktest1->Release();
-	printf("priorityThread[priority=%3d ][thread pointer=%d] lock release, exiting\n",currentThread->getPriority(),(int)currentThread);
+	printf("priorityThread[priority=%3d ][Thread*=%d] lock release, exiting\n",currentThread->getPriority(),(int)currentThread);
 }
 void priorityThreadExtraLock2(int param){
 	//simply keep CPU running
-	printf("priorityThread[priority=%3d ][thread pointer=%d] medium-priority thread starts\n",currentThread->getPriority(),(int)currentThread);
+	printf("priorityThread[priority=%3d ][Thread*=%d] medium-priority thread created\n",currentThread->getPriority(),(int)currentThread);
 	for (int i=0;i<200;i++)
 		currentThread->Yield();
-	printf("priorityThread[priority=%3d ][thread pointer=%d] medium-priority thread exits\n",currentThread->getPriority(),(int)currentThread);
+	printf("priorityThread[priority=%3d ][Thread*=%d] medium-priority thread exits\n",currentThread->getPriority(),(int)currentThread);
 }
 void priorityThreadExtraJoinChild(int param){
-    printf("priorityThread[priority=%3d ][thread pointer=%d] child started\n",currentThread->getPriority(),(int)currentThread);
+    printf("priorityThread[priority=%3d ][Thread*=%d] child started\n",currentThread->getPriority(),(int)currentThread);
 	currentThread->Yield();
 	for (int i=0;i<10;i++)
 		currentThread->Yield();
-	printf("priorityThread[priority=%3d ][thread pointer=%d] child ended\n",currentThread->getPriority(),(int)currentThread);
+	printf("priorityThread[priority=%3d ][Thread*=%d] child ended\n",currentThread->getPriority(),(int)currentThread);
 }
 void priorityThreadExtraJoinParrent(int param){
-    printf("priorityThread[priority=%3d ][thread pointer=%d] parent started\n",currentThread->getPriority(),(int)currentThread);
-	Thread *t = new Thread("child",1);
-	t->setPriority(0);
-	t->Fork(priorityThreadExtraJoinChild,0);
+    printf("priorityThread[priority=%3d ][Thread*=%d] parent started\n",currentThread->getPriority(),(int)currentThread);
+	Thread *child = new Thread("child",1);
+	child->setPriority(0);
+	child->Fork(priorityThreadExtraJoinChild,0);
+	currentThread->setPriority(0);//temporarily let it Yield to other threads
+	currentThread->Yield();
+	currentThread->setPriority(3);
+
+	Thread *t = new Thread("2");
+	t->setPriority(2);
+	t->Fork(priorityThreadExtraLock2,0);
+	t = new Thread("2");
+	t->setPriority(2);
+	t->Fork(priorityThreadExtraLock2,0);
+	currentThread->setPriority(2);//temporarily let it Yield to other threads
+	currentThread->Yield();
+	currentThread->setPriority(3);
+	child->Join();
+    printf("priorityThread[priority=%3d ][Thread*=%d] patent end\n",currentThread->getPriority(),(int)currentThread);
+}
+void priorityThreadExtraJoinAndLock(int param){
+    printf("priorityThread[priority=%3d ][Thread*=%d] highest-priority begin\n",currentThread->getPriority(),(int)currentThread);
+	Thread* t = new Thread("child",1);
+	t->setPriority(3);
+	t->Fork(priorityThreadExtraLock1,0);
+	currentThread->setPriority(3);//let it Yield to other thread temporarily
+	currentThread->Yield();
+	currentThread->setPriority(6);
+
+	t = new Thread("4");
+	t->setPriority(2);
+	t->Fork(priorityThreadExtraLock2,0);
+
+	t = new Thread("5");
+	t->setPriority(2);
+	t->Fork(priorityThreadExtraLock2,0);
+
+	currentThread->Yield();
 	t->Join();
-    printf("priorityThread[priority=%3d ][thread pointer=%d] patent end\n",currentThread->getPriority(),(int)currentThread);
+    printf("priorityThread[priority=%3d ][Thread*=%d] highest-priority end\n",currentThread->getPriority(),(int)currentThread);
 }
 void priorityTest (){
 	locktest1 = new Lock("priorityLock");
@@ -417,8 +451,7 @@ void priorityTest (){
 	Condition * cond = new Condition ("test");
 	Thread* t;
 
-#if 0
-	printf("======== priority test for Scheduler ========\n");
+	printf("==<1>====== priority test for Scheduler ========\n");
 	t = new Thread("0");
 	t->setPriority(0);
 	t->Fork(priorityThread, 0);
@@ -440,7 +473,7 @@ void priorityTest (){
 
 	for (int i=0;i<20;i++)//waiting for previous test to complete
 		currentThread->Yield();
-	printf("======== priority test for synch primitives : lock========\n");
+	printf("==<2>====== priority test for synch primitives : lock========\n");
 
 	t = new Thread("4");
 	t->setPriority(4);
@@ -461,7 +494,7 @@ void priorityTest (){
 	for (int i=0;i<20;i++){//waiting for previous test to complete
 		currentThread->Yield();
 	}
-	printf("======== priority test for synch primitives : semaphore ========\n");
+	printf("==<3>====== priority test for synch primitives : semaphore ========\n");
 
 	t = new Thread("4");
 	t->setPriority(4);
@@ -489,7 +522,7 @@ void priorityTest (){
 	for (int i=0;i<20;i++){//waiting for previous test to complete
 		currentThread->Yield();
 	}
-	printf("======== priority test for synch primitives : Condition Var ========\n");
+	printf("==<4>====== priority test for synch primitives : Condition Var ========\n");
 
 	t = new Thread("4");
 	t->setPriority(4);
@@ -519,7 +552,7 @@ void priorityTest (){
 	for (int i=0;i<20;i++){//waiting for previous test to complete
 		currentThread->Yield();
 	}
-	printf("======== priority test for synch primitives : Condition Var (Using Broadcast)========\n");
+	printf("==<5>====== priority test for synch primitives : Condition Var (Using Broadcast)========\n");
 
 	t = new Thread("4");
 	t->setPriority(4);
@@ -542,40 +575,65 @@ void priorityTest (){
 	locktest1->Acquire();
 	cond->Broadcast(locktest1);printf("cond->Broadcast() is sended\n");
 	locktest1->Release();
-#endif
+
 	for (int i=0;i<20;i++)//waiting for previous test to complete
 		currentThread->Yield();
-	printf("======== [Extra credit] priority inversion test : Locks ========\n");
+	printf("==<6>====== [Extra credit] priority inversion test : Locks ========\n");
 	t = new Thread("0");
 	t->setPriority(0);
 	//its priority must less than thread "main", so that it can Yield to main before it got the lock
 	t->Fork(priorityThreadExtraLock1,0);
 	currentThread->Yield();//waiting for it to acquire lock
 
+	t = new Thread("1");
+	t->setPriority(1);
+	t->Fork(priorityThreadExtraLock2,0);
+	currentThread->setPriority(1);//temporarily let it Yield to other threads with priority 2
+	currentThread->Yield();
+	currentThread->setPriority(0);
+
 	t = new Thread("2");
 	t->setPriority(2);
 	t->Fork(priorityThreadExtraLock2,0);
 	t = new Thread("2");
 	t->setPriority(2);
 	t->Fork(priorityThreadExtraLock2,0);
+	currentThread->setPriority(2);//temporarily let it Yield to other threads with priority 2
+	currentThread->Yield();
+	currentThread->setPriority(0);
 
 	t = new Thread("3");
 	t->setPriority(3);
 	t->Fork(priorityThreadExtraLock1,0);
 
-	for (int i=0;i<777;i++)//waiting for previous test to complete
+	for (int i=0;i<100;i++)//waiting for previous test to complete
 		currentThread->Yield();
-	printf("======== [Extra credit] priority inversion test : Join() ========\n");
+	printf("==<7>====== [Extra credit] priority inversion test : Join() ========\n");
 	t = new Thread("parent");
 	t->setPriority(3);
 	t->Fork(priorityThreadExtraJoinParrent,0);
 
-	t = new Thread("2");
-	t->setPriority(2);
-	t->Fork(priorityThreadExtraLock2,0);
-	t = new Thread("2");
-	t->setPriority(2);
-	t->Fork(priorityThreadExtraLock2,0);
+	//for (int i=0;i<100;i++)//waiting for previous test to complete
+	//	currentThread->Yield();
+	//printf("======== [Extra credit] priority inversion test : recursively promote ========\n");
+	//	t = new Thread("0");
+	//t->setPriority(0);
+	////its priority must less than thread "main", so that it can Yield to main before it got the lock
+	//t->Fork(priorityThreadExtraLock1,0);
+	//currentThread->Yield();//waiting for it to acquire lock
+
+	//t = new Thread("1");
+	//t->setPriority(1);
+	//t->Fork(priorityThreadExtraLock2,0);
+
+	//t = new Thread("2");
+	//t->setPriority(2);
+	//t->Fork(priorityThreadExtraLock2,0);
+
+	//t = new Thread("6");
+	//t->setPriority(6);
+	//t->Fork(priorityThreadExtraJoinAndLock,0);
+
 }
 
 //--------------------------------------
