@@ -27,8 +27,9 @@ class Whale{
 	  int match;
 	  int matched;
 	  int pairNO;
-
-  
+    int maleNum;
+    int femaleNum;
+    int matchmakerNum;  
 };
 
 
