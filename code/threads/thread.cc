@@ -29,6 +29,8 @@
 //	Thread::Fork.
 //
 //	"threadName" is an arbitrary string, useful for debugging.
+//      "join" is an integer representig whether the thread will be joined
+//      or not
 //----------------------------------------------------------------------
 Thread::Thread(char* threadName, int join)
 {
@@ -91,10 +93,10 @@ void Thread::Join() {
   // get lock
   lock->Acquire();
 
-  ASSERT(this != currentThread);
-  ASSERT(!hasJoined);
-  ASSERT(willBeJoined);
-  ASSERT(hasForked);
+  ASSERT(this != currentThread); // a thread cannot call join on itself
+  ASSERT(!hasJoined); // join is not called more that once on a thread
+  ASSERT(willBeJoined); // join is only invoked on threads created to be joined
+  ASSERT(hasForked); // join is only called on a thread that has forked
   
   willBeJoined = false; // ensure Join() can only be called once
   hasJoined = true;
@@ -202,7 +204,7 @@ Thread::Finish ()
 		lock->Release();
 	}
 	else if(willBeJoined)
-	{//will be joined but hasn't been 
+	{ // will be joined but hasn't been -> must wait until after Join has been called and returns
 		lock->Acquire();
 		
 		joinedOnMe->Wait(lock);
@@ -212,18 +214,8 @@ Thread::Finish ()
 		lock->Release();
 	}
 	
-	/*Old Codes
-	(void) interrupt->SetLevel(IntOff);
-	lock->Acquire();
-	if (!hasJoined && willBeJoined) {
-		(void) interrupt->SetLevel(IntOn);
-		joinedOnMe->Wait(lock);
-		(void) interrupt->SetLevel(IntOff);
-	}
-	joinedOnMe->Signal(lock);
-	joinedOnMe->Wait(lock);
-	lock->Release();
-	*/
+	// If Join will not be called, we can delete the TCB immediately
+	
 	(void) interrupt->SetLevel(IntOff);
 	DEBUG('t', "Finishing thread \"%s\"\n", getName());
 	threadToBeDestroyed = currentThread; 

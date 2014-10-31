@@ -97,9 +97,11 @@ void
 	(void) interrupt->SetLevel(oldLevel);
 }
 
-// Dummy functions -- so we can compile our later assignments
-// Note -- without a correct implementation of Condition::Wait(),
-// the test case in the network assignment won't work!
+
+//----------------------------------------------------------------------
+// Lock Implementation
+//----------------------------------------------------------------------
+
 Lock::Lock(char* debugName) {
 	name = debugName;
 	held = 0;
@@ -113,9 +115,10 @@ Lock::~Lock() {
 }
 
 void Lock::Acquire() {
-	// disable interrupts
 
 	ASSERT(!isHeldByCurrentThread());//Error: Attempt to acquire the same lock twice
+
+	// disable interrupts
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
 	while (held) {
@@ -132,9 +135,9 @@ void Lock::Acquire() {
 
 void Lock::Release() {
 	ASSERT(isHeldByCurrentThread()); // panic if lock is held by another thread
+	
 	// disable interrupts
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);
-
 
 	// release the lock
 	held = 0;
@@ -155,6 +158,9 @@ bool Lock::isHeldByCurrentThread() {
 }
 
 
+//----------------------------------------------------------------------
+// Condition Implementation
+//----------------------------------------------------------------------
 
 Condition::Condition(char* debugName) {
 	name = debugName;
@@ -171,12 +177,17 @@ void Condition::Wait(Lock* conditionLock) {
 	// disable interrupts
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
+	// lock must be held by currentThread
 	ASSERT(conditionLock->isHeldByCurrentThread());
 
 	conditionLock->Release();
+
+	// place thread in waitig queue and sleep it
 	queue->SortedInsert((void*)currentThread,-currentThread->getPriority());
 	currentThread->Sleep();
+
 	conditionLock->Acquire();
+
 	// enable interrupts
 	(void) interrupt->SetLevel(oldLevel);
 }
@@ -185,8 +196,10 @@ void Condition::Signal(Lock* conditionLock) {
 	// disable interrupts
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
+	// lock must be held by currentThread
 	ASSERT(conditionLock->isHeldByCurrentThread());
 
+	// remove thread from waiting queue and let it run
 	Thread* t = (Thread*)queue->Remove();
 	if (t != NULL) {
 		scheduler->ReadyToRun(t);
@@ -200,8 +213,10 @@ void Condition::Broadcast(Lock* conditionLock) {
 	// disable interrupts
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
+	// lock must be held by currentThread
 	ASSERT(conditionLock->isHeldByCurrentThread());
 
+	// remove all threads from waiting queue and let them run
 	Thread* t = (Thread*)queue->Remove();
 	while (t != NULL) {
 		scheduler->ReadyToRun(t);

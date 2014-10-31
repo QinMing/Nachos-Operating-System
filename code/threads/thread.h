@@ -131,9 +131,9 @@ private:
     int priority;
 
     // Variables used for Thread::Join()
-    bool hasForked;
+    bool hasForked; // whether the thread has forked or not
     bool willBeJoined; // whether the thread will be joined or not
-    bool hasJoined;
+    bool hasJoined; // whether the thread has been joined or not
     Lock* lock;
     Condition* joinedOnMe;
 	
