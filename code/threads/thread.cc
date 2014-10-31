@@ -327,11 +327,11 @@ void ThreadPrint(int arg) {
 void
 Thread::setPriority(int newPriority){
 	priority=newPriority;
-	if (currentThread != this)
-	{
-		if (scheduler->ChangeThreadPriority(this,newPriority) == 0)
-			scheduler->ReSortReadyList();
-	}
+	//if (currentThread != this)
+	//{
+	//	if (scheduler->ChangeThreadPriority(this,newPriority) == 0)
+	//		scheduler->ReSortReadyList();
+	//}
 }
 
 int
