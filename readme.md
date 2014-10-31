@@ -88,7 +88,7 @@ Those test cases include:
               so that it exits before all mid-priority threads finish. 
        <7> [Extra Credit] There are 4 threads in this case. The joinee is successfully promoted, so that it 
               exits before all mid-priority threads finish.
-       <8> [ExtraCredit] There are 6 threads in this case. When Join() is called, the joinee (it is also the lock 
+       <8> [Extra Credit] There are 6 threads in this case. When Join() is called, the joinee (it is also the lock 
               waiter) is promoted, as well as the lock holder. So that they exit before all mid-priority threads.
 
 ------------
