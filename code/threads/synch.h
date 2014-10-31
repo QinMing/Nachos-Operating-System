@@ -92,6 +92,7 @@ private:
     int held; // 0 == FREE, 1 == BUSY
     Thread* thread; // the thread that holds this lock
     List* queue; // list of sleeping threads
+	int holderPriority;
 };
 
 // The following class defines a "condition variable".  A condition

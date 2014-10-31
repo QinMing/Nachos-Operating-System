@@ -395,7 +395,6 @@ void priorityThreadExtraLock2(int param){
 	printf("priorityThread[priority=%3d ][thread pointer=%d] medium-priority thread exits\n",currentThread->getPriority(),(int)currentThread);
 }
 void priorityThreadExtraLock3(int param){
-	currentThread->Yield();
 	locktest1->Acquire();
 	printf("priorityThread[priority=%3d ][thread pointer=%d] lock acquired\n",currentThread->getPriority(),(int)currentThread);
 	currentThread->Yield();
@@ -427,15 +426,19 @@ void priorityTest (){
 	t->setPriority(-1);
 	t->Fork(priorityThread, 0);
 
-	t = new Thread("3");
-	t->setPriority(3);
+	t = new Thread("2");
+	t->setPriority(2);
 	t->Fork(priorityThread,0);
 
 	t = new Thread("0");
 	t->Fork(priorityThread,0);
 
-	t = new Thread("3");
-	t->setPriority(3);
+	t = new Thread("1");
+	t->setPriority(1);
+	t->Fork(priorityThread,0);
+
+	t = new Thread("2");
+	t->setPriority(2);
 	t->Fork(priorityThread, 0);
 
 	for (int i=0;i<20;i++)//waiting for previous test to complete
@@ -709,7 +712,6 @@ void
 JoinTest5(){
     //tests to see if thread incorrectly calls fork on itself
     currentThread->Fork((VoidFunctionPtr)currentThread,1);
-
 }
 void
 JoinTest6(){
@@ -717,8 +719,6 @@ JoinTest6(){
     Thread *t = new Thread("thread pointer", 0);
     t->Fork((VoidFunctionPtr)JoinTester,0);
     t->Join();
-    
-
 }
 
 void
@@ -727,8 +727,6 @@ JoinTest7(){
     Thread *t = new Thread("thread pointer", 0);
     t->Join();
     t->Fork((VoidFunctionPtr)JoinTester,0);
-    
-
 }
 
 void
@@ -738,8 +736,6 @@ JoinTest8(){
     t->Fork((VoidFunctionPtr)JoinTester,0);
     t->Join();
     t->Join();
-    
-
 }
 
 void
@@ -838,23 +834,8 @@ ThreadTest()
 		JoinTest8();
 		break;
 	case 30://9 whales in 3 pairs, 3 male, 3 female, 3 matchmaker, three match succeed
-	{
-		WhaleTest whaleTest;
-		whaleTest.start(testnum);
-		break;
-	}
 	case 31://8 whales , 3 male, 3 female, 2 matchmaker, only two matches succeed
-	{
-		WhaleTest whaleTest;
-		whaleTest.start(testnum);
-		break;
-	}
 	case 32://7 whales , 3 male, 1 female, 3 matchmaker, only one match succeed
-	{
-		WhaleTest whaleTest;
-		whaleTest.start(testnum);
-		break;
-	}
 	case 33://9 whales in 3 matchess, 3 male, 3 female, 3 matchmaker, in a different order, three matches succeed
 	{
 		WhaleTest whaleTest;
