@@ -124,12 +124,13 @@ void Lock::Acquire() {
 	while (held) {
 		if (currentThread->getPriority() > thread->getPriority() ){
 			//if the priority is larger than lock holder's
-			thread -> setPriority( currentThread->getPriority() );
+            currentThread->dependThread = thread;
+			thread -> promotePriority( currentThread->getPriority() );
 		}
 		queue->SortedInsert((void*)currentThread,-currentThread->getPriority());
 		currentThread->Sleep();
 	}
-
+    currentThread->dependThread = NULL;
 	thread = currentThread;  
 	held = 1;
 	holderPriority = thread->getPriority();

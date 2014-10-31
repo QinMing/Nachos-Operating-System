@@ -119,6 +119,11 @@ public:
     void setJoinedOnMe(Condition* cv) { this->joinedOnMe = cv; }
     Condition* getJoinedOnMe() { return joinedOnMe; }
     
+    //functions used for Priority Inversion problem
+    void promotePriority(int);
+    //Variables used for Priority Inversion problem
+    Thread* dependThread;
+    
 
 private:
     // some of the private data for this class is listed above
@@ -136,8 +141,6 @@ private:
     bool hasJoined; // whether the thread has been joined or not
     Lock* lock;
     Condition* joinedOnMe;
-	
-    
 
     void StackAllocate(VoidFunctionPtr func, int arg);
     // Allocate a stack for thread.

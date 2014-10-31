@@ -45,6 +45,7 @@ Thread::Thread(char* threadName, int join)
     hasJoined = false;
     lock = new Lock("Lock");
     joinedOnMe = new Condition("JoinedOnMe");
+    dependThread =  NULL;
 
 #ifdef USER_PROGRAM
     space = NULL;
@@ -106,11 +107,14 @@ void Thread::Join() {
 	//promote the joinee's priority if it's lower than joiner's
 	if (currentThread->getPriority() > this->getPriority() ){
 		//if the priority is larger than lock holder's
-		this -> setPriority( currentThread->getPriority() );
+        currentThread->dependThread = this;
+		this -> promotePriority( currentThread->getPriority() );
 	}
 
 	// add currentThread to the queue
 	joinedOnMe->Wait(lock);
+    
+    currentThread->dependThread = NULL;
 
 	joinedOnMe->Signal(lock);
 
@@ -323,7 +327,10 @@ void ThreadPrint(int arg) {
     Thread *t = (Thread *)arg;
     t->Print();
 }
-
+int
+Thread::getPriority(){
+    return priority;
+}
 void
 Thread::setPriority(int newPriority){
 	priority=newPriority;
@@ -333,10 +340,11 @@ Thread::setPriority(int newPriority){
 	//		scheduler->ReSortReadyList();
 	//}
 }
-
-int
-Thread::getPriority(){
-    return priority;
+void
+Thread::promotePriority(int newPriority){
+    priority=newPriority;
+    if (dependThread!=NULL)
+        dependThread->promotePriority(newPriority);
 }
 //----------------------------------------------------------------------
 // Thread::StackAllocate

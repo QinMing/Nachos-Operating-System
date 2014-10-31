@@ -70,9 +70,6 @@ Scheduler::ReadyToRun (Thread *thread)
 Thread *
 Scheduler::FindNextToRun ()
 {
-	//do we need to disable interrupt?
-	IntStatus oldLevel = interrupt->SetLevel(IntOff);
-
 	List *list = readyList;
 	readyList = new List();
 	Thread* t;
@@ -83,7 +80,6 @@ Scheduler::FindNextToRun ()
 		readyList->SortedInsert((void*)t,-t->getPriority());
 	}while(1);
 	delete list;
-	(void) interrupt->SetLevel(oldLevel);
     return (Thread *)readyList->Remove();
 }
 
