@@ -69,13 +69,13 @@ Afterward, it will set itself as ready to be destroyed.
 
 ###Priorities
 
-We worked on priorities by utilizing the SortedInsert() function in list.
-However, this function originally sorts by ascending order. We want descending
-order. For this, we simply pass in a negation of the priority to the function
-to achieve the expected results.
+We worked on priorities by utilizing the SortedInsert() function in list. However, this function originally sorts by ascending order. We want descending order. For this, we simply pass in a negation of the priority to the function to achieve the expected results. Later on, we modified Thread::Yield() so that high-priority thread will come back to itself if no other thread has higher priority.
 
     Test switch case numbers used:
-       19: Expects to work successfully. threads run in priority order. 
+       19: Expects to work successfully. Outputs for all test cases will be display on the screen.
+
+Those test cases include:
+writingwritingwritingwritingwritingwriting
 ------------
 
 ###Whales
