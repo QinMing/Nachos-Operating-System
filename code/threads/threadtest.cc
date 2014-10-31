@@ -426,23 +426,23 @@ void priorityThreadExtraJoinParrent(int param){
 }
 void priorityThreadExtraJoinAndLock(int param){
     printf("priorityThread[priority=%3d ][Thread*=%d] highest-priority begin\n",currentThread->getPriority(),(int)currentThread);
-	Thread* t = new Thread("child",1);
-	t->setPriority(3);
-	t->Fork(priorityThreadExtraLock1,0);
+	Thread* child = new Thread("child",1);
+	child->setPriority(3);
+	child->Fork(priorityThreadExtraLock1,0);
 	currentThread->setPriority(3);//let it Yield to other thread temporarily
 	currentThread->Yield();
-	currentThread->setPriority(6);
+	currentThread->setPriority(5);
 
-	t = new Thread("4");
-	t->setPriority(2);
+	Thread * t = new Thread("5");
+	t->setPriority(5);
 	t->Fork(priorityThreadExtraLock2,0);
 
 	t = new Thread("5");
-	t->setPriority(2);
+	t->setPriority(5);
 	t->Fork(priorityThreadExtraLock2,0);
 
 	currentThread->Yield();
-	t->Join();
+	child->Join();
     printf("priorityThread[priority=%3d ][Thread*=%d] highest-priority end\n",currentThread->getPriority(),(int)currentThread);
 }
 void priorityTest (){
@@ -613,26 +613,26 @@ void priorityTest (){
 	t->setPriority(3);
 	t->Fork(priorityThreadExtraJoinParrent,0);
 
-	//for (int i=0;i<100;i++)//waiting for previous test to complete
-	//	currentThread->Yield();
-	//printf("======== [Extra credit] priority inversion test : recursively promote ========\n");
-	//	t = new Thread("0");
-	//t->setPriority(0);
-	////its priority must less than thread "main", so that it can Yield to main before it got the lock
-	//t->Fork(priorityThreadExtraLock1,0);
-	//currentThread->Yield();//waiting for it to acquire lock
+	for (int i=0;i<100;i++)//waiting for previous test to complete
+		currentThread->Yield();
+	printf("======== [Extra credit] priority inversion test : recursively promote ========\n");
+		t = new Thread("0");
+	t->setPriority(0);
+	//its priority must less than thread "main", so that it can Yield to main before it got the lock
+	t->Fork(priorityThreadExtraLock1,0);
+	currentThread->Yield();//waiting for it to acquire lock
 
-	//t = new Thread("1");
-	//t->setPriority(1);
-	//t->Fork(priorityThreadExtraLock2,0);
+	t = new Thread("1");
+	t->setPriority(1);
+	t->Fork(priorityThreadExtraLock2,0);
 
-	//t = new Thread("2");
-	//t->setPriority(2);
-	//t->Fork(priorityThreadExtraLock2,0);
+	t = new Thread("2");
+	t->setPriority(2);
+	t->Fork(priorityThreadExtraLock2,0);
 
-	//t = new Thread("6");
-	//t->setPriority(6);
-	//t->Fork(priorityThreadExtraJoinAndLock,0);
+	t = new Thread("6");
+	t->setPriority(6);
+	t->Fork(priorityThreadExtraJoinAndLock,0);
 
 }
 

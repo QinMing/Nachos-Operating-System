@@ -236,35 +236,3 @@ List::SortedRemove(int *keyPtr)
     return thing;
 }
 
-int
-List::ChangeKey(void* query, int newKey){
-	ListElement *ptr = first;
-	while(ptr!=NULL){
-		if (ptr->item == query){
-			ptr->key = newKey;
-			return 0;
-		}
-		ptr = ptr->next;
-	}
-	return -1;
-}
-
-//Re-sort the list
-void
-List::ReSort()
-{
-	if ((first == NULL)||(first==last))
-		return;
-	ListElement * first2 = first;
-	ListElement * last2 = last;
-	first = NULL;
-	last = NULL;
-	while (first2 != last2){
-		SortedInsert(first2->item, first2->key);
-		ListElement* todelete = first2;
-		first2 = first2->next;
-		delete todelete;
-	}
-	SortedInsert(last2->item, last2->key);
-	delete last2;
-}
