@@ -82,8 +82,8 @@ Those test cases include:
               the highest priority.
        <2> Priority test for synch primiives Lock.
        <3> Priority test for Semaphore.
-       <4> Priority test for Condition Var, waking up by Signal();
-       <5> Priority test for Condition Var, waking up by Broadcast();
+       <4> Priority test for Condition Var, waked up by Signal();
+       <5> Priority test for Condition Var, waked up by Broadcast();
        <6> [Extra Credit] The lock-holding thread is successfully promoted, so that it
               exits before all mid-priority threads finish.
        <7> [Extra Credit] The joinee is successfully promoted, so that it exits before 
