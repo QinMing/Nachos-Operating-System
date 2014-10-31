@@ -41,8 +41,8 @@ ensures that only one sender interacts with one receiver.
     Test switch case numbers used:
         9: Expects to work succesfully as sender comes first
         10:Expects to work succesffully as receiver comes first
-        11:Expects to work. Only sender is available
-        12:Expects to work. Only receiver is available
+        11:Only sender is available. Synchronization can not be achieved.
+        12:Only receiver is available. Synchronization can not be achieved.
         13:Expects to work. Interleaving between senders and receivers
 ---------------
 
@@ -73,7 +73,7 @@ We worked on priorities by utilizing the SortedInsert() function in list. Howeve
 
     Test switch case numbers used:
        19: Expects to work successfully. Outputs for all test cases will be display on 
-the screen.
+the screen after running "./nachos -q 19".
 
 Those test cases include:
 
@@ -84,10 +84,12 @@ Those test cases include:
        <3> Priority test for Semaphore.
        <4> Priority test for Condition Var, waked up by Signal();
        <5> Priority test for Condition Var, waked up by Broadcast();
-       <6> [Extra Credit] The lock-holding thread is successfully promoted, so that it
+       <6> [Extra Credit] There are 5 threads in this case. The lock-holding thread is successfully promoted, 
+              so that it exits before all mid-priority threads finish. 
+       <7> [Extra Credit] There are 4 threads in this case. The joinee is successfully promoted, so that it 
               exits before all mid-priority threads finish.
-       <7> [Extra Credit] The joinee is successfully promoted, so that it exits before 
-              all mid-priority threads finish.
+       <8> [ExtraCredit] There are 6 threads in this case. When Join() is called, the joinee (it is also the lock 
+              waiter) is promoted, as well as the lock holder. So that they exit before all mid-priority threads.
 
 ------------
 
