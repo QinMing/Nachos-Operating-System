@@ -75,7 +75,9 @@ We worked on priorities by utilizing the SortedInsert() function in list. Howeve
        19: Expects to work successfully. Outputs for all test cases will be display on the screen.
 
 Those test cases include:
-writingwritingwritingwritingwritingwriting
+    <1> Priority test for scheduler. When Thread::Yield() is called, the scheduler always run the thread with the highest priority, or switch between threads that share the highest priority.
+    <2> Test for synch primiives Lock.
+
 ------------
 
 ###Whales
