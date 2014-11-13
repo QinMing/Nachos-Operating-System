@@ -155,6 +155,9 @@ Thread::Fork(VoidFunctionPtr func, int arg)
     // are disabled!
 	hasForked = true;
     (void) interrupt->SetLevel(oldLevel);
+	if (this->getPriority() > currentThread->getPriority()){
+		currentThread->Yield();
+	}
 }
 
 //----------------------------------------------------------------------
