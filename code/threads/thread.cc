@@ -204,26 +204,23 @@ void
 Thread::Finish ()
 { 
 	ASSERT(this == currentThread);
-
+	lock->Acquire();
+	
 	if (hasJoined){
-		lock->Acquire();
-
+		
 		joinedOnMe->Signal(lock);
 		joinedOnMe->Wait(lock);
-
-		lock->Release();
+		
 	}
 	else if(willBeJoined)
 	{ // will be joined but hasn't been -> must wait until after Join has been called and returns
-		lock->Acquire();
 		
 		joinedOnMe->Wait(lock);
 		joinedOnMe->Signal(lock);
 		joinedOnMe->Wait(lock);
 
-		lock->Release();
 	}
-	
+	lock->Release();
 	// If Join will not be called, we can delete the TCB immediately
 	
 	(void) interrupt->SetLevel(IntOff);
