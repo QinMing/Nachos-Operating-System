@@ -13,6 +13,12 @@ MemoryManager::MemoryManager(int numPages)
 /* Allocate a free page, returning its physical page number or -1
    if there are no free pages available. */
 
+MemoryManager::~MemoryManager()
+{
+	delete memMap;
+	delete lock;
+}
+
 int MemoryManager::AllocPage(){
   lock->Acquire();
   physNum = memMap->Find();
