@@ -12,40 +12,41 @@
 #include "system.h"
 #include "console.h"
 #include "addrspace.h"
+#include "memoryManager.h"
 #include "synch.h"
+
+MemoryManager *mm;
 
 //----------------------------------------------------------------------
 // StartProcess
 // 	Run a user program.  Open the executable, load it into
 //	memory, and jump to it.
 //----------------------------------------------------------------------
-//MemoryManager *mm;
 
-void
-StartProcess(char *filename)
+void StartProcess(char *filename)
 {
-	//initialize memory manager mm
-	
-    OpenFile *executable = fileSystem->Open(filename);
-    AddrSpace *space;
+	mm=new MemoryManager(NumPhysPages);
 
-    if (executable == NULL) {
-        printf("Unable to open file %s\n", filename);
-        return;
-    }
-    space = new AddrSpace();
+	OpenFile *executable = fileSystem->Open(filename);
+	AddrSpace *space;
+
+	if (executable == NULL) {
+		printf("Unable to open file %s\n", filename);
+		return;
+	}
+	space = new AddrSpace();
 	space->Initialize(executable);
-    currentThread->space = space;
+	currentThread->space = space;
 
-    delete executable;			// close file
+	delete executable;			// close file
 
-    space->InitRegisters();		// set the initial register values
-    space->RestoreState();		// load page table register
+	space->InitRegisters();		// set the initial register values
+	space->RestoreState();		// load page table register
 
-    machine->Run();			// jump to the user progam
-    ASSERT(FALSE);			// machine->Run never returns;
-    // the address space exits
-    // by doing the syscall "exit"
+	machine->Run();			// jump to the user progam
+	ASSERT(FALSE);			// machine->Run never returns;
+	// the address space exits
+	// by doing the syscall "exit"
 }
 
 // Data structures needed for the console test.  Threads making

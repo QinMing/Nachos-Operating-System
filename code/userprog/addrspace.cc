@@ -18,6 +18,7 @@
 #include "copyright.h"
 #include "system.h"
 #include "addrspace.h"
+#include "memoryManager.h"
 #include "noff.h"
 #ifdef HOST_SPARC
 #include <strings.h>
@@ -93,7 +94,7 @@ AddrSpace::~AddrSpace()
 
 int AddrSpace::Initialize(OpenFile *executable){
 	NoffHeader noffH;
-	unsigned int i, size;
+	unsigned int i, totalsize;
 	
 	executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
 	if ((noffH.noffMagic != NOFFMAGIC) &&
@@ -102,11 +103,11 @@ int AddrSpace::Initialize(OpenFile *executable){
 	ASSERT(noffH.noffMagic == NOFFMAGIC);
 	
 	// how big is address space?
-	size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
+	totalsize = noffH.code.size + noffH.initData.size + noffH.uninitData.size
 	+ UserStackSize;	// we need to increase the size
 	// to leave room for the stack
-	numPages = divRoundUp(size, PageSize);
-	size = numPages * PageSize;
+	numPages = divRoundUp(totalsize, PageSize);
+	totalsize = numPages * PageSize;
 	
 	ASSERT(numPages <= NumPhysPages);		// check we're not trying
 	// to run anything too big --
@@ -114,7 +115,7 @@ int AddrSpace::Initialize(OpenFile *executable){
 	// virtual memory
 	
 	DEBUG('a', "Initializing address space, num pages %d, size %d\n",
-		  numPages, size);
+		  numPages, totalsize);
 	// first, set up the translation
 	pageTable = new TranslationEntry[numPages];
 	for (i = 0; i < numPages; i++) {
@@ -157,6 +158,7 @@ int AddrSpace::Initialize(OpenFile *executable){
 		int page = virtAddr / PageSize;
 		int offs = virtAddr % PageSize;
 		int physAddr;
+		int size;
 
 		if (offs != 0){
 			size = PageSize - offs;
