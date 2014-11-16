@@ -19,10 +19,13 @@
 // 	Run a user program.  Open the executable, load it into
 //	memory, and jump to it.
 //----------------------------------------------------------------------
+//MemoryManager *mm;
 
 void
 StartProcess(char *filename)
 {
+	//initialize memory manager mm
+	
     OpenFile *executable = fileSystem->Open(filename);
     AddrSpace *space;
 
@@ -30,7 +33,8 @@ StartProcess(char *filename)
         printf("Unable to open file %s\n", filename);
         return;
     }
-    space = new AddrSpace(executable);
+    space = new AddrSpace();
+	space->Initialize(executable);
     currentThread->space = space;
 
     delete executable;			// close file
