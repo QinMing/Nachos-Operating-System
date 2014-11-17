@@ -144,7 +144,7 @@ int AddrSpace::Initialize(OpenFile *executable){
 		int physAddr=pageTable[i].physicalPage * PageSize;
 		bzero(&(machine->mainMemory[physAddr]), PageSize);
 	}
-	
+
 	//then, copy in the code and data segments into memory
 	//if (noffH.code.size > 0) {
 	//	DEBUG('a', "Initializing code segment, at 0x%x, size %d\n",

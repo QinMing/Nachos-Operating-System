@@ -18,7 +18,6 @@ class MemoryManager{
   private:  
 	 BitMap* memMap;
 	 Lock* lock;
-	 bool physAllocated;
 	 int physNum;
 };
 

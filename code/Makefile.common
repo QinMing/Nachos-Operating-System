@@ -31,8 +31,6 @@ CFLAGS = -g -Wall -Wshadow $(INCPATH) $(DEFINES) $(HOST) -DCHANGED -Wno-write-st
 # These definitions may change as the software is updated.
 # Some of them are also system dependent
 
-#	../threads/mailboxTest.h\
-#	../threads/mailboxTest.cc\
 CPP= gcc -E
 CC = g++ -m32
 LD = g++ -m32

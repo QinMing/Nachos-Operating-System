@@ -46,6 +46,5 @@ main ()
     verify_array(48);
     sum = add_array(48);
     verify_array(48);
-	Exit(111);
     Exit(sum);
 }

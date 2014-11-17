@@ -11,9 +11,22 @@
  */
 
 #include "syscall.h"
-
+#define NUM 40
 int
 main()
 {
-
+	int a[NUM];
+	int sum = 0;
+	int i;
+	int j;
+	for (i=0;i<NUM;i++){
+		a[i]=i;
+	}
+	for (j=0;j<NUM;j++){
+		sum+=a[j];
+	}
+	//a[0]=1;
+	//a[1]=2;
+	//a[2]=3;
+	Exit(sum);
 }
