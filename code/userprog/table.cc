@@ -1,3 +1,4 @@
+
 #include "copyright.h"
 #include "table.h"
 
@@ -36,6 +37,7 @@ int Table::Alloc(void *object){
 slot has not been allocated. */
 void* Table::Get(int index){
 	lock->Acquire();
+	ASSERT(index>=0 && index < tabsize);
 	if (inUse[index]==false){
 		lock->Release();
 		return NULL;
@@ -49,6 +51,7 @@ void* Table::Get(int index){
 //assuming the object being pointed has already been deleted.
 void Table::Release(int index){
 	lock->Acquire();
+	ASSERT(index>=0 && index < tabsize);
 	ASSERT(inUse[index]);//panic if the slot is not allocated
 	inUse[index]=false;
 	lock->Release();

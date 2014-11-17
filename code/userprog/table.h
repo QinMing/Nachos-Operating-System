@@ -28,4 +28,7 @@ private:
 	Lock* lock;
 };
 
+// global Table pointer
+extern Table *processTable;
+
 #endif

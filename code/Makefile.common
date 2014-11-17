@@ -98,6 +98,7 @@ USERPROG_C = ../userprog/addrspace.cc\
 	../userprog/exception.cc\
 	../userprog/progtest.cc\
 	../userprog/memoryManager.cc\
+	../userprog/table.cc\
 	../machine/console.cc\
 	../machine/machine.cc\
 	../machine/mipssim.cc\
