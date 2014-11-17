@@ -16,6 +16,4 @@ int
 main()
 {
 
-	Exit(123);
-    /* not reached */
 }

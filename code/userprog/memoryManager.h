@@ -5,8 +5,6 @@
 #include "bitmap.h"
 #include "synch.h"
 
-
-
 class MemoryManager{
 
   public:
@@ -24,6 +22,6 @@ class MemoryManager{
 	 int physNum;
 };
 
-
+extern MemoryManager *mm;
 
 #endif
