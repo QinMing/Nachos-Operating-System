@@ -25,6 +25,14 @@
 #include "system.h"
 #include "syscall.h"
 
+//Exit the current runing process.
+void exit(){
+	printf("the user program Exits, arg=%d\n",(int)machine->ReadRegister(4));
+	for (int i=0;i<5;i++)
+		printf("[%d]%d\n",i,(int)machine->ReadRegister(i));
+	interrupt->Halt();
+}
+
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -61,10 +69,7 @@ void
 			interrupt->Halt();
 			break;
 		case SC_Exit:
-			printf("the user program Exits, arg=%d\n",(int)machine->ReadRegister(4));
-			for (int i=0;i<5;i++)
-				printf("[%d]%d\n",i,(int)machine->ReadRegister(i));
-			interrupt->Halt();
+			exit();
 			break;
 		case SC_Exec:
 			printf("the user program calls Exec(), arg=%d\n",(int)machine->ReadRegister(4));
