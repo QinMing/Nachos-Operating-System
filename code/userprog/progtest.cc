@@ -49,6 +49,27 @@ void StartProcess(char *filename)
 	// by doing the syscall "exit"
 }
 
+void ProcessStart(char *filename){
+	OpenFile *executable = fileSystem->Open(filename);
+	AddrSpace *space;
+
+	if (executable == NULL) {
+		printf("Unable to open file %s\n", filename);
+		return;
+	}
+	space = new AddrSpace();
+	space->Initialize(executable);
+	currentThread->space = space;
+
+	delete executable;			// close file
+
+	space->InitRegisters();		// set the initial register values
+	space->RestoreState();		// load page table register
+
+	machine->Run();			// jump to the user progam
+	ASSERT(FALSE);
+}
+
 // Data structures needed for the console test.  Threads making
 // I/O requests wait on a Semaphore to delay until the I/O completes.
 

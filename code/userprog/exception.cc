@@ -49,20 +49,38 @@
 //----------------------------------------------------------------------
 
 void
-ExceptionHandler(ExceptionType which)
+	ExceptionHandler(ExceptionType which)
 {
-    int type = machine->ReadRegister(2);
+	int type = machine->ReadRegister(2);
 	printf("exception %d %d\n", which, type);
-    if ((which == SyscallException) && (type == SC_Halt)) {
-        DEBUG('a', "Shutdown, initiated by user program.\n");
-        interrupt->Halt();
-	} else if ((which == SyscallException) && (type == SC_Exit)){
-		printf("the user program exits, code=%d\n",(int)machine->ReadRegister(4));
-		for (int i=0;i<5;i++)
-			printf("[%d]%d\n",i,(int)machine->ReadRegister(i));
-		interrupt->Halt();
-	} else {
-        printf("Unexpected user mode exception %d %d\n", which, type);
-        ASSERT(FALSE);
-    }
+	switch (which){
+	case SyscallException:
+		switch (type){
+		case SC_Halt:
+			DEBUG('a', "Shutdown, initiated by user program.\n");
+			interrupt->Halt();
+			break;
+		case SC_Exit:
+			printf("the user program Exits, arg=%d\n",(int)machine->ReadRegister(4));
+			for (int i=0;i<5;i++)
+				printf("[%d]%d\n",i,(int)machine->ReadRegister(i));
+			interrupt->Halt();
+			break;
+		case SC_Exec:
+			printf("the user program calls Exec(), arg=%d\n",(int)machine->ReadRegister(4));
+			for (int i=0;i<10;i++)
+				printf("[%d]%d\n",i,(int)machine->ReadRegister(i));
+			interrupt->Halt();
+			break;
+		default :
+			printf("Unexpected exception type %d %d\n", which, type);
+			ASSERT(FALSE);
+			break;
+		}
+		break;
+	default:
+		printf("Unexpected user mode exception %d %d\n", which, type);
+		ASSERT(FALSE);
+		break;
+	}
 }
