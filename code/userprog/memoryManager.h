@@ -18,7 +18,6 @@ class MemoryManager{
   private:  
 	 BitMap* memMap;
 	 Lock* lock;
-	 int physNum;
 };
 
 extern MemoryManager *mm;

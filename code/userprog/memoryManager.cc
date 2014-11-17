@@ -20,7 +20,7 @@ MemoryManager::~MemoryManager()
    if there are no free pages available. */
 int MemoryManager::AllocPage(){
   lock->Acquire();
-  physNum = memMap->Find();
+  int physNum = memMap->Find();
   lock->Release();
   return physNum;
 }
@@ -35,8 +35,7 @@ void MemoryManager::FreePage(int physPageNum){
 /* True if the physical page is allocated, false otherwise. */
 bool MemoryManager::PageIsAllocated(int physPageNum) {
   lock->Acquire();
-  bool physAllocated;
-  physAllocated=memMap->Test(physPageNum);
+  bool physAllocated = memMap->Test(physPageNum);
   lock->Release();
   return physAllocated;
 }

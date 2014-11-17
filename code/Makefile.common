@@ -154,9 +154,14 @@ depend: $(CFILES) $(HFILES)
 	@ echo building dependencies
 	@ $(CC) $(INCPATH) $(DEFINES) $(HOST) -DCHANGED -M $(CFILES) > deps.mk
 
-.PHONY: fmt tags
+.PHONY: fmt tags clean
 fmt:
 	astyle *.h *.cc -nQ
 
 tags:
 	ctags -h=.h.cc -R ..
+
+#Ming
+clean:
+	rm -rf ../*/{core,nachos,DISK,*.o,swtch.s,*~} ../test/{*.coff} ../bin/{coff2flat,disassemble,out}
+
