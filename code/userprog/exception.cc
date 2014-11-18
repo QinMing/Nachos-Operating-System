@@ -24,6 +24,10 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
+#include "machine.h"
+#include "table.h"
+
+Table *table = new Table(1000);
 
 //copy a string from user memory to OS memory
 //assume dst == NULL
@@ -59,8 +63,11 @@ int userStringCopy(char* src,char* dst){
 
 //Exit the current runing process.
 void exit(){
-					
-	AddrSpace::~AddrSpace() //deallocate AddrSpace & free pysical page
+	int currentPC = machine->ReadRegister(PCReg);
+	int nextPC = machine->ReadRegister(NextPCReg);
+	
+	delete currentThread->space; //deallocate AddrSpace & free pysical page
+	table->Release(processId);
 	
 	printf("the user program Exits, arg=%d\n",(int)machine->ReadRegister(4));
 	//for (int i=29;i<40;i++)												//not sure whichc arg to print print user program CPU state, see machine.h
@@ -96,12 +103,55 @@ void exit(){
 //	are in machine.h.
 //----------------------------------------------------------------------
 
+
+
+void ProcessStart(char *filename){
+		
+	OpenFile *executable = fileSystem->Open(filename);
+	AddrSpace *space;
+
+	if (executable == NULL) {
+		printf("Unable to open file %s\n", filename);
+		return ;
+	}
+	space = new AddrSpace();
+	space->Initialize(executable);
+	currentThread->space = space;
+
+	delete executable;			// close file
+
+	space->InitRegisters();		// set the initial register values
+	space->RestoreState();		// load page table register
+
+	machine->Run();			// jump to the user progam
+	ASSERT(FALSE);			// machine->Run never returns;
+
+	
+}
+
+SpaceId Exec(char *name, int argc, char **argv, int opt){
+	printf("the user program calls Exec(), arg=%d\n",(int)machine->ReadRegister(4));
+	SpaceId processId;
+	processId=table->Alloc;
+	if (processId==-1)
+	  return 0;
+			
+	for (int i=0;i<10;i++)
+		printf("[%d]%d\n",i,(int)machine->ReadRegister(i));
+			
+	t = new Thread("one");		//t->Fork(ProcessStart(filename), 0);
+	return processId;
+
+}
+
 void
 	ExceptionHandler(ExceptionType which)
 {
 	int type = machine->ReadRegister(2);
-	int currentPC = ReadRegister(PCReg);
-	int nextPC = ReadRegister(NextPCReg);
+	int currentPC = machine->ReadRegister(PCReg);
+	int nextPC = machine->ReadRegister(NextPCReg);
+	char* filename;
+	Thread *t;
 
 	printf("exception %d %d\n", which, type);
 	switch (which){
@@ -115,10 +165,7 @@ void
 			exit();
 			break;
 		case SC_Exec:
-			printf("the user program calls Exec(), arg=%d\n",(int)machine->ReadRegister(4));
-			for (int i=0;i<10;i++)
-				printf("[%d]%d\n",i,(int)machine->ReadRegister(i));
-			interrupt->Halt();
+			SpaceId Exec(filename);
 			break;
 		default :
 			printf("Unexpected exception type %d %d\n", which, type);
