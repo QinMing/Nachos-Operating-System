@@ -31,6 +31,10 @@ public:
 
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch
+	
+	//look for a page. returns physical page number.
+	//return -1 if error 
+	//int AddrSpace::Translate(int vpn);
 
 private:
     TranslationEntry *pageTable;	// Assume linear page table translation

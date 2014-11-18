@@ -25,6 +25,38 @@
 #include "system.h"
 #include "syscall.h"
 
+//copy a string from user memory to OS memory
+//assume dst == NULL
+int userStringCopy(char* src,char* dst){
+	char buff[MaxFileName];
+	int virtAddr = (int)src;
+	int* data;
+	char ch;
+	int count = 0;
+	do{
+		machine->ReadMem(virtAddr,1,data);
+		ch = (char)(*data);
+		buff[count] = ch;
+		count ++;
+		if (ch == '\0')
+			break;
+		virtAddr ++;
+		if (count >= MaxFileSize){
+			//next byte in buff should be out of boundary
+			printf("Error: File name too long!");
+			buff[MaxFileName-1] = '\0';
+			DEBUG('a', "File name was ""%s""\n",buff);
+			return -1;
+		}	
+	}while(1);
+	//at this time count should be the length of buff
+	dst = new char[count];
+	for (int i=0;i<count;i++){
+		dst[i]=buff[i];
+	}	
+	return 0;
+}
+
 //Exit the current runing process.
 void exit(){
 					

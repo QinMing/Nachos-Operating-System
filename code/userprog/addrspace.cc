@@ -111,7 +111,7 @@ int AddrSpace::Initialize(OpenFile *executable){
 	//use i to keep the max possible virtual address
 	i = max(noffH.code.virtualAddr + noffH.code.size ,
 			noffH.initData.virtualAddr + noffH.initData.size);
-	i = max(noffH->uninitData.virtualAddr + noffH->uninitData.size, i);
+	i = max(noffH.uninitData.virtualAddr + noffH.uninitData.size, i);
 	if (i>size){
 		printf("ERROR: There's bubble in memory space of the program\n");
 		return -1;
@@ -186,7 +186,7 @@ int AddrSpace::Initialize(OpenFile *executable){
 		while (virtAddr + PageSize <= noffH.code.virtualAddr + noffH.code.size) {
 			physAddr = pageTable[page].physicalPage * PageSize;
 			executable->ReadAt(&(machine->mainMemory[physAddr]), size, readAddr);
-			pageTable[page].readOnly = TRUE;//a page of entirely code
+			pageTable[page].readOnly = TRUE;//a page of entire code
 			readAddr += PageSize;
 			virtAddr += PageSize;
 			page ++;
@@ -238,6 +238,21 @@ int AddrSpace::Initialize(OpenFile *executable){
 	}
 	return 0;
 }
+
+//look for a page. returns physical page number
+/*int AddrSpace::Translate(int vpn) {
+	if (vpn >= pageTableSize) {
+		DEBUG('a', "virtual page # %d too large for page table size %d!\n",
+			  vpn, pageTableSize);
+		return -1;
+	} else if (!pageTable[vpn].valid) {
+		DEBUG('a', "virtual page # %d invalid!\n",
+			  virtAddr);
+		return -1;
+	}
+	return &pageTable[vpn];
+}
+*/
 
 void
 AddrSpace::InitRegisters()
