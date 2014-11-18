@@ -20,6 +20,7 @@
 #include "addrspace.h"
 #include "memoryManager.h"
 #include "noff.h"
+#include "utility.h"
 #ifdef HOST_SPARC
 #include <strings.h>
 #endif
@@ -105,6 +106,17 @@ int AddrSpace::Initialize(OpenFile *executable){
 	// how big is address space?
 	size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
 	+ UserStackSize;	// we need to increase the size
+	
+    //Check if there is bubble in the virtual space of the executable
+	//use i to keep the max possible virtual address
+	i = max(noffH.code.virtualAddr + noffH.code.size ,
+			noffH.initData.virtualAddr + noffH.initData.size);
+	i = max(noffH->uninitData.virtualAddr + noffH->uninitData.size, i);
+	if (i>size){
+		printf("ERROR: There's bubble in memory space of the program\n");
+		return -1;
+	}
+	
 	// to leave room for the stack
 	numPages = divRoundUp(size, PageSize);
 	size = numPages * PageSize;
@@ -174,6 +186,7 @@ int AddrSpace::Initialize(OpenFile *executable){
 		while (virtAddr + PageSize <= noffH.code.virtualAddr + noffH.code.size) {
 			physAddr = pageTable[page].physicalPage * PageSize;
 			executable->ReadAt(&(machine->mainMemory[physAddr]), size, readAddr);
+			pageTable[page].readOnly = TRUE;//a page of entirely code
 			readAddr += PageSize;
 			virtAddr += PageSize;
 			page ++;
