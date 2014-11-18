@@ -59,15 +59,16 @@ void ProcessStart(char *filename){
 	}
 	space = new AddrSpace();
 	space->Initialize(executable);
-	currentThread->space = space;
+	nextThread->space = space;
 
 	delete executable;			// close file
 
 	space->InitRegisters();		// set the initial register values
 	space->RestoreState();		// load page table register
 
-	machine->Run();			// jump to the user progam
-	ASSERT(FALSE);
+	Thread *t = new Thread("one");
+	t->Fork(WaitCvWithoutHold1, 0);
+
 }
 
 // Data structures needed for the console test.  Threads making
