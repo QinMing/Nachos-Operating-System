@@ -27,10 +27,18 @@
 
 //Exit the current runing process.
 void exit(){
+					
+	AddrSpace::~AddrSpace() //deallocate AddrSpace & free pysical page
+	
 	printf("the user program Exits, arg=%d\n",(int)machine->ReadRegister(4));
-	for (int i=0;i<5;i++)
-		printf("[%d]%d\n",i,(int)machine->ReadRegister(i));
-	interrupt->Halt();
+	//for (int i=29;i<40;i++)												//not sure whichc arg to print print user program CPU state, see machine.h
+	//	printf("[%d]%d\n",i,(int)machine->ReadRegister(i)); 
+	printf("[%d]%d\n", 4, (int)machine->ReadRegister(4));
+
+	currentPC = nextPC;
+	nextPC += 4;
+	machine->WriteRegister(PCReg, currentPC);
+	machine->WriteRegister(NextPCReg, nextPC);
 }
 
 //----------------------------------------------------------------------
@@ -60,6 +68,9 @@ void
 	ExceptionHandler(ExceptionType which)
 {
 	int type = machine->ReadRegister(2);
+	int currentPC = ReadRegister(PCReg);
+	int nextPC = ReadRegister(NextPCReg);
+
 	printf("exception %d %d\n", which, type);
 	switch (which){
 	case SyscallException:
