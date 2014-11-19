@@ -31,6 +31,9 @@ extern Timer *timer;				// the hardware alarm clock
 
 #ifdef USER_PROGRAM
 #include "machine.h"
+typedef int SpaceId;
+#define MaxNumProcess 1000
+#define MaxFileName 256
 extern Machine* machine;	// user program memory and registers
 #endif
 

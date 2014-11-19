@@ -16,6 +16,8 @@
 #include "synch.h"
 
 MemoryManager *mm;
+Table *processTable;//the process table, with 
+		//the table index being the SpaceID, and the content being Process*
 
 //----------------------------------------------------------------------
 // StartProcess
@@ -26,10 +28,14 @@ MemoryManager *mm;
 void StartProcess(char *filename)
 {
 	mm=new MemoryManager(NumPhysPages);
+	processTable = new Table(MaxNumProcess);
+	
+	Process* process = new Process();
+	process->id = processTable->Alloc(process);
+	currentThread->ProcessSpaceId = process->id;
 
 	OpenFile *executable = fileSystem->Open(filename);
 	AddrSpace *space;
-
 	if (executable == NULL) {
 		printf("Unable to open file %s\n", filename);
 		return;
@@ -37,13 +43,14 @@ void StartProcess(char *filename)
 	space = new AddrSpace();
 	space->Initialize(executable);
 	currentThread->space = space;
+	process->space = space;
 
 	delete executable;			// close file
 
 	space->InitRegisters();		// set the initial register values
 	space->RestoreState();		// load page table register
 
-	machine->Run();			// jump to the user progam
+	machine->Run();			// jump to the user program
 	ASSERT(FALSE);			// machine->Run never returns;
 	// the address space exits
 	// by doing the syscall "exit"

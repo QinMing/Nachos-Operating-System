@@ -26,8 +26,28 @@
 #include "syscall.h"
 #include "machine.h"
 #include "table.h"
-
-Table *table = new Table(1000);
+//----------------------------------------------------------------------
+// ExceptionHandler
+// 	Entry point into the Nachos kernel.  Called when a user program
+//	is executing, and either does a syscall, or generates an addressing
+//	or arithmetic exception.
+//
+// 	For system calls, the following is the calling convention:
+//
+// 	system call code -- r2
+//		arg1 -- r4
+//		arg2 -- r5
+//		arg3 -- r6
+//		arg4 -- r7
+//
+//	The result of the system call, if any, must be put back into r2.
+//
+// And don't forget to increment the pc before returning. (Or else you'll
+// loop making the same system call forever!
+//
+//	"which" is the kind of exception.  The list of possible exceptions
+//	are in machine.h.
+//----------------------------------------------------------------------
 
 //copy a string from user memory to OS memory
 //assume dst == NULL
@@ -38,7 +58,10 @@ int userStringCopy(char* src,char* dst){
 	char ch;
 	int count = 0;
 	do{
-		machine->ReadMem(virtAddr,1,data);
+		if (! machine->ReadMem(virtAddr,1,data))
+			return -1;
+		//In fact ReadMem() itself will call machine->RaiseException. I don't know what will happen
+		//or we need to use Machine::Translate but not ReadMem if it causes problem.
 		ch = (char)(*data);
 		buff[count] = ch;
 		count ++;
@@ -63,8 +86,8 @@ int userStringCopy(char* src,char* dst){
 
 //Exit the current runing process.
 void exit(){
-	int currentPC = machine->ReadRegister(PCReg);
-	int nextPC = machine->ReadRegister(NextPCReg);
+	//for now don't take Join stuff into consideration
+	
 	
 	delete currentThread->space; //deallocate AddrSpace & free pysical page
 	table->Release(processId);
@@ -74,39 +97,14 @@ void exit(){
 	//	printf("[%d]%d\n",i,(int)machine->ReadRegister(i)); 
 	printf("[%d]%d\n", 4, (int)machine->ReadRegister(4));
 
-	currentPC = nextPC;
-	nextPC += 4;
-	machine->WriteRegister(PCReg, currentPC);
-	machine->WriteRegister(NextPCReg, nextPC);
+
+	processTable->Release(currentThread->ProcessSpaceId);
+	currentThread->Finish();
+	ASSERT(FALSH);
+	//never reached
 }
 
-//----------------------------------------------------------------------
-// ExceptionHandler
-// 	Entry point into the Nachos kernel.  Called when a user program
-//	is executing, and either does a syscall, or generates an addressing
-//	or arithmetic exception.
-//
-// 	For system calls, the following is the calling convention:
-//
-// 	system call code -- r2
-//		arg1 -- r4
-//		arg2 -- r5
-//		arg3 -- r6
-//		arg4 -- r7
-//
-//	The result of the system call, if any, must be put back into r2.
-//
-// And don't forget to increment the pc before returning. (Or else you'll
-// loop making the same system call forever!
-//
-//	"which" is the kind of exception.  The list of possible exceptions
-//	are in machine.h.
-//----------------------------------------------------------------------
-
-
-
 void ProcessStart(char *filename){
-		
 	OpenFile *executable = fileSystem->Open(filename);
 	AddrSpace *space;
 
@@ -123,25 +121,32 @@ void ProcessStart(char *filename){
 	space->InitRegisters();		// set the initial register values
 	space->RestoreState();		// load page table register
 
-	machine->Run();			// jump to the user progam
+	machine->Run();			// jump to the user program
 	ASSERT(FALSE);			// machine->Run never returns;
-
-	
 }
 
-SpaceId Exec(char *name, int argc, char **argv, int opt){
+//Create a process, create a thread
+SpaceId exec(char *filename, int argc, char **argv, int opt){
 	printf("the user program calls Exec(), arg=%d\n",(int)machine->ReadRegister(4));
-	SpaceId processId;
-	processId=table->Alloc;
+	Process* process = new Process();
+	SpaceId processId = processTable->Alloc(process);
 	if (processId==-1)
-	  return 0;
+	  return 0;//return SpaceId 0 as error code
+	Thread* t = new Thread("thread",opt);
+	currentThread->ProcessSpaceId = processId;
+	t->Fork(ProcessStart, filename);
 			
-	for (int i=0;i<10;i++)
-		printf("[%d]%d\n",i,(int)machine->ReadRegister(i));
-			
-	t = new Thread("one");		//t->Fork(ProcessStart(filename), 0);
+	//increase PC
+	int currentPC = machine->ReadRegister(PCReg);
+	int nextPC = machine->ReadRegister(NextPCReg);
+	
+	int prevPC = currentPC;
+	currentPC = nextPC;
+	nextPC += 4;
+	machine->WriteRegister(PrevPCReg, prevPC);
+	machine->WriteRegister(PCReg, currentPC);
+	machine->WriteRegister(NextPCReg, nextPC);
 	return processId;
-
 }
 
 void
@@ -150,9 +155,8 @@ void
 	int type = machine->ReadRegister(2);
 	int currentPC = machine->ReadRegister(PCReg);
 	int nextPC = machine->ReadRegister(NextPCReg);
-	char* filename;
-	Thread *t;
-
+	char* str;
+	//for (int i=0;i<10;i++)	printf("[%d]%d\n",i,(int)machine->ReadRegister(i));
 	printf("exception %d %d\n", which, type);
 	switch (which){
 	case SyscallException:
@@ -162,10 +166,17 @@ void
 			interrupt->Halt();
 			break;
 		case SC_Exit:
-			exit();
+			Exit();
 			break;
 		case SC_Exec:
-			SpaceId Exec(filename);
+			char* str;
+			int result = userStringCopy((char*)machine->ReadRegister(4),str) ;
+			if (result == -1){
+				machine->WriteRegister(2,0);//return SpaceId 0
+				break;
+			}
+			result = exec(str,0,NULL,0);
+			machine->WriteRegister(2,result);			
 			break;
 		default :
 			printf("Unexpected exception type %d %d\n", which, type);

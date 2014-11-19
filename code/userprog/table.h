@@ -16,7 +16,7 @@ public:
 
 		/* Retrieve the object from table slot at "index", or NULL if that
 		slot has not been allocated. */
-	void *Get(int index) ;
+	void *Get(int index);
 
 		/* Free the table slot at index. */
 	void Release(int index) ;
@@ -29,6 +29,6 @@ private:
 };
 
 // global Table pointer
-extern Table *processTable;
+extern Table *processTable;//the process table defined in progtest.cc
 
 #endif

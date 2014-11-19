@@ -15,9 +15,6 @@
 
 #include "copyright.h"
 
-//some constants used by exception handler
-#define MaxFileName 256
-
 /* system call codes -- used by the stubs to tell the kernel which system call
  * is being asked for
  */

@@ -22,9 +22,11 @@ Table::~Table(){
 allocated entry; otherwise, return -1 if no free slots are available. */
 int Table::Alloc(void *object){
 	lock->Acquire();
-	for (int i=0;i<tabsize;i++){
+	//Notice the table starts from 1 because no in Nachos, no process has SpaceId 0. 
+	for (int i=1;i<tabsize;i++){
 		if ( inUse[i]==false){
 			inUse[i]=true;
+			tab[index]=object;
 			lock->Release();
 			return i;
 		}
@@ -37,7 +39,8 @@ int Table::Alloc(void *object){
 slot has not been allocated. */
 void* Table::Get(int index){
 	lock->Acquire();
-	ASSERT(index>=0 && index < tabsize);
+	//Notice the table starts from 1 because no in Nachos, no process has SpaceId 0. 
+	ASSERT(index>0 && index < tabsize);
 	if (inUse[index]==false){
 		lock->Release();
 		return NULL;
@@ -51,7 +54,8 @@ void* Table::Get(int index){
 //assuming the object being pointed has already been deleted.
 void Table::Release(int index){
 	lock->Acquire();
-	ASSERT(index>=0 && index < tabsize);
+	//Notice the table starts from 1 because no in Nachos, no process has SpaceId 0. 
+	ASSERT(index>0 && index < tabsize);
 	ASSERT(inUse[index]);//panic if the slot is not allocated
 	inUse[index]=false;
 	lock->Release();
