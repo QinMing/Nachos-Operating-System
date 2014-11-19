@@ -15,10 +15,11 @@ Process::Process(char* newname,Thread* t){
 
 Process::~Process(){
 	ASSERT(numThread == 1);
+	delete mainThread->space;
 	delete mainThread;
 }
 
-void Process::Start(char *filename){
+void Process::Load(char *filename){
 	OpenFile *executable = fileSystem->Open(filename);
 	if (executable == NULL) {
 		printf("Unable to open file %s\n", filename);
@@ -30,10 +31,8 @@ void Process::Start(char *filename){
 	delete executable;			// close file
 	space->InitRegisters();		// set the initial register values
 	space->RestoreState();		// load page table register
-	machine->Run();			// jump to the user program
 }
 
 void Process::Finish(){
-	delete mainThread->space;
 	mainThread->Finish();
 }

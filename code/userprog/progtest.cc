@@ -37,9 +37,9 @@ void StartProcess(char *filename)
 	SpaceId id = processTable->Alloc(process);
 	//if (id == -1)//run out of process table. but impossible
 	process->SetId(id);
-	delete (&id);
-	process->Start(filename);
-
+	//delete (&id);
+	process->Load(filename);
+	machine->Run();			// jump to the user program
 	ASSERT(FALSE);			// machine->Run never returns;
 	// the address space exits
 	// by doing the syscall "exit"

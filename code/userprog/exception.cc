@@ -52,10 +52,12 @@
 
 //copy a string from user memory to OS memory
 //assume dst == NULL
-int userStringCopy(char* src,char* dst){
-	char buff[MaxFileName];
+int userStringCopy(char* src,char** dst){
+	//char buff[MaxFileName];
+	char* buff;
+	buff = new char[MaxFileName];
 	int virtAddr = (int)src;
-	int* data = NULL;
+	int* data = new int;
 	char ch;
 	int count = 0;
 	do{
@@ -78,9 +80,9 @@ int userStringCopy(char* src,char* dst){
 		}	
 	}while(1);
 	//at this time count should be the length of buff
-	dst = new char[count];
+	(*dst) = new char[count];
 	for (int i=0;i<count;i++){
-		dst[i]=buff[i];
+		(*dst)[i]=buff[i];
 	}
 	return 0;
 }
@@ -93,8 +95,8 @@ void exit(Thread *t){
 	//	printf("[%d]%d\n",i,(int)machine->ReadRegister(i)); 
 	SpaceId processId = t->processId;
 	Process* process = (Process*) processTable->Get(processId);
+	process->Finish();
 	processTable->Release(processId);
-	delete (&processId);
 	delete process;
 	ASSERT(FALSE);
 }
@@ -102,8 +104,8 @@ void exit(Thread *t){
 void ProcessStart(int filename){
 
 	//reference the process that the currenThread resided
-	((Process*)  processTable->Get(currentThread->processId)  )->Start((char*)filename);
-
+	((Process*)  processTable->Get(currentThread->processId)  )->Load((char*)filename);
+	machine->Run();			// jump to the user program
 	ASSERT(FALSE);
 }
 
@@ -151,7 +153,9 @@ void
 			break;
 		case SC_Exec:{
 			char* str = NULL;
-			int result = userStringCopy((char*)machine->ReadRegister(4),str) ;
+			int result = userStringCopy((char*)machine->ReadRegister(4),&str) ;
+			//debug
+			printf("str=%s\n",str);
 			if (result == -1){
 				machine->WriteRegister(2,0);//return SpaceId 0
 				break;

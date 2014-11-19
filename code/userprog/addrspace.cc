@@ -108,11 +108,19 @@ int AddrSpace::Initialize(OpenFile *executable){
 	
     //Check if there is bubble in the virtual space of the executable
 	//use i to keep the max possible virtual address
-	i = max(noffH.code.virtualAddr + noffH.code.size ,
-			noffH.initData.virtualAddr + noffH.initData.size);
-	i = max(noffH.uninitData.virtualAddr + noffH.uninitData.size, i);
+	i = 0;
+	if (noffH.code.size>0)
+		i = max(noffH.code.virtualAddr + noffH.code.size , i);
+	if (noffH.initData.size>0)
+		i = max(noffH.initData.virtualAddr + noffH.initData.size , i);
+	if (noffH.uninitData.size >0)
+		i = max(noffH.uninitData.virtualAddr + noffH.uninitData.size, i);
 	if (i>size){
 		printf("ERROR: There's bubble in memory space of the program\n");
+		printf("size = %d",size);
+		printf("noffH.code %d,%d\n",noffH.code.virtualAddr,noffH.code.size);
+		printf("noffH.initData %d,%d\n",noffH.initData.virtualAddr,noffH.initData.size);
+		printf("noffH.uninitData %d,%d\n",noffH.uninitData.virtualAddr,noffH.uninitData.size);
 		return -1;
 	}
 	

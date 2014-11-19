@@ -14,7 +14,7 @@ public:
 	Process(char* newname,Thread* t);//initialize with a existing thread
 	~Process();
 	void Join();
-	void Start(char *filename);//more args to be added
+	void Load(char *filename);//more args to be added
 	void Finish();
 	void SetId(SpaceId i){
 		id = i;
