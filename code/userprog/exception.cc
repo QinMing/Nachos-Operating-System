@@ -151,19 +151,20 @@ void
 		case SC_Exit:
 			exit(currentThread);//will exit the whole process
 			break;
-		case SC_Exec:{
-			char* str = NULL;
-			int result = userStringCopy((char*)machine->ReadRegister(4),&str) ;
-			//debug
-			printf("str=%s\n",str);
-			if (result == -1){
-				machine->WriteRegister(2,0);//return SpaceId 0
+		case SC_Exec:
+			{
+				char* str = NULL;
+				int result = userStringCopy((char*)machine->ReadRegister(4),&str) ;
+				//debug
+				printf("str=%s\n",str);
+				if (result == -1){
+					machine->WriteRegister(2,0);//return SpaceId 0
+					break;
+				}
+				result = exec(str,0,NULL,0);
+				machine->WriteRegister(2,result);			
 				break;
 			}
-			result = exec(str,0,NULL,0);
-			machine->WriteRegister(2,result);			
-			break;
-					 }
 		default:
 			printf("Unexpected exception type %d %d\n", which, type);
 			ASSERT(FALSE);
