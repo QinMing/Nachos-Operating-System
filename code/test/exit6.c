@@ -28,6 +28,5 @@ main()
 	//a[0]=1;
 	//a[1]=2;
 	//a[2]=3;
-	int result = Exec("../test/exit6", 0, 0, 0);
-	Exit(result);
+	Exit(6);
 }

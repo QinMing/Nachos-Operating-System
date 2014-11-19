@@ -26,6 +26,7 @@
 #include "syscall.h"
 #include "machine.h"
 #include "table.h"
+#include "process.h"
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -54,7 +55,7 @@
 int userStringCopy(char* src,char* dst){
 	char buff[MaxFileName];
 	int virtAddr = (int)src;
-	int* data;
+	int* data = NULL;
 	char ch;
 	int count = 0;
 	do{
@@ -68,7 +69,7 @@ int userStringCopy(char* src,char* dst){
 		if (ch == '\0')
 			break;
 		virtAddr ++;
-		if (count >= MaxFileSize){
+		if (count >= MaxFileName){
 			//next byte in buff should be out of boundary
 			printf("Error: File name too long!");
 			buff[MaxFileName-1] = '\0';
@@ -80,82 +81,62 @@ int userStringCopy(char* src,char* dst){
 	dst = new char[count];
 	for (int i=0;i<count;i++){
 		dst[i]=buff[i];
-	}	
+	}
 	return 0;
 }
 
 //Exit the current runing process.
-void exit(){
+void exit(Thread *t){
 	//for now don't take Join stuff into consideration
-	
-	
-	delete currentThread->space; //deallocate AddrSpace & free pysical page
-	table->Release(processId);
-	
 	printf("the user program Exits, arg=%d\n",(int)machine->ReadRegister(4));
 	//for (int i=29;i<40;i++)												//not sure whichc arg to print print user program CPU state, see machine.h
 	//	printf("[%d]%d\n",i,(int)machine->ReadRegister(i)); 
-	printf("[%d]%d\n", 4, (int)machine->ReadRegister(4));
-
-
-	processTable->Release(currentThread->ProcessSpaceId);
-	currentThread->Finish();
-	ASSERT(FALSH);
-	//never reached
+	SpaceId processId = t->processId;
+	Process* process = (Process*) processTable->Get(processId);
+	processTable->Release(processId);
+	delete (&processId);
+	delete process;
+	ASSERT(FALSE);
 }
 
-void ProcessStart(char *filename){
-	OpenFile *executable = fileSystem->Open(filename);
-	AddrSpace *space;
+void ProcessStart(int filename){
 
-	if (executable == NULL) {
-		printf("Unable to open file %s\n", filename);
-		return ;
-	}
-	space = new AddrSpace();
-	space->Initialize(executable);
-	currentThread->space = space;
+	//reference the process that the currenThread resided
+	((Process*)  processTable->Get(currentThread->processId)  )->Start((char*)filename);
 
-	delete executable;			// close file
-
-	space->InitRegisters();		// set the initial register values
-	space->RestoreState();		// load page table register
-
-	machine->Run();			// jump to the user program
-	ASSERT(FALSE);			// machine->Run never returns;
+	ASSERT(FALSE);
 }
 
 //Create a process, create a thread
 SpaceId exec(char *filename, int argc, char **argv, int opt){
+	//debug
 	printf("the user program calls Exec(), arg=%d\n",(int)machine->ReadRegister(4));
-	Process* process = new Process();
-	SpaceId processId = processTable->Alloc(process);
-	if (processId==-1)
-	  return 0;//return SpaceId 0 as error code
-	Thread* t = new Thread("thread",opt);
-	currentThread->ProcessSpaceId = processId;
-	t->Fork(ProcessStart, filename);
-			
+	Process* process = new Process("P");
+	SpaceId id = processTable->Alloc(process);
+	if (id==-1){
+		delete process;
+		return 0;//return SpaceId 0 as error code
+	}
+	process->SetId(id);
+	process->mainThread->Fork(ProcessStart, (int)filename);
+
 	//increase PC
 	int currentPC = machine->ReadRegister(PCReg);
 	int nextPC = machine->ReadRegister(NextPCReg);
-	
+
 	int prevPC = currentPC;
 	currentPC = nextPC;
 	nextPC += 4;
 	machine->WriteRegister(PrevPCReg, prevPC);
 	machine->WriteRegister(PCReg, currentPC);
 	machine->WriteRegister(NextPCReg, nextPC);
-	return processId;
+	return id;
 }
 
 void
 	ExceptionHandler(ExceptionType which)
 {
 	int type = machine->ReadRegister(2);
-	int currentPC = machine->ReadRegister(PCReg);
-	int nextPC = machine->ReadRegister(NextPCReg);
-	char* str;
 	//for (int i=0;i<10;i++)	printf("[%d]%d\n",i,(int)machine->ReadRegister(i));
 	printf("exception %d %d\n", which, type);
 	switch (which){
@@ -166,10 +147,10 @@ void
 			interrupt->Halt();
 			break;
 		case SC_Exit:
-			Exit();
+			exit(currentThread);//will exit the whole process
 			break;
-		case SC_Exec:
-			char* str;
+		case SC_Exec:{
+			char* str = NULL;
 			int result = userStringCopy((char*)machine->ReadRegister(4),str) ;
 			if (result == -1){
 				machine->WriteRegister(2,0);//return SpaceId 0
@@ -178,7 +159,8 @@ void
 			result = exec(str,0,NULL,0);
 			machine->WriteRegister(2,result);			
 			break;
-		default :
+					 }
+		default:
 			printf("Unexpected exception type %d %d\n", which, type);
 			ASSERT(FALSE);
 			break;

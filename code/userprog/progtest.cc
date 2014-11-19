@@ -11,9 +11,12 @@
 #include "copyright.h"
 #include "system.h"
 #include "console.h"
+#include "synch.h"
 #include "addrspace.h"
 #include "memoryManager.h"
-#include "synch.h"
+#include "table.h"
+#include "process.h"
+
 
 MemoryManager *mm;
 Table *processTable;//the process table, with 
@@ -30,27 +33,13 @@ void StartProcess(char *filename)
 	mm=new MemoryManager(NumPhysPages);
 	processTable = new Table(MaxNumProcess);
 	
-	Process* process = new Process();
-	process->id = processTable->Alloc(process);
-	currentThread->ProcessSpaceId = process->id;
+	Process* process = new Process("FirstProcess",currentThread);
+	SpaceId id = processTable->Alloc(process);
+	//if (id == -1)//run out of process table. but impossible
+	process->SetId(id);
+	delete (&id);
+	process->Start(filename);
 
-	OpenFile *executable = fileSystem->Open(filename);
-	AddrSpace *space;
-	if (executable == NULL) {
-		printf("Unable to open file %s\n", filename);
-		return;
-	}
-	space = new AddrSpace();
-	space->Initialize(executable);
-	currentThread->space = space;
-	process->space = space;
-
-	delete executable;			// close file
-
-	space->InitRegisters();		// set the initial register values
-	space->RestoreState();		// load page table register
-
-	machine->Run();			// jump to the user program
 	ASSERT(FALSE);			// machine->Run never returns;
 	// the address space exits
 	// by doing the syscall "exit"

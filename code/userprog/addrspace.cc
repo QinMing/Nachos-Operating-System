@@ -76,7 +76,7 @@ AddrSpace::AddrSpace()
 AddrSpace::~AddrSpace()
 {
 	if (pageTable != NULL){
-		for (unsigned int i=0;i<numPages;i++)
+		for (int i=0;i<numPages;i++)
 			mm->FreePage(pageTable[i].physicalPage);
 		delete [] pageTable;
 	}
@@ -94,8 +94,7 @@ AddrSpace::~AddrSpace()
 
 int AddrSpace::Initialize(OpenFile *executable){
 	NoffHeader noffH;
-	unsigned int i;
-	int size;
+	int size,i;
 	
 	executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
 	if ((noffH.noffMagic != NOFFMAGIC) &&
@@ -135,7 +134,7 @@ int AddrSpace::Initialize(OpenFile *executable){
 		pageTable[i].physicalPage = mm->AllocPage();
 		if (pageTable[i].physicalPage == -1){
 			//run out of physical memory
-			for (unsigned int j=0;j<i;j++)
+			for (int j=0;j<i;j++)
 				mm->FreePage(pageTable[j].physicalPage);
 			delete [] pageTable;
 			pageTable = NULL;
