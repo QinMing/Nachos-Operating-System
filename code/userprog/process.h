@@ -14,7 +14,7 @@ public:
 	Process(char* newname,Thread* t);//initialize with a existing thread
 	~Process();
 	void Join();
-	void Load(char *filename);//more args to be added
+	void Load(char *filename,int argc, char **argv, int willJoin);
 	void Finish();
 	void SetId(SpaceId i){
 		id = i;
@@ -22,6 +22,9 @@ public:
 	}
 	SpaceId GetId(){
 		return id;
+	}
+	char* GetName(){
+		return name;
 	}
 
 	

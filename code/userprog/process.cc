@@ -19,14 +19,14 @@ Process::~Process(){
 	delete mainThread;
 }
 
-void Process::Load(char *filename){
+void Process::Load(char *filename,int argc, char **argv, int willJoin){
 	OpenFile *executable = fileSystem->Open(filename);
 	if (executable == NULL) {
 		printf("Unable to open file %s\n", filename);
 		return;
 	}
 	AddrSpace *space = new AddrSpace();
-	space->Initialize(executable);
+	space->Initialize(executable,argc,argv);
 	mainThread->space = space;
 	delete executable;			// close file
 	space->InitRegisters();		// set the initial register values

@@ -25,7 +25,7 @@ public:
     // stored in the file "executable"
     ~AddrSpace();			// De-allocate an address space
 	
-	int Initialize(OpenFile *executable);
+	int Initialize(OpenFile *executable,int argc, char **argv);
     void InitRegisters();		// Initialize user-level CPU registers,
     // before jumping to user code
 

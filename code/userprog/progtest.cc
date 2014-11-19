@@ -38,7 +38,7 @@ void StartProcess(char *filename)
 	//if (id == -1)//run out of process table. but impossible
 	process->SetId(id);
 	//delete (&id);
-	process->Load(filename);
+	process->Load(filename,0,NULL,0);
 	machine->Run();			// jump to the user program
 	ASSERT(FALSE);			// machine->Run never returns;
 	// the address space exits

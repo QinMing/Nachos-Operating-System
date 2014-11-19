@@ -92,7 +92,7 @@ AddrSpace::~AddrSpace()
 //	when this thread is context switched out.
 //----------------------------------------------------------------------
 
-int AddrSpace::Initialize(OpenFile *executable){
+int AddrSpace::Initialize(OpenFile *executable,int argc, char **argv){
 	NoffHeader noffH;
 	int size,i;
 	
@@ -123,6 +123,10 @@ int AddrSpace::Initialize(OpenFile *executable){
 		printf("noffH.uninitData %d,%d\n",noffH.uninitData.virtualAddr,noffH.uninitData.size);
 		return -1;
 	}
+	//Adding arguments
+	int argVirtAddr = size;
+	int argSize = argc * MaxStringLength;
+	size += argSize;
 	
 	// to leave room for the stack
 	numPages = divRoundUp(size, PageSize);
@@ -241,6 +245,20 @@ int AddrSpace::Initialize(OpenFile *executable){
 			size = noffH.initData.virtualAddr + noffH.initData.size - virtAddr;
 			physAddr = pageTable[page].physicalPage * PageSize;
 			executable->ReadAt(&(machine->mainMemory[physAddr]),size,readAddr);
+		}
+	}
+
+	//Adding arguments
+	if (argc >0 ){
+		for (i=0;i<argc;i++){
+			int dst=argVirtAddr + i*MaxStringLength;
+			char* src=argv[i];
+			int length = 0;
+			while (src[length] != '\0'){
+				length++;
+			}
+			length++;
+
 		}
 	}
 	return 0;

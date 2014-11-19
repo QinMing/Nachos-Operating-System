@@ -51,11 +51,10 @@
 //----------------------------------------------------------------------
 
 //copy a string from user memory to OS memory
-//assume dst == NULL
+//src: char* in virtual memory space
+//dst: a pointer to a char* in OS memory. Assume dst == NULL
 int userStringCopy(char* src,char** dst){
-	//char buff[MaxFileName];
-	char* buff;
-	buff = new char[MaxFileName];
+	char buff[MaxStringLength];
 	int virtAddr = (int)src;
 	int* data = new int;
 	char ch;
@@ -71,10 +70,10 @@ int userStringCopy(char* src,char** dst){
 		if (ch == '\0')
 			break;
 		virtAddr ++;
-		if (count >= MaxFileName){
+		if (count >= MaxStringLength){
 			//next byte in buff should be out of boundary
 			printf("Error: File name too long!");
-			buff[MaxFileName-1] = '\0';
+			buff[MaxStringLength-1] = '\0';
 			DEBUG('a', "File name was ""%s""\n",buff);
 			return -1;
 		}	
@@ -90,8 +89,8 @@ int userStringCopy(char* src,char** dst){
 //Exit the current runing process.
 void exit(Thread *t){
 	//for now don't take Join stuff into consideration
-	printf("the user program Exits, arg=%d\n",(int)machine->ReadRegister(4));
-	//for (int i=29;i<40;i++)												//not sure whichc arg to print print user program CPU state, see machine.h
+	printf("the user program Exit(%d)\n",(int)machine->ReadRegister(4));
+	//for (int i=29;i<40;i++)
 	//	printf("[%d]%d\n",i,(int)machine->ReadRegister(i)); 
 	SpaceId processId = t->processId;
 	Process* process = (Process*) processTable->Get(processId);
@@ -101,31 +100,32 @@ void exit(Thread *t){
 	ASSERT(FALSE);
 }
 
-void ProcessStart(int filename){
+void ProcessStart(int arg){
+	//degub
+	printf("Process ""%s"" starts\n",((Process*)  processTable->Get(currentThread->processId)  )->GetName());
 
 	//reference the process that the currenThread resided
-	((Process*)  processTable->Get(currentThread->processId)  )->Load((char*)filename);
+	//((Process*)  processTable->Get(currentThread->processId)  )->Load((char*)filename);
 	machine->Run();			// jump to the user program
 	ASSERT(FALSE);
 }
 
 //Create a process, create a thread
-SpaceId exec(char *filename, int argc, char **argv, int opt){
-	//debug
-	printf("the user program calls Exec(), arg=%d\n",(int)machine->ReadRegister(4));
+SpaceId exec(char *filename, int argc, char **argv, int willJoin){
 	Process* process = new Process("P");
 	SpaceId id = processTable->Alloc(process);
 	if (id==-1){
 		delete process;
-		return 0;//return SpaceId 0 as error code
+		return 0;//maybe too many processes there. Return SpaceId 0 as error code
 	}
 	process->SetId(id);
-	process->mainThread->Fork(ProcessStart, (int)filename);
+	process->Load(filename,argc,argv,willJoin);
+	process->mainThread->Fork(ProcessStart, 0);
 
-	//increase PC
+	//read PC
 	int currentPC = machine->ReadRegister(PCReg);
 	int nextPC = machine->ReadRegister(NextPCReg);
-
+	//increase PC
 	int prevPC = currentPC;
 	currentPC = nextPC;
 	nextPC += 4;
@@ -140,7 +140,7 @@ void
 {
 	int type = machine->ReadRegister(2);
 	//for (int i=0;i<10;i++)	printf("[%d]%d\n",i,(int)machine->ReadRegister(i));
-	printf("exception %d %d\n", which, type);
+	//printf("exception %d %d\n", which, type);
 	switch (which){
 	case SyscallException:
 		switch (type){
@@ -153,16 +153,40 @@ void
 			break;
 		case SC_Exec:
 			{
-				char* str = NULL;
-				int result = userStringCopy((char*)machine->ReadRegister(4),&str) ;
-				//debug
-				printf("str=%s\n",str);
+				//read registers
+				char* name = NULL;
+				int result = userStringCopy((char*)machine->ReadRegister(4),&name) ;
 				if (result == -1){
 					machine->WriteRegister(2,0);//return SpaceId 0
-					break;
+					return ;
 				}
-				result = exec(str,0,NULL,0);
-				machine->WriteRegister(2,result);			
+				int argc = machine->ReadRegister(5);
+				char** virtArgv = (char**) machine->ReadRegister(6);
+				int willJoin = machine->ReadRegister(7);
+				int* data = new int;
+
+				//convert argument list
+				char** argv=new char*[argc];
+				for (int i=0;i<argc;i++){
+					//read the string head pointer
+					if (  ! machine->ReadMem((int)&(virtArgv[i]) ,4,data)  ){
+						machine->WriteRegister(2,0);//return SpaceId 0
+						return ;
+					}
+					//copy the string to OS memory
+					result = userStringCopy((char*)(*data),&argv[i]) ;
+					if (result == -1){
+						machine->WriteRegister(2,0);//return SpaceId 0
+						return ;
+					}
+				}
+				//debug
+				//for (int i=0;i<argc;i++){
+				//	printf("[%d]%s\n",i,argv[i]);
+				//}
+				result = exec(name,argc,argv,willJoin);
+				machine->WriteRegister(2,result);
+				delete[] argv;
 				break;
 			}
 		default:

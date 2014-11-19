@@ -12,22 +12,13 @@
 
 #include "syscall.h"
 #define NUM 40
-int
-main()
+char* argv[3];
+int main()
 {
-	int a[NUM];
-	int sum = 0;
-	int i;
-	int j;
-	for (i=0;i<NUM;i++){
-		a[i]=i;
-	}
-	for (j=0;j<NUM;j++){
-		sum+=a[j];
-	}
-	//a[0]=1;
-	//a[1]=2;
-	//a[2]=3;
-	int result = Exec("../test/exit6", 0, 0, 0);
+
+	argv[0]="ABC";
+	argv[1]="DEF1234";
+	argv[2]="GHIJKL";
+	int result = Exec("../test/exit6", 3, argv, 0);
 	Exit(result);
 }
