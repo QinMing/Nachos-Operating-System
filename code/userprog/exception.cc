@@ -119,7 +119,10 @@ SpaceId exec(char *filename, int argc, char **argv, int willJoin){
 		return 0;//maybe too many processes there. Return SpaceId 0 as error code
 	}
 	process->SetId(id);
-	process->Load(filename,argc,argv,willJoin);
+	if (process->Load(filename,argc,argv,willJoin) == -1){
+		delete process;
+		return 0;	//Return SpaceId 0 as error code
+	}
 	process->mainThread->Fork(ProcessStart, 0);
 
 	//read PC

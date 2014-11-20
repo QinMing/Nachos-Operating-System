@@ -35,10 +35,10 @@ void StartProcess(char *filename)
 	
 	Process* process = new Process("FirstProcess",currentThread);
 	SpaceId id = processTable->Alloc(process);
-	//if (id == -1)//run out of process table. but impossible
+	//if (id == -1)			//run out of process table. but impossible
 	process->SetId(id);
-	//delete (&id);
-	process->Load(filename,0,NULL,0);
+	id = process->Load(filename,0,NULL,0);
+	ASSERT(id!=-1);			//panic. The initial user program has problem.
 	machine->Run();			// jump to the user program
 	ASSERT(FALSE);			// machine->Run never returns;
 	// the address space exits

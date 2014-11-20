@@ -127,6 +127,14 @@ int AddrSpace::Initialize(OpenFile *executable,int argc, char **argv){
 	int argVirtAddr = size;
 	int argSize = argc * MaxStringLength;
 	size += argSize;
+
+	//deb
+			printf("size = %d",size);
+		printf("noffH.code %d,%d\n",noffH.code.virtualAddr,noffH.code.size);
+		printf("noffH.initData %d,%d\n",noffH.initData.virtualAddr,noffH.initData.size);
+		printf("noffH.uninitData %d,%d\n",noffH.uninitData.virtualAddr,noffH.uninitData.size);
+
+
 	
 	// to leave room for the stack
 	numPages = divRoundUp(size, PageSize);

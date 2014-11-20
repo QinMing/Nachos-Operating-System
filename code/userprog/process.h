@@ -8,13 +8,13 @@ class Process {
 
 public:
 	//Public var
-	int numThread;
+	int  numThread;
 	Thread* mainThread;
 	Process(char* newname);//maybe never used. will create a thread
 	Process(char* newname,Thread* t);//initialize with a existing thread
 	~Process();
 	void Join();
-	void Load(char *filename,int argc, char **argv, int willJoin);
+	int  Load(char *filename,int argc, char **argv, int willJoin);
 	void Finish();
 	void SetId(SpaceId i){
 		id = i;

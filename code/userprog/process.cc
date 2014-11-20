@@ -19,18 +19,23 @@ Process::~Process(){
 	delete mainThread;
 }
 
-void Process::Load(char *filename,int argc, char **argv, int willJoin){
+int Process::Load(char *filename,int argc, char **argv, int willJoin){
 	OpenFile *executable = fileSystem->Open(filename);
 	if (executable == NULL) {
 		printf("Unable to open file %s\n", filename);
-		return;
+		return -1;
 	}
 	AddrSpace *space = new AddrSpace();
-	space->Initialize(executable,argc,argv);
+	if (space->Initialize(executable,argc,argv) == -1){
+		delete executable;
+		delete space;
+		return -1;
+	}
 	mainThread->space = space;
 	delete executable;			// close file
 	space->InitRegisters();		// set the initial register values
 	space->RestoreState();		// load page table register
+	return 0;
 }
 
 void Process::Finish(){
