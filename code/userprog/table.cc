@@ -31,6 +31,7 @@ int Table::Alloc(void *object){
 			return i;
 		}
 	}
+	printf("process table is full\n");
 	lock->Release();
 	return -1;
 }

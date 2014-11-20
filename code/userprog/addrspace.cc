@@ -149,7 +149,7 @@ int AddrSpace::Initialize(OpenFile *executable,int argc, char **argv){
 		pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
 		pageTable[i].physicalPage = mm->AllocPage();
 		if (pageTable[i].physicalPage == -1){
-			//run out of physical memory
+			printf("run out of physical memory\n");
 			for (int j=0;j<i;j++)
 				mm->FreePage(pageTable[j].physicalPage);
 			delete [] pageTable;

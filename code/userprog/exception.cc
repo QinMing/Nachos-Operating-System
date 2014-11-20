@@ -73,7 +73,7 @@ int userStringCopy(char* src,char** dst){
 		if (count >= MaxStringLength){
 			//next byte in buff should be out of boundary
 			printf("Error: Length of file name exceeds the maximun "
-				"string length of %d bytes, or it does not end in null character.",MaxStringLength);
+				"string length of %d bytes, or it does not end in null character.\n",MaxStringLength);
 			buff[MaxStringLength-1] = '\0';
 			DEBUG('a', "File name was ""%s""\n",buff);
 			return -1;
@@ -90,7 +90,6 @@ int userStringCopy(char* src,char** dst){
 //Exit the current runing process, including currentThread.
 void exit(){
 	//for now don't take Join stuff into consideration
-	printf("the user program Exit(%d)\n",(int)machine->ReadRegister(4));
 	//for (int i=29;i<40;i++)
 	//	printf("[%d]%d\n",i,(int)machine->ReadRegister(i)); 
 
@@ -105,10 +104,14 @@ void exit(){
 	//	printf("------ %d\n",*data);
 	//}
 	//
+	
+	printf("== the user program Exit(%d)\n",(int)machine->ReadRegister(4));
 	SpaceId processId = currentThread->processId;
 	Process* process = (Process*) processTable->Get(processId);
 	process->Finish();
+	printf("== after finish\n");
 	processTable->Release(processId);
+	printf("== after release\n");
 	delete process;
 	ASSERT(FALSE);
 }

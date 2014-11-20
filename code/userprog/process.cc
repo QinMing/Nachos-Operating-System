@@ -16,7 +16,6 @@ Process::Process(char* newname,bool willJoin,Thread* t){
 }
 
 Process::~Process(){
-	ASSERT(numThread == 1);
 	delete mainThread->space;
 	delete mainThread;
 }
