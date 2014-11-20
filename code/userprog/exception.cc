@@ -72,8 +72,8 @@ int userStringCopy(char* src,char** dst){
 		virtAddr ++;
 		if (count >= MaxStringLength){
 			//next byte in buff should be out of boundary
-			printf("Error: Length of file name exceed the maximun"
-			  "string length of %d bytes, or does not end in '\0'.",MaxStringLength);
+			printf("Error: Length of file name exceeds the maximun "
+				"string length of %d bytes, or it does not end in null character.",MaxStringLength);
 			buff[MaxStringLength-1] = '\0';
 			DEBUG('a', "File name was ""%s""\n",buff);
 			return -1;
