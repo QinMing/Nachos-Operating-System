@@ -26,7 +26,7 @@ int Table::Alloc(void *object){
 	for (int i=1;i<tabsize;i++){
 		if ( inUse[i]==false){
 			inUse[i]=true;
-			tab[index]=object;
+			tab[i]=object;
 			lock->Release();
 			return i;
 		}

@@ -76,7 +76,7 @@ AddrSpace::AddrSpace()
 AddrSpace::~AddrSpace()
 {
 	if (pageTable != NULL){
-		for (unsigned int i=0;i<numPages;i++)
+		for (int i=0;i<numPages;i++)
 			mm->FreePage(pageTable[i].physicalPage);
 		delete [] pageTable;
 	}
@@ -92,10 +92,9 @@ AddrSpace::~AddrSpace()
 //	when this thread is context switched out.
 //----------------------------------------------------------------------
 
-int AddrSpace::Initialize(OpenFile *executable){
+int AddrSpace::Initialize(OpenFile *executable,int argc, char **argv){
 	NoffHeader noffH;
-	unsigned int i;
-	int size;
+	int size,i;
 	
 	executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
 	if ((noffH.noffMagic != NOFFMAGIC) &&
@@ -109,13 +108,33 @@ int AddrSpace::Initialize(OpenFile *executable){
 	
     //Check if there is bubble in the virtual space of the executable
 	//use i to keep the max possible virtual address
-	i = max(noffH.code.virtualAddr + noffH.code.size ,
-			noffH.initData.virtualAddr + noffH.initData.size);
-	i = max(noffH.uninitData.virtualAddr + noffH.uninitData.size, i);
+	i = 0;
+	if (noffH.code.size>0)
+		i = max(noffH.code.virtualAddr + noffH.code.size , i);
+	if (noffH.initData.size>0)
+		i = max(noffH.initData.virtualAddr + noffH.initData.size , i);
+	if (noffH.uninitData.size >0)
+		i = max(noffH.uninitData.virtualAddr + noffH.uninitData.size, i);
 	if (i>size){
 		printf("ERROR: There's bubble in memory space of the program\n");
+		printf("size = %d",size);
+		printf("noffH.code %d,%d\n",noffH.code.virtualAddr,noffH.code.size);
+		printf("noffH.initData %d,%d\n",noffH.initData.virtualAddr,noffH.initData.size);
+		printf("noffH.uninitData %d,%d\n",noffH.uninitData.virtualAddr,noffH.uninitData.size);
 		return -1;
 	}
+	//Adding arguments
+	int argVirtAddr = size;
+	int argSize = argc * MaxStringLength;
+	size += argSize;
+
+	//deb
+			printf("size = %d",size);
+		printf("noffH.code %d,%d\n",noffH.code.virtualAddr,noffH.code.size);
+		printf("noffH.initData %d,%d\n",noffH.initData.virtualAddr,noffH.initData.size);
+		printf("noffH.uninitData %d,%d\n",noffH.uninitData.virtualAddr,noffH.uninitData.size);
+
+
 	
 	// to leave room for the stack
 	numPages = divRoundUp(size, PageSize);
@@ -135,7 +154,7 @@ int AddrSpace::Initialize(OpenFile *executable){
 		pageTable[i].physicalPage = mm->AllocPage();
 		if (pageTable[i].physicalPage == -1){
 			//run out of physical memory
-			for (unsigned int j=0;j<i;j++)
+			for (int j=0;j<i;j++)
 				mm->FreePage(pageTable[j].physicalPage);
 			delete [] pageTable;
 			pageTable = NULL;
@@ -234,6 +253,20 @@ int AddrSpace::Initialize(OpenFile *executable){
 			size = noffH.initData.virtualAddr + noffH.initData.size - virtAddr;
 			physAddr = pageTable[page].physicalPage * PageSize;
 			executable->ReadAt(&(machine->mainMemory[physAddr]),size,readAddr);
+		}
+	}
+
+	//Adding arguments
+	if (argc >0 ){
+		for (i=0;i<argc;i++){
+			int dst=argVirtAddr + i*MaxStringLength;
+			char* src=argv[i];
+			int length = 0;
+			while (src[length] != '\0'){
+				length++;
+			}
+			length++;
+
 		}
 	}
 	return 0;

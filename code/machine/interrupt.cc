@@ -161,6 +161,12 @@ Interrupt::OneTick()
         stats->totalTicks += UserTick;
         stats->userTicks += UserTick;
     }
+
+    if (stats->totalTicks < 0) {
+        printf("Reaching the end of time.\n");
+        ASSERT(FALSE);
+    }
+
     DEBUG('i', "\n== Tick %d ==\n", stats->totalTicks);
 
 // check any pending interrupts are now ready to fire
@@ -266,6 +272,11 @@ void
 Interrupt::Schedule(VoidFunctionPtr handler, int arg, int fromNow, IntType type)
 {
     int when = stats->totalTicks + fromNow;
+    if (when < stats->totalTicks || when < 0) {
+        printf("Reaching the end of time.\n");
+        ASSERT(FALSE); // panic out
+    }
+
     PendingInterrupt *toOccur = new PendingInterrupt(handler, arg, when, type);
 
     DEBUG('i', "Scheduling interrupt handler the %s at time = %d\n",
@@ -304,6 +315,7 @@ Interrupt::CheckIfDue(bool advanceClock)
     if (toOccur == NULL)		// no pending interrupts
         return FALSE;
 
+    ASSERT(when >= 0);
     if (advanceClock && when > stats->totalTicks) {	// advance the clock
         stats->idleTicks += (when - stats->totalTicks);
         stats->totalTicks = when;

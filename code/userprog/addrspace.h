@@ -25,7 +25,7 @@ public:
     // stored in the file "executable"
     ~AddrSpace();			// De-allocate an address space
 	
-	int Initialize(OpenFile *executable);
+	int Initialize(OpenFile *executable,int argc, char **argv);
     void InitRegisters();		// Initialize user-level CPU registers,
     // before jumping to user code
 
@@ -39,7 +39,7 @@ public:
 private:
     TranslationEntry *pageTable;	// Assume linear page table translation
     // for now!
-    unsigned int numPages;		// Number of pages in the virtual
+    int numPages;		// Number of pages in the virtual
     // address space
 };
 

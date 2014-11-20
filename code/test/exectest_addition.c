@@ -12,13 +12,15 @@
 
 #include "syscall.h"
 #define NUM 40
-char* argv[3];
-int main()
-{
 
-	argv[0]="ABC";
-	argv[1]="DEF1234";
-	argv[2]="GHIJKL";
-	int result = Exec("../test/exit6", 3, argv, 0);
-	Exit(result);
+int main(int argc, char *argv[])
+{
+	int i,number,sum;
+	sum=0;
+	for (i=0;i<argc;i++){
+		//assuming the arguments are one-digit numbers
+		number = argv[i][0] - 48;
+		sum += number;
+	}
+	Exit(sum);
 }
