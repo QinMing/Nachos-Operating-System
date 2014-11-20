@@ -13,11 +13,16 @@
 #include "syscall.h"
 #define NUM 40
 char* argv[3];
+char* st;
 int main()
 {
-
+	char str[300];
+	int i;
+	for (i=0;i<300;i++)
+		str[i]='y';
 	argv[0]="ABC";
 	argv[1]="DEF1234";
+
 	argv[2]="GHIJKL";
 	int result = Exec("../test/exit6", 3, argv, 0);
 	Exit(result);

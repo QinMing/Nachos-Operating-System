@@ -101,41 +101,37 @@ int AddrSpace::Initialize(OpenFile *executable,int argc, char **argv){
 		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
 		SwapHeader(&noffH);
 	ASSERT(noffH.noffMagic == NOFFMAGIC);
-	
-	// how big is address space?
-	size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
-	+ UserStackSize;	// we need to increase the size
-	
-    //Check if there is bubble in the virtual space of the executable
+	//Check if there is bubble in the virtual space of the executable
 	//use i to keep the max possible virtual address
-	i = 0;
+	size = 0;
 	if (noffH.code.size>0)
-		i = max(noffH.code.virtualAddr + noffH.code.size , i);
+		size = max(noffH.code.virtualAddr + noffH.code.size , size);
 	if (noffH.initData.size>0)
-		i = max(noffH.initData.virtualAddr + noffH.initData.size , i);
+		size = max(noffH.initData.virtualAddr + noffH.initData.size , size);
 	if (noffH.uninitData.size >0)
-		i = max(noffH.uninitData.virtualAddr + noffH.uninitData.size, i);
-	if (i>size){
+		size = max(noffH.uninitData.virtualAddr + noffH.uninitData.size, size);
+	if (size > noffH.code.size + noffH.initData.size + noffH.uninitData.size){
 		printf("ERROR: There's bubble in memory space of the program\n");
-		printf("size = %d",size);
+		printf("size = %d\n",size);
 		printf("noffH.code %d,%d\n",noffH.code.virtualAddr,noffH.code.size);
 		printf("noffH.initData %d,%d\n",noffH.initData.virtualAddr,noffH.initData.size);
 		printf("noffH.uninitData %d,%d\n",noffH.uninitData.virtualAddr,noffH.uninitData.size);
 		return -1;
 	}
+
+	// how big is address space?
+	size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
+	+ UserStackSize;	// we need to increase the size
+
 	//Adding arguments
-	int argVirtAddr = size;
+	int argHeadVirtAddr = size;
 	int argSize = argc * MaxStringLength;
-	size += argSize;
+	size += argSize + argc * sizeof(char*) + 4;
+		// add 4 for alignment problems
 
-	//deb
-			printf("size = %d",size);
-		printf("noffH.code %d,%d\n",noffH.code.virtualAddr,noffH.code.size);
-		printf("noffH.initData %d,%d\n",noffH.initData.virtualAddr,noffH.initData.size);
-		printf("noffH.uninitData %d,%d\n",noffH.uninitData.virtualAddr,noffH.uninitData.size);
+	//debug
+		printf("|||||   size = %d\n",size);
 
-
-	
 	// to leave room for the stack
 	numPages = divRoundUp(size, PageSize);
 	size = numPages * PageSize;
@@ -256,17 +252,33 @@ int AddrSpace::Initialize(OpenFile *executable,int argc, char **argv){
 		}
 	}
 
-	//Adding arguments
+	//Adding arguments into user memory
 	if (argc >0 ){
+		int virtAddr,physAddr;
 		for (i=0;i<argc;i++){
-			int dst=argVirtAddr + i*MaxStringLength;
+			virtAddr = argHeadVirtAddr+ i*MaxStringLength;
 			char* src=argv[i];
-			int length = 0;
-			while (src[length] != '\0'){
-				length++;
+			int j = 0;
+			while (src[j] != '\0'){
+				physAddr = pageTable[virtAddr / PageSize].physicalPage * PageSize + virtAddr % PageSize;
+				machine->mainMemory[physAddr] = src[j];
+				virtAddr ++;
+				j++;
 			}
-			length++;
-
+			physAddr = pageTable[virtAddr / PageSize].physicalPage * PageSize + virtAddr % PageSize;
+			machine->mainMemory[physAddr] = '\0';
+			//debug
+			//printf("finish loading ""%s""\n",src);
+		}
+		argcForMain = argc;
+		virtAddr = argHeadVirtAddr + argc*MaxStringLength;
+		if (virtAddr & 0x3)//alignment
+			virtAddr += 4-(virtAddr & 0x3);
+		argvAddrForMain = virtAddr;
+		for (i=0;i<argc;i++){
+			physAddr = pageTable[virtAddr / PageSize].physicalPage * PageSize + virtAddr % PageSize;
+			*(char**) &machine->mainMemory[physAddr] = (char*)argHeadVirtAddr + i*MaxStringLength;
+			virtAddr += 4;
 		}
 	}
 	return 0;
@@ -295,6 +307,10 @@ AddrSpace::InitRegisters()
     for (i = 0; i < NumTotalRegs; i++)
         machine->WriteRegister(i, 0);
 
+	// Initial arguments
+	machine->WriteRegister(4,argcForMain);
+	machine->WriteRegister(5,argvAddrForMain);
+
     // Initial program counter -- must be location of "Start"
     machine->WriteRegister(PCReg, 0);
 
@@ -306,6 +322,7 @@ AddrSpace::InitRegisters()
     // allocated the stack; but subtract off a bit, to make sure we don't
     // accidentally reference off the end!
     machine->WriteRegister(StackReg, numPages * PageSize - 16);
+	//printf("Initializing stack register to %d\n", numPages * PageSize - 16);
     DEBUG('a', "Initializing stack register to %d\n", numPages * PageSize - 16);
 }
 

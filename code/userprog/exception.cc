@@ -92,6 +92,18 @@ void exit(Thread *t){
 	printf("the user program Exit(%d)\n",(int)machine->ReadRegister(4));
 	//for (int i=29;i<40;i++)
 	//	printf("[%d]%d\n",i,(int)machine->ReadRegister(i)); 
+
+	////debug
+	//if (currentThread->space->argcForMain!=0){
+	//	int *data = new int;
+	//	machine->ReadMem(2464,4,data);
+	//	printf("------ %d\n",*data);
+	//	machine->ReadMem(2720,4,data);
+	//	printf("------ %d\n",*data);
+	//	machine->ReadMem(2976,4,data);
+	//	printf("------ %d\n",*data);
+	//}
+	//
 	SpaceId processId = t->processId;
 	Process* process = (Process*) processTable->Get(processId);
 	process->Finish();
@@ -103,16 +115,15 @@ void exit(Thread *t){
 void ProcessStart(int arg){
 	//degub
 	printf("Process ""%s"" starts\n",((Process*)  processTable->Get(currentThread->processId)  )->GetName());
-
-	//reference the process that the currenThread resided
-	//((Process*)  processTable->Get(currentThread->processId)  )->Load((char*)filename);
+	currentThread->space->InitRegisters();		// set the initial register values
+	currentThread->space->RestoreState();		// load page table register
 	machine->Run();			// jump to the user program
 	ASSERT(FALSE);
 }
 
 //Create a process, create a thread
 SpaceId exec(char *filename, int argc, char **argv, int willJoin){
-	Process* process = new Process("P");
+	Process* process = new Process("P",willJoin);
 	SpaceId id = processTable->Alloc(process);
 	if (id==-1){
 		delete process;
@@ -123,7 +134,7 @@ SpaceId exec(char *filename, int argc, char **argv, int willJoin){
 		delete process;
 		return 0;	//Return SpaceId 0 as error code
 	}
-	process->mainThread->Fork(ProcessStart, 0);
+	process->mainThread->Fork(ProcessStart, willJoin);
 
 	//read PC
 	int currentPC = machine->ReadRegister(PCReg);

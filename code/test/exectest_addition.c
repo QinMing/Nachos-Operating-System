@@ -11,7 +11,6 @@
  */
 
 #include "syscall.h"
-#define NUM 40
 
 int main(int argc, char *argv[])
 {
@@ -19,7 +18,7 @@ int main(int argc, char *argv[])
 	sum=0;
 	for (i=0;i<argc;i++){
 		//assuming the arguments are one-digit numbers
-		number = argv[i][0] - 48;
+		number = (int)argv[i][0] - 48;
 		sum += number;
 	}
 	Exit(sum);

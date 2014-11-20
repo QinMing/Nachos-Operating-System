@@ -10,8 +10,8 @@ public:
 	//Public var
 	int  numThread;
 	Thread* mainThread;
-	Process(char* newname);//maybe never used. will create a thread
-	Process(char* newname,Thread* t);//initialize with a existing thread
+	Process(char* newname,bool willJoin);//maybe never used. will create a thread
+	Process(char* newname,bool willJoin,Thread* t);//initialize with a existing thread
 	~Process();
 	void Join();
 	int  Load(char *filename,int argc, char **argv, int willJoin);
@@ -32,6 +32,7 @@ public:
 private:
 	SpaceId id;
 	char* name;
+	bool willBeJoined;
 };
 
 #endif

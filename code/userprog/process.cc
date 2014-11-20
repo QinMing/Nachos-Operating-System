@@ -1,14 +1,16 @@
 #include "copyright.h"
 #include "process.h"
 
-Process::Process(char* newname){
+Process::Process(char* newname,bool willJoin){
 	name = newname;
+	willBeJoined = willJoin;
 	mainThread = new Thread(newname);
 	numThread = 1;
 }
 
-Process::Process(char* newname,Thread* t){
+Process::Process(char* newname,bool willJoin,Thread* t){
 	name = newname;
+	willBeJoined = willJoin;
 	mainThread = t;
 	numThread = 1;
 }
@@ -33,8 +35,6 @@ int Process::Load(char *filename,int argc, char **argv, int willJoin){
 	}
 	mainThread->space = space;
 	delete executable;			// close file
-	space->InitRegisters();		// set the initial register values
-	space->RestoreState();		// load page table register
 	return 0;
 }
 
