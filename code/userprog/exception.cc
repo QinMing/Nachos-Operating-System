@@ -72,7 +72,8 @@ int userStringCopy(char* src,char** dst){
 		virtAddr ++;
 		if (count >= MaxStringLength){
 			//next byte in buff should be out of boundary
-			printf("Error: File name too long!");
+			printf("Error: Length of file name exceed the maximun"
+			  "string length of %d bytes, or does not end in '\0'.",MaxStringLength);
 			buff[MaxStringLength-1] = '\0';
 			DEBUG('a', "File name was ""%s""\n",buff);
 			return -1;
@@ -125,6 +126,7 @@ void ProcessStart(int arg){
 SpaceId exec(char *filename, int argc, char **argv, int willJoin){
 	Process* process = new Process("P",willJoin);
 	SpaceId id = processTable->Alloc(process);
+	
 	if (id==-1){
 		delete process;
 		return 0;//maybe too many processes there. Return SpaceId 0 as error code
@@ -135,7 +137,16 @@ SpaceId exec(char *filename, int argc, char **argv, int willJoin){
 		return 0;	//Return SpaceId 0 as error code
 	}
 	process->mainThread->Fork(ProcessStart, willJoin);
+	return id;
+}
 
+void
+	ExceptionHandler(ExceptionType which)
+{
+	int type = machine->ReadRegister(2);
+	//for (int i=0;i<10;i++)	printf("[%d]%d\n",i,(int)machine->ReadRegister(i));
+	//printf("exception %d %d\n", which, type);
+	
 	//read PC
 	int currentPC = machine->ReadRegister(PCReg);
 	int nextPC = machine->ReadRegister(NextPCReg);
@@ -146,15 +157,7 @@ SpaceId exec(char *filename, int argc, char **argv, int willJoin){
 	machine->WriteRegister(PrevPCReg, prevPC);
 	machine->WriteRegister(PCReg, currentPC);
 	machine->WriteRegister(NextPCReg, nextPC);
-	return id;
-}
-
-void
-	ExceptionHandler(ExceptionType which)
-{
-	int type = machine->ReadRegister(2);
-	//for (int i=0;i<10;i++)	printf("[%d]%d\n",i,(int)machine->ReadRegister(i));
-	//printf("exception %d %d\n", which, type);
+		
 	switch (which){
 	case SyscallException:
 		switch (type){
