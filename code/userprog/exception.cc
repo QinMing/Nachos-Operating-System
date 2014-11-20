@@ -86,8 +86,8 @@ int userStringCopy(char* src,char** dst){
 	return 0;
 }
 
-//Exit the current runing process.
-void exit(Thread *t){
+//Exit the current runing process, including currentThread.
+void exit(){
 	//for now don't take Join stuff into consideration
 	printf("the user program Exit(%d)\n",(int)machine->ReadRegister(4));
 	//for (int i=29;i<40;i++)
@@ -104,7 +104,7 @@ void exit(Thread *t){
 	//	printf("------ %d\n",*data);
 	//}
 	//
-	SpaceId processId = t->processId;
+	SpaceId processId = currentThread->processId;
 	Process* process = (Process*) processTable->Get(processId);
 	process->Finish();
 	processTable->Release(processId);
@@ -163,7 +163,7 @@ void
 			interrupt->Halt();
 			break;
 		case SC_Exit:
-			exit(currentThread);//will exit the whole process
+			exit();//will exit the whole current process
 			break;
 		case SC_Exec:
 			{

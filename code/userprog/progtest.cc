@@ -35,7 +35,7 @@ void StartProcess(char *filename)
 	
 	Process* process = new Process("FirstProcess",0,currentThread);
 	SpaceId id = processTable->Alloc(process);
-	//if (id == -1)			//run out of process table. but impossible
+	ASSERT(id!=-1)			//run out of process table. but impossible
 	process->SetId(id);
 	id = process->Load(filename,0,NULL,0);
 	ASSERT(id!=-1);			//panic. The initial user program has problem.

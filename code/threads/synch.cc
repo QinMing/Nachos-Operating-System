@@ -1,4 +1,4 @@
-// synch.cc
+ // synch.cc
 //	Routines for synchronizing threads.  Three kinds of
 //	synchronization routines are defined here: semaphores, locks
 //   	and condition variables (the implementation of the last two
