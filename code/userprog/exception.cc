@@ -27,6 +27,7 @@
 #include "machine.h"
 #include "table.h"
 #include "process.h"
+#include "synchconsole.h"
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -50,21 +51,21 @@
 //	are in machine.h.
 //----------------------------------------------------------------------
 
-//copy a string from user memory to OS memory
+//copy a string from user memory to OS memory, for the currently runing process
 //src: char* in virtual memory space
-//dst: a pointer to a char* in OS memory. Assume dst == NULL
-int userStringCopy(char* src,char** dst){
+//dst: a pointer to a char* in OS memory. 
+//If size is not set, then assume dst == NULL
+//If size is set, then assume dst points to an allocated empty string in kernel space
+int strUser2Kernel(char* src,char** dst){
 	char buff[MaxStringLength];
 	int virtAddr = (int)src;
-	int* data = new int;
+	//int* data = new int;
 	char ch;
 	int count = 0;
 	do{
-		if (! machine->ReadMem(virtAddr,1,data))
-			return -1;
-		//In fact ReadMem() itself will call machine->RaiseException. I don't know what will happen
-		//or we need to use Machine::Translate but not ReadMem if it causes problem.
-		ch = (char)(*data);
+		if (! machine->ReadMem(virtAddr,sizeof(char),(int*)&ch))
+			return -1;	//In fact ReadMem() itself will call machine->RaiseException.
+		//ch = (char)(*data);
 		buff[count] = ch;
 		count ++;
 		if (ch == '\0')
@@ -79,13 +80,38 @@ int userStringCopy(char* src,char** dst){
 			return -1;
 		}	
 	}while(1);
-    delete data;
-    
+	//delete data;
+
 	//at this time count should be the length of buff
 	(*dst) = new char[count];
 	for (int i=0;i<count;i++){
 		(*dst)[i]=buff[i];
 	}
+	return 0;
+}
+int strUser2Kernel(char* src,char* dst,int size){
+	int virtAddr = (int)src;
+	for (int i=0;i<size;i++){
+		if (! machine->ReadMem(virtAddr, sizeof(char), (int*)&dst[i]))
+			return -1;
+		virtAddr++;
+	}
+	dst[size]='\0';
+	return 0;
+}
+
+//assume dst != NULL. 
+//dst is a pointer to an allocated empty string in virtual space.
+//the string src is not necessarily ending in NULL.
+int strKernel2User(char* src,char* dst,int size){
+	int virtAddr = (int)dst;
+	for (int i=0;i<size;i++){
+		if (! machine->WriteMem(virtAddr, sizeof(char), src[i]))
+			return -1;
+		virtAddr++;
+	}
+	if (! machine->WriteMem(virtAddr, sizeof(char), '\0'))
+		return -1;
 	return 0;
 }
 
@@ -106,7 +132,7 @@ void exit(){
 	//	printf("------ %d\n",*data);
 	//}
 	//
-	
+
 	printf("== the user program Exit(%d)\n",(int)machine->ReadRegister(4));
 	SpaceId processId = currentThread->processId;
 	Process* process = (Process*) processTable->Get(processId);
@@ -131,7 +157,7 @@ void ProcessStart(int arg){
 SpaceId exec(char *filename, int argc, char **argv, int willJoin){
 	Process* process = new Process("P",willJoin);
 	SpaceId id = processTable->Alloc(process);
-	
+
 	if (id==-1){
 		delete process;
 		return 0;//maybe too many processes there. Return SpaceId 0 as error code
@@ -146,7 +172,7 @@ SpaceId exec(char *filename, int argc, char **argv, int willJoin){
 }
 
 void IncreasePC(){
-    //read PC
+	//read PC
 	int currentPC = machine->ReadRegister(PCReg);
 	int nextPC = machine->ReadRegister(NextPCReg);
 	//increase PC
@@ -164,50 +190,54 @@ void
 	int type = machine->ReadRegister(2);
 	//for (int i=0;i<10;i++)	printf("[%d]%d\n",i,(int)machine->ReadRegister(i));
 	//printf("exception %d %d\n", which, type);
-	
-    IncreasePC();
-		
+
+	IncreasePC();
+
 	switch (which){
-            
+
 	case SyscallException:
 		switch (type){
-                
+
 		case SC_Halt:
 			DEBUG('a', "Shutdown, initiated by user program.\n");
 			interrupt->Halt();
 			break;
-                
+
 		case SC_Exit:
 			exit();//will exit the whole current process
 			break;
-                
+
 		case SC_Exec:
 			{
 				//read registers
 				char* name = NULL;
-				int result = userStringCopy((char*)machine->ReadRegister(4),&name) ;
+				int result = strUser2Kernel((char*)machine->ReadRegister(4),&name) ;
 				if (result == -1){
 					machine->WriteRegister(2,0);//return SpaceId 0
 					return ;
 				}
 				int argc = machine->ReadRegister(5);
-				char** virtArgv = (char**) machine->ReadRegister(6);
+				if (argc<0)	printf("Warning: argc less than 0. Assume argc = 0 \n");
 				int willJoin = machine->ReadRegister(7);
-				int* data = new int;
+				char** argv = NULL;
 
-				//convert argument list
-				char** argv=new char*[argc];
-				for (int i=0;i<argc;i++){
-					//read the string head pointer
-					if (  ! machine->ReadMem((int)&(virtArgv[i]) ,4,data)  ){
-						machine->WriteRegister(2,0);//return SpaceId 0
-						return ;
-					}
-					//copy the string to OS memory
-					result = userStringCopy((char*)(*data),&argv[i]) ;
-					if (result == -1){
-						machine->WriteRegister(2,0);//return SpaceId 0
-						return ;
+				if (argc>0){
+					//convert argument list
+					int* data = new int;
+					char** virtArgv = (char**) machine->ReadRegister(6);
+					argv=new char*[argc];
+					for (int i=0;i<argc;i++){
+						//read the string head pointer
+						if (  ! machine->ReadMem((int)&(virtArgv[i]) ,4,data)  ){
+							machine->WriteRegister(2,0);//return SpaceId 0
+							return ;
+						}
+						//copy the string to OS memory
+						result = strUser2Kernel((char*)(*data),&argv[i]) ;
+						if (result == -1){
+							machine->WriteRegister(2,0);//return SpaceId 0
+							return ;
+						}
 					}
 				}
 				//debug
@@ -219,36 +249,53 @@ void
 				delete[] argv;
 				break;
 			}
-                
-            case SC_Read:
-            case SC_Write:{
-                if (sConsole == NULL)
-                    sConsole = new SynchConsole();
-                char *buffer =NULL;
-                int size = machine->ReadRegister(5);
-                OpenFileId fileId = (OpenFileId)machine->ReadRegister(6);
-                
-                if (type == SC_Read) {
-                    buffer = (char*)machine->ReadRegister(4);
-                    sConsole->Read(buffer,size);
-                    //translation!!!!!!!!!!!!
-                } else {
-                    if (userStringCopy((char*)machine->ReadRegister(4),&buffer) == -1){
-                        machine->WriteRegister(2,-1);//should we return -1 ?
-                        return;
-                    }
-                    sConsole->Write(buffer,size);
-                }
-                break;
-            }
-        
+
+		case SC_Read:
+		case SC_Write:
+			{
+				int size = machine->ReadRegister(5);
+				if (size<=0){
+					printf("Error: Nothing to read or write with size 0, or less than 0\n");
+					machine->WriteRegister(2,-1);//should we return -1 ?
+					return;
+				}
+				OpenFileId fileId = (OpenFileId)machine->ReadRegister(6);
+				if (fileId == ConsoleInput || fileId == ConsoleOutput){
+
+					if (sConsole == NULL)
+						sConsole = new SynchConsole();
+
+					char str[size+1];//a string in kernel
+
+					if (type == SC_Read) {		//SC_Read
+
+						char *buffer = (char*)machine->ReadRegister(4);
+						sConsole->Read(str,size);
+						if (strKernel2User(str,buffer,size) == -1){
+							machine->WriteRegister(2,-1);
+							return;
+						}
+
+					} else {					//SC_Write
+
+						if (strUser2Kernel((char*)machine->ReadRegister(4),str,size) == -1){
+							machine->WriteRegister(2,-1);
+							return;
+						}
+						sConsole->Write(str,size);
+
+					}
+				}
+				break;
+			}
+
 		default:
 			printf("Unexpected exception type %d %d\n", which, type);
 			ASSERT(FALSE);
 			break;
 		}
 		break;
-            
+
 	default:
 		printf("Unexpected user mode exception %d %d\n", which, type);
 		ASSERT(FALSE);

@@ -20,6 +20,7 @@ Process::~Process(){
 	delete mainThread;
 }
 
+//willJoin is not used. Could be removed
 int Process::Load(char *filename,int argc, char **argv, int willJoin){
 	OpenFile *executable = fileSystem->Open(filename);
 	if (executable == NULL) {

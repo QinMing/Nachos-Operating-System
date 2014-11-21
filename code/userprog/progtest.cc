@@ -16,6 +16,7 @@
 #include "memoryManager.h"
 #include "table.h"
 #include "process.h"
+#include "synchconsole.h"
 
 
 MemoryManager *mm;
