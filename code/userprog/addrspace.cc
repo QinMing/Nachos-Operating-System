@@ -92,10 +92,10 @@ AddrSpace::~AddrSpace()
 //	when this thread is context switched out.
 //----------------------------------------------------------------------
 
-int AddrSpace::Initialize(OpenFile *executable,int argc, char **argv){
+int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 	NoffHeader noffH;
-	int size,i;
-	
+	int size, i;
+
 	executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
 	if ((noffH.noffMagic != NOFFMAGIC) &&
 		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
@@ -104,39 +104,42 @@ int AddrSpace::Initialize(OpenFile *executable,int argc, char **argv){
 	//Check if there is bubble in the virtual space of the executable
 	//use i to keep the max possible virtual address
 	size = 0;
-	if (noffH.code.size>0)
-		size = max(noffH.code.virtualAddr + noffH.code.size , size);
-	if (noffH.initData.size>0)
-		size = max(noffH.initData.virtualAddr + noffH.initData.size , size);
-	if (noffH.uninitData.size >0)
+	if (noffH.code.size > 0)
+		size = max(noffH.code.virtualAddr + noffH.code.size, size);
+	if (noffH.initData.size > 0)
+		size = max(noffH.initData.virtualAddr + noffH.initData.size, size);
+	if (noffH.uninitData.size > 0)
 		size = max(noffH.uninitData.virtualAddr + noffH.uninitData.size, size);
 	if (size > noffH.code.size + noffH.initData.size + noffH.uninitData.size){
 		printf("ERROR: There's bubble in memory space of the program\n");
-		printf("size = %d\n",size);
-		printf("noffH.code %d,%d\n",noffH.code.virtualAddr,noffH.code.size);
-		printf("noffH.initData %d,%d\n",noffH.initData.virtualAddr,noffH.initData.size);
-		printf("noffH.uninitData %d,%d\n",noffH.uninitData.virtualAddr,noffH.uninitData.size);
+		printf("size = %d\n", size);
+		printf("noffH.code %d,%d\n", noffH.code.virtualAddr, noffH.code.size);
+		printf("noffH.initData %d,%d\n", noffH.initData.virtualAddr, noffH.initData.size);
+		printf("noffH.uninitData %d,%d\n", noffH.uninitData.virtualAddr, noffH.uninitData.size);
 		return -1;
 	}
 
 	// how big is address space?
 	size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
-	+ UserStackSize;	// we need to increase the size
+		+ UserStackSize;	// we need to increase the size
 
 	//Adding arguments
 	int argHeadVirtAddr = size;
 	int argSize = argc * MaxStringLength;
 	size += argSize + argc * sizeof(char*) + 4;
-		// add 4 for alignment problems
+	// add 4 for alignment problems
 
 	//debug
-		printf("|||||   size = %d\n",size);
+	printf("|||||   size = %d\n", size);
 
 	// to leave room for the stack
 	numPages = divRoundUp(size, PageSize);
 	size = numPages * PageSize;
-	
-	ASSERT(numPages <= NumPhysPages);		// check we're not trying
+
+	//debug
+	printf("|||||   Physical Page Size = %d\n", size);
+
+	//ASSERT(numPages <= NumPhysPages);		// check we're not trying
 	// to run anything too big --
 	// at least until we have
 	// virtual memory
