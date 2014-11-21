@@ -21,6 +21,7 @@
 MemoryManager *mm;
 Table *processTable;//the process table, with 
 		//the table index being the SpaceID, and the content being Process*
+SynchConsole * sConsole = NULL;
 
 //----------------------------------------------------------------------
 // StartProcess
@@ -78,6 +79,7 @@ ConsoleTest (char *in, char *out)
     char ch;
 
     console = new Console(in, out, ReadAvail, WriteDone, 0);
+	//console = new Console("in_f", "out_f", ReadAvail, WriteDone, 0);
     readAvail = new Semaphore("read avail", 0);
     writeDone = new Semaphore("write done", 0);
 

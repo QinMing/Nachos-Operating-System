@@ -42,4 +42,6 @@ class SynchConsole {
 
 };
 
+extern SynchConsole * sConsole; //defined in progtest.cc
+
 #endif // SYNCHCONSOLE_H

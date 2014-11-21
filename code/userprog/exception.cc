@@ -72,13 +72,15 @@ int userStringCopy(char* src,char** dst){
 		virtAddr ++;
 		if (count >= MaxStringLength){
 			//next byte in buff should be out of boundary
-			printf("Error: Length of file name exceeds the maximun "
-				"string length of %d bytes, or it does not end in null character.\n",MaxStringLength);
+			printf("Error: Exceeded the maximun "
+				"string length of %d bytes, or the string does not end in null character.\n",MaxStringLength);
 			buff[MaxStringLength-1] = '\0';
-			DEBUG('a', "File name was ""%s""\n",buff);
+			DEBUG('a', "The string was ""%s""\n",buff);
 			return -1;
 		}	
 	}while(1);
+    delete data;
+    
 	//at this time count should be the length of buff
 	(*dst) = new char[count];
 	for (int i=0;i<count;i++){
@@ -143,14 +145,8 @@ SpaceId exec(char *filename, int argc, char **argv, int willJoin){
 	return id;
 }
 
-void
-	ExceptionHandler(ExceptionType which)
-{
-	int type = machine->ReadRegister(2);
-	//for (int i=0;i<10;i++)	printf("[%d]%d\n",i,(int)machine->ReadRegister(i));
-	//printf("exception %d %d\n", which, type);
-	
-	//read PC
+void IncreasePC(){
+    //read PC
 	int currentPC = machine->ReadRegister(PCReg);
 	int nextPC = machine->ReadRegister(NextPCReg);
 	//increase PC
@@ -160,17 +156,31 @@ void
 	machine->WriteRegister(PrevPCReg, prevPC);
 	machine->WriteRegister(PCReg, currentPC);
 	machine->WriteRegister(NextPCReg, nextPC);
+}
+
+void
+	ExceptionHandler(ExceptionType which)
+{
+	int type = machine->ReadRegister(2);
+	//for (int i=0;i<10;i++)	printf("[%d]%d\n",i,(int)machine->ReadRegister(i));
+	//printf("exception %d %d\n", which, type);
+	
+    IncreasePC();
 		
 	switch (which){
+            
 	case SyscallException:
 		switch (type){
+                
 		case SC_Halt:
 			DEBUG('a', "Shutdown, initiated by user program.\n");
 			interrupt->Halt();
 			break;
+                
 		case SC_Exit:
 			exit();//will exit the whole current process
 			break;
+                
 		case SC_Exec:
 			{
 				//read registers
@@ -209,12 +219,36 @@ void
 				delete[] argv;
 				break;
 			}
+                
+            case SC_Read:
+            case SC_Write:{
+                if (sConsole == NULL)
+                    sConsole = new SynchConsole();
+                char *buffer =NULL;
+                int size = machine->ReadRegister(5);
+                OpenFileId fileId = (OpenFileId)machine->ReadRegister(6);
+                
+                if (type == SC_Read) {
+                    buffer = (char*)machine->ReadRegister(4);
+                    sConsole->Read(buffer,size);
+                    //translation!!!!!!!!!!!!
+                } else {
+                    if (userStringCopy((char*)machine->ReadRegister(4),&buffer) == -1){
+                        machine->WriteRegister(2,-1);//should we return -1 ?
+                        return;
+                    }
+                    sConsole->Write(buffer,size);
+                }
+                break;
+            }
+        
 		default:
 			printf("Unexpected exception type %d %d\n", which, type);
 			ASSERT(FALSE);
 			break;
 		}
 		break;
+            
 	default:
 		printf("Unexpected user mode exception %d %d\n", which, type);
 		ASSERT(FALSE);
