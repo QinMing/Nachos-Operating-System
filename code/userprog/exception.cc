@@ -134,13 +134,12 @@ void exit(){
 	//
 	SpaceId processId = currentThread->processId;
 	
-	printf("== the user program Exit(%d). PID=%d\n",(int)machine->ReadRegister(4),processId);
 	Process* process = (Process*) processTable->Get(processId);
 	process->Finish();
 	processTable->Release(processId);
-	printf("== after release\n");
+	printf("== the user program Exit(%d). PID=%d\n",(int)machine->ReadRegister(4),processId);
 	delete process;
-	printf("== after delete process\n");
+	ASSERT(false);
 }
 
 void ProcessStart(int arg){

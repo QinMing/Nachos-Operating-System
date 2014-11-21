@@ -283,7 +283,7 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 			virtAddr += 4;
 		}
 	}
-	mm->Print();
+	//mm->Print();
 	return 0;
 }
 
