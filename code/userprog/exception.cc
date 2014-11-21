@@ -59,13 +59,11 @@
 int strUser2Kernel(char* src,char** dst){
 	char buff[MaxStringLength];
 	int virtAddr = (int)src;
-	//int* data = new int;
 	char ch;
 	int count = 0;
 	do{
 		if (! machine->ReadMem(virtAddr,sizeof(char),(int*)&ch))
 			return -1;	//In fact ReadMem() itself will call machine->RaiseException.
-		//ch = (char)(*data);
 		buff[count] = ch;
 		count ++;
 		if (ch == '\0')
@@ -80,7 +78,6 @@ int strUser2Kernel(char* src,char** dst){
 			return -1;
 		}	
 	}while(1);
-	//delete data;
 
 	//at this time count should be the length of buff
 	(*dst) = new char[count];
@@ -117,33 +114,27 @@ int strKernel2User(char* src,char* dst,int size){
 
 //Exit the current runing process, including currentThread.
 void exit(){
-	//for now don't take Join stuff into consideration
-	//for (int i=29;i<40;i++)
-	//	printf("[%d]%d\n",i,(int)machine->ReadRegister(i)); 
-
-	////debug
-	//if (currentThread->space->argcForMain!=0){
-	//	int *data = new int;
-	//	machine->ReadMem(2464,4,data);
-	//	printf("------ %d\n",*data);
-	//	machine->ReadMem(2720,4,data);
-	//	printf("------ %d\n",*data);
-	//	machine->ReadMem(2976,4,data);
-	//	printf("------ %d\n",*data);
-	//}
-	//
-	SpaceId processId = currentThread->processId;
-	
-	Process* process = (Process*) processTable->Get(processId);
+	SpaceId pid = currentThread->processId;
+	Process* process = (Process*) processTable->Get(pid);
 	process->Finish();
-	processTable->Release(processId);
-	printf("== the user program Exit(%d). PID=%d\n",(int)machine->ReadRegister(4),processId);
+	processTable->Release(pid);
+	printf("== the user program (PID=%d) Exit(%d)\n",pid,(int)machine->ReadRegister(4));
 	delete process;
-	ASSERT(false);
+	ASSERT(FALSE);
+}
+//Terminate a process by force
+void exit(SpaceId pid){
+	ASSERT(pid!=currentThread->processId);
+	Process* process = (Process*) processTable->Get(pid);
+	//process->Finish();
+	processTable->Release(pid);
+	delete process;
+	//notice the return value! -1 is not actually returned!!!
+	printf("== the user program (PID=%d) Exit(%d)\n",pid,-1);
 }
 
 void ProcessStart(int arg){
-	//degub
+	//degug
 	printf("Process ""%s"" starts\n",((Process*)  processTable->Get(currentThread->processId)  )->GetName());
 	currentThread->space->InitRegisters();		// set the initial register values
 	currentThread->space->RestoreState();		// load page table register
@@ -161,7 +152,7 @@ SpaceId exec(char *filename, int argc, char **argv, int willJoin){
 		return 0;//maybe too many processes there. Return SpaceId 0 as error code
 	}
 	process->SetId(pid);
-	if (process->Load(filename,argc,argv,willJoin) == -1){
+	if (process->Load(filename,argc,argv) == -1){
 		delete process;
 		return 0;	//Return SpaceId 0 as error code
 	}
