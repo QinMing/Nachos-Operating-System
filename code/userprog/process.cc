@@ -16,8 +16,15 @@ Process::Process(char* newname,bool willJoin,Thread* t){
 }
 
 Process::~Process(){
+
 	delete mainThread->space;
-	delete mainThread;
+	//should not delete space in Thread::~Thread() because
+	//if there are lots of newly created thread, then this space will
+	//not be deleted until another thread wakes up from SWITCH(oldThread, nextThread);
+	//So it's just to free the memory in advance.
+	
+	mainThread->Finish();
+	//the thread will then be deleted in scheduler::Run()
 }
 
 //willJoin is not used. Could be removed
@@ -39,5 +46,4 @@ int Process::Load(char *filename,int argc, char **argv, int willJoin){
 }
 
 void Process::Finish(){
-	mainThread->Finish();
 }

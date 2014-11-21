@@ -14,6 +14,7 @@ class MemoryManager{
 	  int AllocPage();
 	  void FreePage(int physPageNum);
 	  bool PageIsAllocated(int physPageNum);
+	  void Print(){ memMap->Print(); }
     
   private:  
 	 BitMap* memMap;

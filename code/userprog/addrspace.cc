@@ -80,6 +80,8 @@ AddrSpace::~AddrSpace()
 			mm->FreePage(pageTable[i].physicalPage);
 		delete [] pageTable;
 	}
+	mm->Print();
+
 }
 
 //----------------------------------------------------------------------
@@ -130,12 +132,12 @@ int AddrSpace::Initialize(OpenFile *executable,int argc, char **argv){
 		// add 4 for alignment problems
 
 	//debug
-		printf("|||||   size = %d\n",size);
+	//	printf("|||||   size = %d\n",size);
 
 	// to leave room for the stack
 	numPages = divRoundUp(size, PageSize);
 	size = numPages * PageSize;
-	
+
 	ASSERT(numPages <= NumPhysPages);		// check we're not trying
 	// to run anything too big --
 	// at least until we have
@@ -163,7 +165,11 @@ int AddrSpace::Initialize(OpenFile *executable,int argc, char **argv){
 		// a separate page, we could set its
 		// pages to be read-only
 	}
-	
+
+	//debug
+	printf("mmap:  First phys page=%d, size = %d\n",pageTable[0].physicalPage,size);
+
+
 	// zero out the entire address space, to zero the unitialized data segment
 	// and the stack segment
 	//bzero(machine->mainMemory, size);
@@ -281,6 +287,7 @@ int AddrSpace::Initialize(OpenFile *executable,int argc, char **argv){
 			virtAddr += 4;
 		}
 	}
+	mm->Print();
 	return 0;
 }
 

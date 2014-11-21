@@ -6,8 +6,8 @@ You will create one by calling the constructor with NumPhysPages as
 the parameter.  All physical pages start as free, unallocated pages. */
 MemoryManager::MemoryManager(int numPages)
 {
-    memMap = new BitMap(numPages);
-    lock = new Lock("mapLock");
+	memMap = new BitMap(numPages);
+	lock = new Lock("mapLock");
 }
 
 MemoryManager::~MemoryManager()
@@ -17,25 +17,25 @@ MemoryManager::~MemoryManager()
 }
 
 /* Allocate a free page, returning its physical page number or -1
-   if there are no free pages available. */
+if there are no free pages available. */
 int MemoryManager::AllocPage(){
-  lock->Acquire();
-  int physNum = memMap->Find();
-  lock->Release();
-  return physNum;
+	lock->Acquire();
+	int physNum = memMap->Find();
+	lock->Release();
+	return physNum;
 }
 
 /* Free the physical page and make it available for future allocation. */
 void MemoryManager::FreePage(int physPageNum){
-  lock->Acquire();
-  memMap->Clear(physPageNum);
-  lock->Release();
+	lock->Acquire();
+	memMap->Clear(physPageNum);
+	lock->Release();
 }
 
 /* True if the physical page is allocated, false otherwise. */
 bool MemoryManager::PageIsAllocated(int physPageNum) {
-  lock->Acquire();
-  bool physAllocated = memMap->Test(physPageNum);
-  lock->Release();
-  return physAllocated;
+	lock->Acquire();
+	bool physAllocated = memMap->Test(physPageNum);
+	lock->Release();
+	return physAllocated;
 }

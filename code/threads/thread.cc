@@ -226,6 +226,11 @@ Thread::Finish ()
 	lock->Release();
 	// If Join will not be called, we can delete the TCB immediately
 	
+	//newly added code. 23:51:55 11/20/2014
+	//threadToBeDestroyed is initialized to NULL in system.cc 
+	if (threadToBeDestroyed !=NULL)
+		currentThread->Yield();
+
 	(void) interrupt->SetLevel(IntOff);
 	DEBUG('t', "Finishing thread \"%s\"\n", getName());
 	threadToBeDestroyed = currentThread; 

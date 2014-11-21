@@ -132,16 +132,15 @@ void exit(){
 	//	printf("------ %d\n",*data);
 	//}
 	//
-
-	printf("== the user program Exit(%d)\n",(int)machine->ReadRegister(4));
 	SpaceId processId = currentThread->processId;
+	
+	printf("== the user program Exit(%d). PID=%d\n",(int)machine->ReadRegister(4),processId);
 	Process* process = (Process*) processTable->Get(processId);
 	process->Finish();
-	printf("== after finish\n");
 	processTable->Release(processId);
 	printf("== after release\n");
 	delete process;
-	ASSERT(FALSE);
+	printf("== after delete process\n");
 }
 
 void ProcessStart(int arg){
@@ -156,19 +155,19 @@ void ProcessStart(int arg){
 //Create a process, create a thread
 SpaceId exec(char *filename, int argc, char **argv, int willJoin){
 	Process* process = new Process("P",willJoin);
-	SpaceId id = processTable->Alloc(process);
+	SpaceId pid = processTable->Alloc(process);
 
-	if (id==-1){
+	if (pid==-1){
 		delete process;
 		return 0;//maybe too many processes there. Return SpaceId 0 as error code
 	}
-	process->SetId(id);
+	process->SetId(pid);
 	if (process->Load(filename,argc,argv,willJoin) == -1){
 		delete process;
 		return 0;	//Return SpaceId 0 as error code
 	}
 	process->mainThread->Fork(ProcessStart, willJoin);
-	return id;
+	return pid;
 }
 
 void IncreasePC(){
