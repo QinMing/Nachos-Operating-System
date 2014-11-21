@@ -22,8 +22,12 @@ Process::~Process(){
 	//if there are lots of newly created thread, then this space will
 	//not be deleted until another thread wakes up from SWITCH(oldThread, nextThread);
 	//So it's just to free the memory in advance.
-	
-	mainThread->Finish();
+	if (currentThread != mainThread){
+		delete mainThread;
+	}
+	else{
+		mainThread->Finish();
+	}
 	//the thread will then be deleted in scheduler::Run()
 }
 
