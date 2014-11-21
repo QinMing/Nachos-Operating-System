@@ -112,8 +112,8 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 		size = max(noffH.initData.virtualAddr + noffH.initData.size, size);
 	if (noffH.uninitData.size > 0)
 		size = max(noffH.uninitData.virtualAddr + noffH.uninitData.size, size);
-	if (size > noffH.code.size + noffH.initData.size + noffH.uninitData.size){
-		printf("ERROR: There's bubble in memory space of the program\n");
+	if (size != noffH.code.size + noffH.initData.size + noffH.uninitData.size){
+		printf("ERROR: There's bubble or overlap in program memory space\n");
 		printf("size = %d\n", size);
 		printf("noffH.code %d,%d\n", noffH.code.virtualAddr, noffH.code.size);
 		printf("noffH.initData %d,%d\n", noffH.initData.virtualAddr, noffH.initData.size);
@@ -121,15 +121,13 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 		return -1;
 	}
 
+	//Adding arguments at the end of these three part
+	int argHeadVirtAddr = size;
+	int argSize = argc * MaxStringLength + argc * sizeof(char*) + 3;// add 4 for alignment problems
+
 	// how big is address space?
 	size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
-		+ UserStackSize;	// we need to increase the size
-
-	//Adding arguments
-	int argHeadVirtAddr = size;
-	int argSize = argc * MaxStringLength;
-	size += argSize + argc * sizeof(char*) + 4;
-	// add 4 for alignment problems
+		argSizs + UserStackSize + ;	// we need to increase the size
 
 	// to leave room for the stack
 	numPages = divRoundUp(size, PageSize);
