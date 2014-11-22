@@ -114,20 +114,6 @@ int strKernel2User(char* src,char* dst,int size){
 
 //Exit the current runing process, including currentThread.
 void exit(){
-	SpaceId processId = currentThread->processId;
-	Process* process = (Process*) processTable->Get(processId);
-	printf("== the user program Exit(%d). PID=%d\n",(int)machine->ReadRegister(4),processId);
-	
-	process->Finish();
-	processTable->Release(processId);
-	printf("== after release\n");
-	delete process;
-	printf("== after delete process\n");
-}
-
-void ProcessStart(int arg){
-	//degub
-	printf("Process ""PID=%d"" starts.\n",((Process*)  processTable->Get(currentThread->processId)  )->GetId());
 	SpaceId pid = currentThread->processId;
 	Process* process = (Process*) processTable->Get(pid);
 	process->Finish();
@@ -149,7 +135,7 @@ void ProcessStart(int arg){
 
 void ProcessStart(int arg){
 	//degug
-	printf("Process ""%s"" starts\n",((Process*)  processTable->Get(currentThread->processId)  )->GetName());
+	printf("Process ""PID=%d"" starts\n",((Process*)  processTable->Get(currentThread->processId)  )->GetId());
 	currentThread->space->InitRegisters();		// set the initial register values
 	currentThread->space->RestoreState();		// load page table register
 	machine->Run();			// jump to the user program
