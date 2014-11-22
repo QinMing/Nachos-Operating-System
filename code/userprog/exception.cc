@@ -123,15 +123,15 @@ void exit(){
 	ASSERT(FALSE);
 }
 //Terminate a process by force
-void exit(SpaceId pid){
-	ASSERT(pid!=currentThread->processId);
-	Process* process = (Process*) processTable->Get(pid);
-	//process->Finish();
-	processTable->Release(pid);
-	delete process;
-	//notice the return value! -1 is not actually returned!!!
-	printf("== the user program (PID=%d) Exit(%d)\n",pid,-1);
-}
+//void exit(SpaceId pid){
+//	ASSERT(pid!=currentThread->processId);
+//	Process* process = (Process*) processTable->Get(pid);
+//	//process->Finish();
+//	processTable->Release(pid);
+//	delete process;
+//	//notice the return value! -1 is not actually returned!!!
+//	printf("== the user program (PID=%d) Exit(%d)\n",pid,-1);
+//}
 
 void ProcessStart(int arg){
 	//degug
