@@ -104,9 +104,8 @@ public:
     void setStatus(ThreadStatus st) {
         status = st;
     }
-    char* getName() {
-        return (name);
-    }
+    char* getName() { return (name);   }
+    bool getHasForked(){ return hasForked; }
     void Print() {
         printf("%s, ", name);
     }
@@ -159,6 +158,7 @@ public:
 
     AddrSpace *space;			// User code this thread is running.
 	int processId;		//Assuming one kernel-level thread will not switch among processes
+					//set to 0 if it's not the main thread of a process.
 #endif
 };
 

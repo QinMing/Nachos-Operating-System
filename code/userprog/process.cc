@@ -32,8 +32,7 @@ Process::~Process(){
 	else{
 
 		//come to here because the process is being deleted by kenel but not itself.
-		//so delete mainThread by force without calling Finish();
-		//Is this the correct behavior? What if it has been Joined???
+		ASSERT(!mainThread->getHasForked());//should not be forked
 		delete mainThread;
 
 	}
