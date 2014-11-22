@@ -134,17 +134,18 @@ void exit(){
 	//
 	SpaceId processId = currentThread->processId;
 	
+	printf("== the user program Exit(%d). PID=%d\n",(int)machine->ReadRegister(4),processId);
 	Process* process = (Process*) processTable->Get(processId);
 	process->Finish();
 	processTable->Release(processId);
-	printf("== the user program Exit(%d). PID=%d\n",(int)machine->ReadRegister(4),processId);
+	printf("== after release\n");
 	delete process;
-	ASSERT(false);
+	printf("== after delete process\n");
 }
 
 void ProcessStart(int arg){
 	//degub
-	printf("Process ""%s"" starts\n",((Process*)  processTable->Get(currentThread->processId)  )->GetName());
+	printf("Process ""PID=%d"" starts.\n",((Process*)  processTable->Get(currentThread->processId)  )->GetId());
 	currentThread->space->InitRegisters();		// set the initial register values
 	currentThread->space->RestoreState();		// load page table register
 	machine->Run();			// jump to the user program
@@ -239,9 +240,10 @@ void
 					}
 				}
 				//debug
-				//for (int i=0;i<argc;i++){
-				//	printf("[%d]%s\n",i,argv[i]);
-				//}
+				/*for (int i=0;i<argc;i++){
+					printf("[%d]%s\n",i,argv[i]);
+				}*/
+				printf("[]""%s""\n", name);
 				result = exec(name,argc,argv,willJoin);
 				machine->WriteRegister(2,result);
 				delete[] argv;
