@@ -125,7 +125,7 @@ void exit(){
 
 void ProcessStart(int arg){
 	//degug
-	printf("Process ""%s"" starts\n",((Process*)  processTable->Get(currentThread->processId)  )->GetName());
+	printf("Process ""PID=%d"" starts\n",((Process*)  processTable->Get(currentThread->processId)  )->GetId());
 	currentThread->space->InitRegisters();		// set the initial register values
 	currentThread->space->RestoreState();		// load page table register
 	machine->Run();			// jump to the user program
@@ -220,9 +220,10 @@ void
 					}
 				}
 				//debug
-				//for (int i=0;i<argc;i++){
-				//	printf("[%d]%s\n",i,argv[i]);
-				//}
+				/*for (int i=0;i<argc;i++){
+					printf("[%d]%s\n",i,argv[i]);
+				}*/
+				printf("[]""%s""\n", name);
 				result = exec(name,argc,argv,willJoin);
 				machine->WriteRegister(2,result);
 				delete[] argv;
