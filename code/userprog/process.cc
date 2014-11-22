@@ -17,22 +17,35 @@ Process::Process(char* newname,bool willJoin,Thread* t){
 
 Process::~Process(){
 
-	delete mainThread->space;
 	//should not delete space in Thread::~Thread() because
 	//if there are lots of newly created thread, then this space will
 	//not be deleted until another thread wakes up from SWITCH(oldThread, nextThread);
-	//So it's just to free the memory in advance.
-	if (currentThread != mainThread){
-		delete mainThread;
+	//So here it's just to free the memory in advance.
+	delete mainThread->space;
+
+	if (currentThread == mainThread){
+
+		//the thread will then be deleted in scheduler::Run()
+		mainThread->Finish();
+
 	}
 	else{
-		mainThread->Finish();
+
+		//come to here because the process is being deleted by kenel but not itself.
+		//so delete mainThread by force without calling Finish();
+		//Is this the correct behavior? What if it has been Joined???
+		delete mainThread;
+
 	}
-	//the thread will then be deleted in scheduler::Run()
+
 }
 
-//willJoin is not used. Could be removed
-int Process::Load(char *filename,int argc, char **argv, int willJoin){
+void Process::Finish(){
+	ASSERT(mainThread == currentThread);
+
+}
+
+int Process::Load(char *filename,int argc, char **argv){
 	OpenFile *executable = fileSystem->Open(filename);
 	if (executable == NULL) {
 		printf("Unable to open file %s\n", filename);
@@ -47,7 +60,4 @@ int Process::Load(char *filename,int argc, char **argv, int willJoin){
 	mainThread->space = space;
 	delete executable;			// close file
 	return 0;
-}
-
-void Process::Finish(){
 }

@@ -10,18 +10,18 @@ public:
 	//Public var
 	int  numThread;
 	Thread* mainThread;
-	Process(char* newname,bool willJoin);//maybe never used. will create a thread
+	Process(char* newname,bool willJoin);
 	Process(char* newname,bool willJoin,Thread* t);//initialize with a existing thread
 	~Process();
 	void Join();
-	int  Load(char *filename,int argc, char **argv, int willJoin);
+	int  Load(char *filename,int argc, char **argv);
 	void Finish();
 	void SetId(SpaceId i){
-		id = i;
+		pid = i;
 		mainThread->processId = i;
 	}
 	SpaceId GetId(){
-		return id;
+		return pid;
 	}
 	char* GetName(){
 		return name;
@@ -30,7 +30,7 @@ public:
 	
 
 private:
-	SpaceId id;
+	SpaceId pid;
 	char* name;
 	bool willBeJoined;
 };

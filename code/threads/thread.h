@@ -158,7 +158,7 @@ public:
     void RestoreUserState();		// restore user-level register state
 
     AddrSpace *space;			// User code this thread is running.
-	int processId;		//Assuming one kernel-level thread is allocated to one process
+	int processId;		//Assuming one kernel-level thread will not switch among processes
 #endif
 };
 
