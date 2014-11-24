@@ -19,12 +19,6 @@
 #include "switch.h"
 #include "system.h"
 
-#ifdef USER_PROGRAM
-#include "table.h"
-#include "process.h"
-#endif
-
-
 #define STACK_FENCEPOST 0xdeadbeef	// this is put at the top of the
 // execution stack, for detecting
 // stack overflows
@@ -329,12 +323,6 @@ Thread::Sleep ()
 //----------------------------------------------------------------------
 
 static void ThreadFinish()    {
-	//newly added code
-#ifdef USER_PROGRAM
-    ((Process*)  processTable->Get(currentThread->processId)  )
-		->Finish();
-#endif
-
     currentThread->Finish();
 }
 static void InterruptEnable() {

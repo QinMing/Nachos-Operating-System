@@ -86,6 +86,7 @@ USERPROG_H = ../userprog/addrspace.h\
 	../userprog/table.h\
 	../userprog/synchconsole.h\
 	../userprog/process.h\
+	../userprog/pipe.h\
 	../filesys/filesys.h\
 	../filesys/openfile.h\
 	../machine/console.h\
@@ -102,6 +103,7 @@ USERPROG_C = ../userprog/addrspace.cc\
 	../userprog/progtest.cc\
 	../userprog/memoryManager.cc\
 	../userprog/synchconsole.cc\
+	../userprog/pipe.cc\
 	../machine/console.cc\
 	../machine/machine.cc\
 	../machine/mipssim.cc\
@@ -109,7 +111,8 @@ USERPROG_C = ../userprog/addrspace.cc\
 	
 
 USERPROG_O = addrspace.o bitmap.o exception.o progtest.o console.o machine.o \
-	mipssim.o translate.o memoryManager.o table.o process.o synchconsole.o
+	mipssim.o translate.o memoryManager.o table.o process.o synchconsole.o\
+	pipe.o
 
 VM_H = 
 VM_C = 
@@ -169,5 +172,5 @@ tags:
 
 #Ming
 clean:
-	rm -rf ../*/{core,nachos,DISK,*.o,swtch.s,*~} ../test/{*.coff} ../bin/{coff2flat,disassemble,out}
+	rm -rf ../*~ ../*/{core,nachos,DISK,*.o,swtch.s,*~} ../test/{*.coff} ../bin/{coff2flat,disassemble,out}
 

@@ -3,6 +3,9 @@
 
 #include "copyright.h"
 #include "system.h"
+#include "pipe.h"
+
+#define MaxPipes 64
 
 class Process {
 
@@ -27,12 +30,21 @@ public:
 		return name;
 	}
 
-	
+	//pipeline functions 
+	void pipeHead();
+	void pipeMid();
+	void pipeEnd();
+
+	//pipeline var
+	Pipe pipeArr[MaxPipes];
+	int pipePtr;
 
 private:
 	SpaceId pid;
 	char* name;
 	bool willBeJoined;
+
+
 };
 
 #endif

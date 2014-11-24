@@ -122,20 +122,10 @@ void exit(){
 	delete process;
 	ASSERT(FALSE);
 }
-//Terminate a process by force
-void exit(SpaceId pid){
-	ASSERT(pid!=currentThread->processId);
-	Process* process = (Process*) processTable->Get(pid);
-	//process->Finish();
-	processTable->Release(pid);
-	delete process;
-	//notice the return value! -1 is not actually returned!!!
-	printf("== the user program (PID=%d) Exit(%d)\n",pid,-1);
-}
 
 void ProcessStart(int arg){
 	//degug
-	printf("Process ""%s"" starts\n",((Process*)  processTable->Get(currentThread->processId)  )->GetName());
+	printf("Process ""PID=%d"" starts\n",((Process*)  processTable->Get(currentThread->processId)  )->GetId());
 	currentThread->space->InitRegisters();		// set the initial register values
 	currentThread->space->RestoreState();		// load page table register
 	machine->Run();			// jump to the user program
@@ -230,9 +220,10 @@ void
 					}
 				}
 				//debug
-				//for (int i=0;i<argc;i++){
-				//	printf("[%d]%s\n",i,argv[i]);
-				//}
+				/*for (int i=0;i<argc;i++){
+					printf("[%d]%s\n",i,argv[i]);
+				}*/
+				printf("[]""%s""\n", name);
 				result = exec(name,argc,argv,willJoin);
 				machine->WriteRegister(2,result);
 				delete[] argv;
