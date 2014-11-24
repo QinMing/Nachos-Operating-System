@@ -300,7 +300,7 @@ void
 	  exit();
 	  break;
 	default:
-		printf("Unexpected user mode exception %d %d\n", which, type);
+		printf("Unexpected user mode exception %d\n", which);
 		ASSERT(FALSE);
 		break;
 	}
