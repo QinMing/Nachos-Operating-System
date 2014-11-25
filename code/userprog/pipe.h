@@ -11,9 +11,11 @@ public:
 	~Pipe();
 
 	//check PID before calling R/W
-	void Write(char data);
-	char Read();
-
+	char GetChar();
+	void PutChar(char data);
+	void Read(char *buffer, int size);
+	void Write(char *buffer, int size);
+			
 	//public var
 	SpaceId in, out;
 

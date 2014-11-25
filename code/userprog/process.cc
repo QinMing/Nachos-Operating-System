@@ -67,27 +67,31 @@ int Process::Load(char *filename,int argc, char **argv){
 	return 0;
 }
 
-int Process::PipelineAdd(bool hasin, bool hasout) {
+int Process::PipelineAdd(Process* proc, bool hasin, bool hasout) { 
 	if (pipeline == NULL) {
 		pipeline = new List();
 	}
 	if (hasin) {
 		//Since we are not recommended to modify List.cc, 
 		//we need to remove the element then put it back in order to modify it
-		Process* pipe = pipeline->Remove();
+		Pipe* pipe = (Pipe*)pipeline->Remove();
+		
 		if (pipe == NULL) {
-			printf("Error: inappropriate usage of pipeline\n");
+			printf("Error: inappropriate usage of pipeline: can't locate the input pipe\n");
 			return -1;
 		}
+		pipe->out = proc->GetId();
+		proc->pipeIn = pipe;
+		
 		pipeline->Prepend(pipe);
 	}
 	if (hasout) {
-
+		Pipe* pipe = new Pipe();
+		
+		pipe->in = proc->GetId();
+		proc->pipeOut = pipe;
+		
+		pipeline->Prepend(pipe);
 	}
-}
-void Process::pipeMid() {
-
-}
-void Process::pipeEnd() {
-
+	return 0;
 }

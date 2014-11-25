@@ -31,7 +31,7 @@ public:
 	}
 
 	//pipeline functions 
-	int PipelineAdd(bool hasin, bool hasout);
+	int PipelineAdd(Process* proc, bool hasin, bool hasout);
 	
 	//pipeline var
 	Pipe *pipeIn;	//pointers to pipes

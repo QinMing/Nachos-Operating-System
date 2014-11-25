@@ -86,6 +86,32 @@ int strUser2Kernel(char* src,char** dst){
 	}
 	return 0;
 }
+
+//this overload function is using dst as a already allocated char[],
+//so no need to use buffer
+int strUser2Kernel(char* src,char* dst){
+	int virtAddr = (int)src;
+	char ch;
+	int count = 0;
+	do{
+		if (! machine->ReadMem(virtAddr,sizeof(char),(int*)&ch))
+			return -1;	//In fact ReadMem() itself will call machine->RaiseException.
+			dst[count] = ch;
+		count ++;
+		if (ch == '\0')
+			break;
+		virtAddr ++;
+		if (count >= MaxStringLength){
+			//next byte in buff should be out of boundary
+			printf("Error: Exceeded the maximun "
+			"string length of %d bytes, or the string does not end in null character.\n",MaxStringLength);
+			dst[MaxStringLength-1] = '\0';
+			DEBUG('a', "The string was ""%s""\n",dst);
+			return -1;
+		}	
+	}while(1);
+	return 0;
+}
 int strUser2Kernel(char* src,char* dst,int size){
 	int virtAddr = (int)src;
 	for (int i=0;i<size;i++){
@@ -149,12 +175,11 @@ SpaceId exec(char *filename, int argc, char **argv, int opt){
 
 
 	if (hasin || hasout) {
-		Process* currentProcess = processTable->Get(currentThread->processId);
-		if (currentProcess->PipelineAdd(pid, hasin, hasout) == -1) {
-			machine->WriteRegister(2, 0);//return SpaceId 0
-			return;
+		Process* currentProcess = (Process*)processTable->Get(currentThread->processId);
+		if (currentProcess->PipelineAdd(process, hasin, hasout) == -1) {
+			delete process;
+			return 0;//return SpaceId 0
 		}
-		//don't forget to set std in out of process
 	}
 
 	if (process->Load(filename, argc, argv) == -1) {
@@ -224,7 +249,7 @@ void
 					//convert argument list
 					int* data = new int;
 					char** virtArgv = (char**) machine->ReadRegister(6);
-					argv=new char*[argc];
+					//argv=new char*[argc];
 					for (int i=0;i<argc;i++){
 						//read the string head pointer
 						if (  ! machine->ReadMem((int)&(virtArgv[i]) ,4,data)  ){
@@ -232,7 +257,7 @@ void
 							return ;
 						}
 						//copy the string to OS memory
-						result = strUser2Kernel((char*)(*data),&argv[i]) ;
+						result = strUser2Kernel((char*)(*data),argv[i]) ;
 						if (result == -1){
 							machine->WriteRegister(2,0);//return SpaceId 0
 							return ;
@@ -247,7 +272,7 @@ void
 					printf("[%d]%s\n",i,argv[i]);
 				}*/
 				//printf("[]""%s""\n", name);
-				result = exec(name,argc,argv,opt);
+				result = exec(name,argc,(char**)argv,opt);
 				machine->WriteRegister(2,result);
 				break;
 			}
@@ -255,7 +280,7 @@ void
 		case SC_Read:
 		case SC_Write:
 			{
-				Process* currentProcess = processTable->Get(currentThread->processId);
+				Process* currentProcess = (Process*)processTable->Get(currentThread->processId);
 				int size = machine->ReadRegister(5);
 				if (size<=0){
 					printf("Error: Nothing to read or write with size 0, or less than 0\n");
