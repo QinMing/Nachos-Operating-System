@@ -174,7 +174,7 @@ void
 
 	switch (which){
 
-	case SyscallException:
+	case SyscallException: // A program executed a system call
 		switch (type){
 
 		case SC_Halt:
@@ -275,9 +275,32 @@ void
 			break;
 		}
 		break;
-
+	case PageFaultException: // No valid translation found
+	  printf("PageFaultException: No valid translation found. Terminating process...\n");
+	  exit();
+	  break;
+	case ReadOnlyException: // Write attempted to page marked "read-only"
+	  printf("ReadOnlyException: Write attempted to page marked \"read-only\". Terminating process...\n");
+	  exit();
+	  break;
+	case BusErrorException: // Translation resulted in an invalid physical addresss
+	  printf("BusErrorException: Translation resulted in an invalid physical address. Terminating process...\n");
+	  exit();
+	  break;
+	case AddressErrorException: // Unaligned reference or one that was beyond the end of the address space
+	  printf("AddressErrorException: Unaligned reference or one that was beyond the end of the address space. Terminating process...\n");
+	  exit();
+	  break;
+	case OverflowException: // Integer overflow in add or subtract
+	  printf("OverflowException: Integer overflow in add or subract. Terminating process...\n");
+	  exit();
+	  break;
+	case IllegalInstrException: // Unimplemented or reserved instruction
+	  printf("IllegalInstrException: Unimplemented or reserved instruction. Terminating process...\n");
+	  exit();
+	  break;
 	default:
-		printf("Unexpected user mode exception %d %d\n", which, type);
+		printf("Unexpected user mode exception %d\n", which);
 		ASSERT(FALSE);
 		break;
 	}
