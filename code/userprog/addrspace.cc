@@ -78,7 +78,7 @@ AddrSpace::~AddrSpace()
 	if (pageTable != NULL){
 		for (int i=0;i<numPages;i++)
 			mm->FreePage(pageTable[i].physicalPage);
-		delete [] pageTable;
+		delete[] pageTable;
 	}
 	mm->Print();
 
@@ -149,7 +149,7 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 			printf("run out of physical memory\n");
 			for (int j=0;j<i;j++)
 				mm->FreePage(pageTable[j].physicalPage);
-			delete [] pageTable;
+			delete[] pageTable;
 			pageTable = NULL;
 			return -1;
 		}

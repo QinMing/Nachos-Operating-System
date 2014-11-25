@@ -133,7 +133,11 @@ void ProcessStart(int arg){
 }
 
 //Create a process, create a thread
-SpaceId exec(char *filename, int argc, char **argv, int willJoin){
+SpaceId exec(char *filename, int argc, char **argv, int opt){
+	bool willJoin = opt & 0x1;
+	bool hasout = opt & 0x2;
+	bool hasin = opt & 0x4;
+
 	Process* process = new Process("P",willJoin);
 	SpaceId pid = processTable->Alloc(process);
 
@@ -142,15 +146,26 @@ SpaceId exec(char *filename, int argc, char **argv, int willJoin){
 		return 0;//maybe too many processes there. Return SpaceId 0 as error code
 	}
 	process->SetId(pid);
-	if (process->Load(filename,argc,argv) == -1){
+
+
+	if (hasin || hasout) {
+		Process* currentProcess = processTable->Get(currentThread->processId);
+		if (currentProcess->PipelineAdd(pid, hasin, hasout) == -1) {
+			machine->WriteRegister(2, 0);//return SpaceId 0
+			return;
+		}
+		//don't forget to set std in out of process
+	}
+
+	if (process->Load(filename, argc, argv) == -1) {
 		delete process;
 		return 0;	//Return SpaceId 0 as error code
 	}
-	process->mainThread->Fork(ProcessStart, willJoin);
+	process->mainThread->Fork(ProcessStart, 0);	//thread's willJoin is always set to 0
 	return pid;
 }
 
-void IncreasePC(){
+void IncreasePC() {
 	//read PC
 	int currentPC = machine->ReadRegister(PCReg);
 	int nextPC = machine->ReadRegister(NextPCReg);
@@ -188,18 +203,23 @@ void
 
 		case SC_Exec:
 			{
-				//read registers
+				//read 1st argument
 				char* name = NULL;
 				int result = strUser2Kernel((char*)machine->ReadRegister(4),&name) ;
 				if (result == -1){
 					machine->WriteRegister(2,0);//return SpaceId 0
 					return ;
 				}
-				int argc = machine->ReadRegister(5);
-				if (argc<0)	printf("Warning: argc less than 0. Assume argc = 0 \n");
-				int willJoin = machine->ReadRegister(7);
-				char** argv = NULL;
 
+				//read 2nd argument
+				int argc = machine->ReadRegister(5);
+				if (argc < 0) {
+					printf("Warning: argc less than 0. Assume argc = 0 \n");
+					argc = 0;
+				}
+				
+				//read 3rd argument
+				char argv[argc][MaxStringLength];
 				if (argc>0){
 					//convert argument list
 					int* data = new int;
@@ -219,20 +239,23 @@ void
 						}
 					}
 				}
-				//debug
+
+				//read 4th argument
+				int opt = machine->ReadRegister(7);
+				
 				/*for (int i=0;i<argc;i++){
 					printf("[%d]%s\n",i,argv[i]);
 				}*/
-				printf("[]""%s""\n", name);
-				result = exec(name,argc,argv,willJoin);
+				//printf("[]""%s""\n", name);
+				result = exec(name,argc,argv,opt);
 				machine->WriteRegister(2,result);
-				delete[] argv;
 				break;
 			}
 
 		case SC_Read:
 		case SC_Write:
 			{
+				Process* currentProcess = processTable->Get(currentThread->processId);
 				int size = machine->ReadRegister(5);
 				if (size<=0){
 					printf("Error: Nothing to read or write with size 0, or less than 0\n");
@@ -241,6 +264,7 @@ void
 				}
 				OpenFileId fileId = (OpenFileId)machine->ReadRegister(6);
 				if (fileId == ConsoleInput || fileId == ConsoleOutput){
+					
 
 					if (sConsole == NULL)
 						sConsole = new SynchConsole();
@@ -250,7 +274,12 @@ void
 					if (type == SC_Read) {		//SC_Read
 
 						char *buffer = (char*)machine->ReadRegister(4);
-						sConsole->Read(str,size);
+						
+						if (currentProcess->pipeIn == NULL)
+							sConsole->Read(str,size);
+						else
+							currentProcess->pipeIn->Read(str,size);
+							
 						if (strKernel2User(str,buffer,size) == -1){
 							machine->WriteRegister(2,-1);
 							return;
@@ -262,7 +291,10 @@ void
 							machine->WriteRegister(2,-1);
 							return;
 						}
-						sConsole->Write(str,size);
+						if (currentProcess->pipeOut == NULL)
+							sConsole->Write(str,size);
+						else
+							currentProcess->pipeOut->Write(str,size);
 
 					}
 				}

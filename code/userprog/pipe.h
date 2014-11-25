@@ -22,7 +22,7 @@ private:
 	Semaphore* read;
 	Semaphore* write;
 	char buffer[BufferSize];
-	int bptr;
+	int pread, pwrite;
 };
 
 #endif// PIPE_H
