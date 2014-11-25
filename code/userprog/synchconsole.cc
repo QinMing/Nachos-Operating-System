@@ -14,8 +14,9 @@ static void writeHandler(int console) {
 }
 
 SynchConsole::SynchConsole() {
-	write = new Semaphore("Done Writing", 1);
-	read = new Semaphore("Can Read", 1);
+
+  write = new Semaphore("Done Writing", 1);
+  read = new Semaphore("Can Read", 0);
 
 	writeLock = new Lock("Synch Console Writer Lock");
 	readLock = new Lock("Synch Console Reader Lock");
@@ -78,24 +79,24 @@ void SynchConsole::Read(char *buffer, int size) {
 
 /* Synchronously write a character to the console */
 void SynchConsole::WriteChar(char c) {
-	writeLock->Acquire();
 
-	write->P(); // decrement semaphore
-	console->PutChar(c);
-
-	writeLock->Release();
+  writeLock->Acquire();
+  write->P(); // decrement semaphore
+  console->PutChar(c);
+  writeLock->Release();
+  
 }
 
 /* Synchronously write a line to the console */
 void SynchConsole::WriteLine(char *buffer) {
 	writeLock->Acquire();
 
-	// write buffer to console until null character is reached
-	while (*buffer != '\0') {
-		write->P(); // decrement semaphore
-		console->PutChar(*buffer);
-		buffer++;
-	}
+  // write buffer to console until null character is reached
+  while (*buffer != '\0') {
+    write->P(); // decrement semaphore
+    console->PutChar(*buffer);
+    buffer++;
+  }
 
 	writeLock->Release();
 }
@@ -104,21 +105,21 @@ void SynchConsole::WriteLine(char *buffer) {
 void SynchConsole::Write(char *buffer, int size) {
 	writeLock->Acquire();
 
-	// write {size} characters from buffer to console
-	for (int i = 0; i < size; ++i) {
-		write->P(); // decrement semaphore
-		console->PutChar(buffer[i]);
-	}
+  // write {size} characters from buffer to console
+  for (int i = 0; i < size; ++i) {
+    write->P(); // decrement semaphore
+    console->PutChar(buffer[i]);
+  }
 
 	writeLock->Release();
 }
 
-/* Increments the write semaphore */
+/* Increments the read semaphore */
 void SynchConsole::CheckCharAvail() {
 	read->V();
 }
 
-/* Increments the read semaphore */
+/* Increments the write semaphore */
 void SynchConsole::WriteDone() {
 	write->V();
 }
