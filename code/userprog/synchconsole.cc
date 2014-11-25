@@ -14,7 +14,7 @@ static void writeHandler(int console) {
 }
 
 SynchConsole::SynchConsole() {
-  write = new Semaphore("Done Writing", 0);
+  write = new Semaphore("Done Writing", 1);
   read = new Semaphore("Can Read", 0);
 
   writeLock = new Lock("Synch Console Writer Lock");
@@ -111,12 +111,12 @@ void SynchConsole::Write(char *buffer, int size) {
   writeLock->Release();
 }
 
-/* Increments the write semaphore */
+/* Increments the read semaphore */
 void SynchConsole::CheckCharAvail() {
   read->V();
 }
 
-/* Increments the read semaphore */
+/* Increments the write semaphore */
 void SynchConsole::WriteDone() {
   write->V();
 }
