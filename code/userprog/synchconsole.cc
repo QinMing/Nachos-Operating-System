@@ -79,10 +79,8 @@ void SynchConsole::Read(char *buffer, int size) {
 /* Synchronously write a character to the console */
 void SynchConsole::WriteChar(char c) {
   writeLock->Acquire();
-
-  console->PutChar(c);
   write->P(); // decrement semaphore
-
+  console->PutChar(c);
   writeLock->Release();
 }
 
@@ -92,9 +90,9 @@ void SynchConsole::WriteLine(char *buffer) {
 
   // write buffer to console until null character is reached
   while (*buffer != '\0') {
+    write->P(); // decrement semaphore
     console->PutChar(*buffer);
     buffer++;
-    write->P(); // decrement semaphore
   }
 
   writeLock->Release();
@@ -106,8 +104,8 @@ void SynchConsole::Write(char *buffer, int size) {
 
   // write {size} characters from buffer to console
   for (int i = 0; i < size; ++i) {
-    console->PutChar(buffer[i]);
     write->P(); // decrement semaphore
+    console->PutChar(buffer[i]);
   }
 
   writeLock->Release();
