@@ -218,6 +218,15 @@ void
 		switch (type){
 
 		case SC_Halt:
+		
+			//delete memory manager
+			delete mm;
+			
+			//delete processTable
+			delete processTable;
+			
+			//SynchConsole doesn't need to be deleted since console never ends.
+			
 			DEBUG('a', "Shutdown, initiated by user program.\n");
 			interrupt->Halt();
 			break;
