@@ -9,9 +9,11 @@ int main(){
     do {
         Read(&buffer[i], 1, ConsoleInput);
     } while (buffer[i++] != '\0');
-	
+	//now  buffer[i-1]=='\0'
+	buffer[i]='\n';
+	buffer[i-1]=buffer[i-2]+1;
 	
 	Write("Results: ",9,ConsoleOutput);
-	Write(buffer, i-1, ConsoleOutput);
+	Write(buffer, i+1, ConsoleOutput);
 	return 0;
 }

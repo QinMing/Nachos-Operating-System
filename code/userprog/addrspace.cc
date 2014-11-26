@@ -80,7 +80,7 @@ AddrSpace::~AddrSpace()
 			mm->FreePage(pageTable[i].physicalPage);
 		delete[] pageTable;
 	}
-	mm->Print();
+	//mm->Print();
 
 }
 

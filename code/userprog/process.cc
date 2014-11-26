@@ -26,8 +26,25 @@ Process::~Process(){
 	//not be deleted until another thread wakes up from SWITCH(oldThread, nextThread);
 	//So here it's just to free the memory in advance.
 	delete mainThread->space;
+	
+	//delete the pipe list, but pipes are deleted by processes that use them. See below.
 	delete pipeline;
+	
+	//delete un-used pipes
+	if (pipeIn!=NULL){
+		pipeIn->out = 0;
+		if (pipeIn->in == 0){
+			delete pipeIn;
+		}
+	}
+	if (pipeOut!=NULL){
+		pipeOut->in = 0;
+		if (pipeOut->out == 0){
+			delete pipeOut;
+		}
+	}
 
+	//Finish the thread
 	if (currentThread == mainThread){
 
 		//the thread will then be deleted in scheduler::Run()

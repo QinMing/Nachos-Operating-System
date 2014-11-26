@@ -15,15 +15,16 @@ main()
     OpenFileId output = ConsoleOutput;
 	
     Exec("../test/testp7_pipetest_produce", 0, 0, 2);
-	//Exec("../test/testp7_pipetest_mid", 0, 0, 6);
-	//Exec("../test/testp7_pipetest_mid", 0, 0, 6);
+	Exec("../test/testp7_pipetest_mid", 0, 0, 6);
+	Exec("../test/testp7_pipetest_mid", 0, 0, 6);
     SpaceId pid = Exec("../test/testp7_pipetest_consume", 0, 0, 4);
 	
-	Write("Enter a letter. For example 'B'. >> ", 36, output);
+	Write("Enter a letter. For example: B<enter>. >>    ", 45, output);
 	//what if we exit now. Will system crash by bad pipe pointer?
-	do{//dead loop
-		pid=1;
-	}while(pid==1);
+	//do{//dead loop
+	//	pid=1;
+	//}while(pid==1);
 	//Join(pid);
 	//Yield();
+	return 0;
 }
