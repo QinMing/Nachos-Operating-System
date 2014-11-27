@@ -31,20 +31,18 @@ public:
 	}
 
 	//pipeline functions 
-	void pipeHead();
-	void pipeMid();
-	void pipeEnd();
-
+	int PipelineAdd(Process* proc, bool hasin, bool hasout);
+	
 	//pipeline var
-	Pipe pipeArr[MaxPipes];
-	int pipePtr;
+	Pipe *pipeIn;	//pointers to pipes
+	Pipe *pipeOut;	//If they are NULL, then their OpenFileIds 0 (stdin)
+		// and 1 (stdout) are binded to console by default
 
 private:
 	SpaceId pid;
 	char* name;
 	bool willBeJoined;
-
-
+	List *pipeline;
 };
 
 #endif

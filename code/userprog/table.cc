@@ -1,7 +1,8 @@
 
 #include "copyright.h"
 #include "table.h"
-
+	
+	
 /* Create a table to hold at most "size" entries. */
 Table::Table(int size){
 	tabsize = size;
@@ -14,6 +15,11 @@ Table::Table(int size){
 	lock = new Lock("TableLock");
 }
 Table::~Table(){
+	
+//	for (int i=1;i<tabsize;i++){
+//		delete (Process *)tab[i];
+//	}
+	//assume the object has been deleted outside
 	delete[] tab;
 	delete lock;
 }
@@ -55,9 +61,12 @@ void* Table::Get(int index){
 //assuming the object being pointed has already been deleted.
 void Table::Release(int index){
 	lock->Acquire();
+	
 	//Notice the table starts from 1 because no in Nachos, no process has SpaceId 0. 
 	ASSERT(index>0 && index < tabsize);
 	ASSERT(inUse[index]);//panic if the slot is not allocated
 	inUse[index]=false;
+	//Assume the object has been deleted outside
+	
 	lock->Release();
 }
