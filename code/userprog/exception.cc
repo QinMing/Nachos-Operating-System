@@ -268,7 +268,11 @@ void
 				}
 				break;
 			}
+		case SC_Fork:
 
+		  break;
+		case SC_Yield:
+		  break;
 		default:
 			printf("Unexpected exception type %d %d\n", which, type);
 			ASSERT(FALSE);

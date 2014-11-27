@@ -1,4 +1,4 @@
-/* Test file that trigger an IllegalInstrException  */
+/* Test file that triggers an IllegalInstrException  */
 
 #include "copyright.h"
 #include "syscall.h"
