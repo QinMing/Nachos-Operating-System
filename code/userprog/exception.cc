@@ -145,9 +145,11 @@ void exit(){
 	/*if(process->willBeJoined){
 	    machine->WriteRegister(2,(int)machine->ReadRegister(4));//return status
 	}*/
+	process->exitStatus = (int)machine->ReadRegister(4);
+
 	process->Finish();
-	processTable->Release(pid);
-	printf("== the user program (PID=%d) Exit(%d)\n",pid,(int)machine->ReadRegister(4));
+	processTable->Release(pid); 
+	printf("== the user program (PID=%d) Exit(%d)\n", pid, (int)machine->ReadRegister(4));
 	delete process;
 	ASSERT(FALSE);
 }
@@ -223,7 +225,7 @@ void
 		case SC_Halt:
 		
 			//delete memory manager
-			delete mm;
+			//delete mm;
 			
 			//delete processTable
 			delete processTable;
@@ -339,31 +341,24 @@ void
 			}
 		case SC_Join:
 			{
-			  SpaceId idToJoin = machine->ReadRegister(5);
+			  SpaceId idToJoin = (int)machine->ReadRegister(4);
+			  int result;
+			  if (processTable->Get(idToJoin) == NULL) //process to join is not found
+			  {
+				  machine->WriteRegister(2, -65535);// signify an error
+				  return;
+			  }
 			  SpaceId pid = currentThread->processId;
-			  if(idToJoin == pid)		// cannot call join on itself
+			  if (idToJoin == pid)		// cannot call join on itself
 			  {
-			      machine->WriteRegister(2,-65535);// signify an error
-			      return;
+				  machine->WriteRegister(2, -65535);// signify an error
+				  return;
 			  }
-			  if(processTable->Get(idToJoin) == NULL) //process to join is not found
-			  {
-			      machine->WriteRegister(2,-65535);// signify an error
-			      return;
-			  }
-			  Process* processToJoin = (Process*) processTable->Get(idToJoin);
-			  if (processToJoin->hasJoined)		// join is not called more that once on the same process
-			  {
-			      machine->WriteRegister(2,-65535);// signify an error
-			      return;
-			  }
-			  if (!processToJoin->willBeJoined)	// join is only invoked on processes created to be joined
-			  {
-			      machine->WriteRegister(2,-65535);// signify an error
-			      return;
-			  }
-			  Process* process = (Process*) processTable->Get(pid);	
-			  process->Join;
+			  
+			  Process* processToJoin = (Process*)processTable->Get(idToJoin);
+			  result = processToJoin->Join();
+			 
+			  machine->WriteRegister(2, result);
 			break;
 			}
 

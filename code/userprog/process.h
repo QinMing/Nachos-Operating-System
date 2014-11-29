@@ -4,6 +4,7 @@
 #include "copyright.h"
 #include "system.h"
 #include "pipe.h"
+#include "synch.h"
 
 #define MaxPipes 64
 
@@ -16,7 +17,7 @@ public:
 	Process(char* newname,bool willJoin);
 	Process(char* newname,bool willJoin,Thread* t);//initialize with a existing thread
 	~Process();
-	void Join();
+	int Join();
 	int  Load(char *filename,int argc, char **argv);
 	void Finish();
 	void SetId(SpaceId i){
@@ -37,6 +38,7 @@ public:
 	Pipe *pipeIn;	//pointers to pipes
 	Pipe *pipeOut;	//If they are NULL, then their OpenFileIds 0 (stdin)
 		// and 1 (stdout) are binded to console by default
+	int exitStatus;
 
 private:
 	SpaceId pid;
@@ -47,6 +49,7 @@ private:
 	Condition* joinedOnMe;
 	Lock* lock;
 	List *pipeline;
+	
 
 };
 

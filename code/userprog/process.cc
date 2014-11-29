@@ -10,8 +10,9 @@ Process::Process(char* newname,bool willJoin){
 	
 	willBeJoined = willJoin;
 	hasJoined = false;
-	joinedOnMe = Condition("JoinedOnMe");
+	joinedOnMe = new Condition("JoinedOnMe");
 	lock = new Lock("Lock");
+	exitStatus =-65535;
 
 	pipeline = NULL;
 	pipeIn = pipeOut = NULL;
@@ -25,8 +26,9 @@ Process::Process(char* newname,bool willJoin,Thread* t){
 
 	willBeJoined = willJoin;
 	hasJoined = false;
-	joinedOnMe = Condition("JoinedOnMe");
+	joinedOnMe = new Condition("JoinedOnMe");
 	lock = new Lock("Lock");
+	exitStatus = -65535;
 	
 	pipeline = NULL;
 	pipeIn = pipeOut = NULL;
@@ -100,12 +102,22 @@ void Process::Finish(){
 	}
 	
 	lock->Release();
-
 }
 
-void Process::Join() {
+int Process::Join() {
 	// get lock
 	lock->Acquire();
+	
+	if (hasJoined)		// join is not called more that once on the same process
+	{
+		lock->Release();
+		return -65535;
+	}
+	if (!willBeJoined)	// join is only invoked on processes created to be joined
+	{
+		lock->Release();
+		return -65535;
+	}
 
 	willBeJoined = false; // ensure Join() can only be called once
 	hasJoined = true;
@@ -130,6 +142,7 @@ void Process::Join() {
 
 	// release lock
 	lock->Release();
+	return exitStatus;
 }
 
 int Process::Load(char *filename,int argc, char **argv){
