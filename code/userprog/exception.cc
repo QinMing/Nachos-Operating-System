@@ -116,6 +116,9 @@ int strKernel2User(char* src,char* dst,int size){
 void exit(){
 	SpaceId pid = currentThread->processId;
 	Process* process = (Process*) processTable->Get(pid);
+	/*if(process->willBeJoined){
+	    machine->WriteRegister(2,(int)machine->ReadRegister(4));//return status
+	}*/
 	process->Finish();
 	processTable->Release(pid);
 	printf("== the user program (PID=%d) Exit(%d)\n",pid,(int)machine->ReadRegister(4));
@@ -267,6 +270,35 @@ void
 					}
 				}
 				break;
+			}
+		case SC_Join:
+			{
+			  SpaceId idToJoin = machine->ReadRegister(5);
+			  SpaceId pid = currentThread->processId;
+			  if(idToJoin == pid)		// cannot call join on itself
+			  {
+			      machine->WriteRegister(2,-65535);// signify an error
+			      return;
+			  }
+			  if(processTable->Get(idToJoin) == NULL) //process to join is not found
+			  {
+			      machine->WriteRegister(2,-65535);// signify an error
+			      return;
+			  }
+			  Process* processToJoin = (Process*) processTable->Get(idToJoin);
+			  if (processToJoin->hasJoined)		// join is not called more that once on the same process
+			  {
+			      machine->WriteRegister(2,-65535);// signify an error
+			      return;
+			  }
+			  if (!processToJoin->willBeJoined)	// join is only invoked on processes created to be joined
+			  {
+			      machine->WriteRegister(2,-65535);// signify an error
+			      return;
+			  }
+			  Process* process = (Process*) processTable->Get(pid);	
+			  process->Join;
+			break;
 			}
 
 		default:

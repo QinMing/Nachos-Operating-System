@@ -42,7 +42,11 @@ public:
 private:
 	SpaceId pid;
 	char* name;
+	
 	bool willBeJoined;
+	bool hasJoined;
+	Condition* joinedOnMe;
+	Lock* lock;
 
 
 };
