@@ -4,25 +4,32 @@
 
 
 Process::Process(char* newname,bool willJoin){
-	name = newname;
 	mainThread = new Thread(newname);
+	name = newname;
 	numThread = 1;
 	
 	willBeJoined = willJoin;
 	hasJoined = false;
 	joinedOnMe = Condition("JoinedOnMe");
 	lock = new Lock("Lock");
+
+	pipeline = NULL;
+	pipeIn = pipeOut = NULL;
+
 }
 
 Process::Process(char* newname,bool willJoin,Thread* t){
-	name = newname;
 	mainThread = t;
+	name = newname;
 	numThread = 1;
 
 	willBeJoined = willJoin;
 	hasJoined = false;
 	joinedOnMe = Condition("JoinedOnMe");
 	lock = new Lock("Lock");
+	
+	pipeline = NULL;
+	pipeIn = pipeOut = NULL;
 }
 
 Process::~Process(){
@@ -36,7 +43,25 @@ Process::~Process(){
 	//not be deleted until another thread wakes up from SWITCH(oldThread, nextThread);
 	//So here it's just to free the memory in advance.
 	delete mainThread->space;
+	
+	//delete the pipe list, but pipes are deleted by processes that use them. See below.
+	delete pipeline;
+	
+	//delete un-used pipes
+	if (pipeIn!=NULL){
+		pipeIn->out = 0;
+		if (pipeIn->in == 0){
+			delete pipeIn;
+		}
+	}
+	if (pipeOut!=NULL){
+		pipeOut->in = 0;
+		if (pipeOut->out == 0){
+			delete pipeOut;
+		}
+	}
 
+	//Finish the thread
 	if (currentThread == mainThread){
 
 		//the thread will then be deleted in scheduler::Run()
@@ -45,6 +70,7 @@ Process::~Process(){
 	}
 	else{
 
+		//minor case, when process is created by mistake
 		//come to here because the process is being deleted by kenel but not itself.
 		ASSERT(!mainThread->getHasForked());//should not be forked
 		delete mainThread;
@@ -120,5 +146,34 @@ int Process::Load(char *filename,int argc, char **argv){
 	}
 	mainThread->space = space;
 	delete executable;			// close file
+	return 0;
+}
+
+int Process::PipelineAdd(Process* proc, bool hasin, bool hasout) { 
+	if (pipeline == NULL) {
+		pipeline = new List();
+	}
+	if (hasin) {
+		//Since we are not recommended to modify List.cc, 
+		//we need to remove the element then put it back in order to modify it
+		Pipe* pipe = (Pipe*)pipeline->Remove();
+		
+		if (pipe == NULL) {
+			printf("Error: inappropriate usage of pipeline: can't locate the input pipe\n");
+			return -1;
+		}
+		pipe->out = proc->GetId();
+		proc->pipeIn = pipe;
+		
+		pipeline->Prepend(pipe);
+	}
+	if (hasout) {
+		Pipe* pipe = new Pipe();
+		
+		pipe->in = proc->GetId();
+		proc->pipeOut = pipe;
+		
+		pipeline->Prepend(pipe);
+	}
 	return 0;
 }
