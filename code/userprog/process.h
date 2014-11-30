@@ -38,7 +38,13 @@ public:
 	Pipe *pipeIn;	//pointers to pipes
 	Pipe *pipeOut;	//If they are NULL, then their OpenFileIds 0 (stdin)
 		// and 1 (stdout) are binded to console by default
+
+	//Join var
 	int exitStatus;
+
+	//functions for user level threads
+	int AddThread(Thread* t);
+
 
 private:
 	SpaceId pid;
@@ -48,9 +54,11 @@ private:
 	bool hasJoined;
 	Condition* joinedOnMe;
 	Lock* lock;
-	List *pipeline;
-	
 
+	List *pipeline;
+
+	List *userThreads;
+	
 };
 
 #endif

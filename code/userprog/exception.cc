@@ -162,9 +162,17 @@ void exit() {
 }
 
 void ProcessStart(int arg) {
-	//degug
+	//debug
 	printf("Process ""PID=%d"" starts\n", ( (Process*)processTable->Get(currentThread->processId) )->GetId());
 	currentThread->space->InitRegisters();		// set the initial register values
+	currentThread->space->RestoreState();		// load page table register
+	machine->Run();			// jump to the user program
+	ASSERT(FALSE);
+}
+
+void UserThreadStart(int func) {
+	printf("new user thread starts\n");
+	currentThread->space->InitNewThreadRegs(func);
 	currentThread->space->RestoreState();		// load page table register
 	machine->Run();			// jump to the user program
 	ASSERT(FALSE);
@@ -200,6 +208,18 @@ SpaceId exec(char *filename, int argc, char **argv, int opt) {
 	}
 	process->mainThread->Fork(ProcessStart, 0);	//thread's willJoin is always set to 0
 	return pid;
+}
+
+int fork(void(*func)( ))
+{
+	Process* currentProcess = (Process*)processTable->Get(currentThread->processId);
+	Thread* t = new Thread("user level thread");
+	if (currentProcess->AddThread(t) == -1) {
+		delete t;
+		return -1;
+	}
+	t->Fork(UserThreadStart, (int)func);
+	return 0;
 }
 
 void IncreasePC() {
@@ -373,12 +393,16 @@ ExceptionHandler(ExceptionType which)
 
 		case SC_Fork:
 		{
-
+			void(*func)( );
+			func = ( void(*)( ) )machine->ReadRegister(4);
+			fork(func);
+			break;
 		}
 
 		case SC_Yield:
 		{
 
+			break;
 		}
 
 		default:

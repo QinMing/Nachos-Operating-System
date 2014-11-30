@@ -66,6 +66,7 @@ SwapHeader (NoffHeader *noffH)
 AddrSpace::AddrSpace()
 {    
 	pageTable = NULL;
+	createNewThread = NULL;
 }
 
 //----------------------------------------------------------------------
@@ -127,21 +128,15 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 
 	// how big is address space?
 	size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
-		+ argSize + UserStackSize;
+		+ argSize + UserStackSize;// to leave room for the stack
 
-	// to leave room for the stack
 	numPages = divRoundUp(size, PageSize);
-	size = numPages * PageSize;
 
-	//ASSERT(numPages <= NumPhysPages);		// check we're not trying
-	// to run anything too big --
-	// at least until we have
-	// virtual memory
-	
-	DEBUG('a', "Initializing address space, num pages %d, size %d\n",
-		  numPages, size);
-	// first, set up the translation
-	pageTable = new TranslationEntry[numPages];
+	// to leave room for future user threads
+	maxNumPages = numPages + MaxUserThread*UserStackNumPage;
+
+	// Set up the translation
+	pageTable = new TranslationEntry[maxNumPages];
 	for (i = 0; i < numPages; i++) {
 		pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
 		pageTable[i].physicalPage = mm->AllocPage();
@@ -300,6 +295,46 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 }
 */
 
+//create new stack space for a new user level thread
+int AddrSpace::NewStack() 
+{
+	if (createNewThread == NULL)
+		createNewThread = new Semaphore("createNewThread",1);
+	createNewThread->P();
+
+	//For now, only add space at the end, but will not free memory for finished threads.
+	if (numPages + UserStackNumPage > maxNumPages) {
+		printf("Error: too many user threads!\n");
+		return -1;
+	}
+	int i;
+	int oldNumPages = numPages;
+	numPages += UserStackNumPage;
+
+	for (i = oldNumPages; i < numPages; i++) {
+		pageTable[i].virtualPage = i;
+		pageTable[i].physicalPage = mm->AllocPage();
+		if (pageTable[i].physicalPage == -1) {
+			printf("run out of physical memory\n");
+			for (int j = oldNumPages; j<i; j++)
+				mm->FreePage(pageTable[j].physicalPage);
+			numPages -= UserStackNumPage;
+			return -1;
+		}
+		pageTable[i].valid = TRUE;
+		pageTable[i].use = FALSE;
+		pageTable[i].dirty = FALSE;
+		pageTable[i].readOnly = FALSE;  
+	}
+
+	for (i = oldNumPages; i < numPages; i++) {
+		int physAddr = pageTable[i].physicalPage * PageSize;
+		bzero(&( machine->mainMemory[physAddr] ), PageSize);
+	}
+
+	return 0;
+}
+
 void
 AddrSpace::InitRegisters()
 {
@@ -323,8 +358,26 @@ AddrSpace::InitRegisters()
     // allocated the stack; but subtract off a bit, to make sure we don't
     // accidentally reference off the end!
     machine->WriteRegister(StackReg, numPages * PageSize - 16);
-	//printf("Initializing stack register to %d\n", numPages * PageSize - 16);
     DEBUG('a', "Initializing stack register to %d\n", numPages * PageSize - 16);
+}
+
+void AddrSpace::InitNewThreadRegs(int func)
+{
+	int i;
+
+	for (i = 0; i < NumTotalRegs; i++)
+		machine->WriteRegister(i, 0);
+
+	// Initial program counter -- must be location of "Start"
+	machine->WriteRegister(PCReg, func);
+
+	machine->WriteRegister(NextPCReg, func+4);
+
+	machine->WriteRegister(StackReg, numPages * PageSize - 16);
+	DEBUG('a', "Initializing stack register to %d\n", numPages * PageSize - 16);
+
+	//ready to create another user thread
+	createNewThread->V();
 }
 
 //----------------------------------------------------------------------

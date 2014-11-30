@@ -16,6 +16,7 @@ Process::Process(char* newname,bool willJoin){
 
 	pipeline = NULL;
 	pipeIn = pipeOut = NULL;
+	userThreads = NULL;
 
 }
 
@@ -32,6 +33,8 @@ Process::Process(char* newname,bool willJoin,Thread* t){
 	
 	pipeline = NULL;
 	pipeIn = pipeOut = NULL;
+	userThreads = NULL;
+
 }
 
 Process::~Process(){
@@ -63,20 +66,51 @@ Process::~Process(){
 		}
 	}
 
+	Thread* t;
+
 	//Finish the thread
-	if (currentThread == mainThread){
+	//Because Join are implemented in process level,
+	//we assume these threads will not join or be joined.
+	//So we can delete the thread.
+	if (currentThread == mainThread) {
+
+		if (userThreads != NULL)
+		{
+			while (1) {
+				t = (Thread*)userThreads->Remove();
+				if (t == NULL) break;
+				delete t;
+			}
+			delete userThreads;
+		}
+
 
 		//the thread will then be deleted in scheduler::Run()
 		mainThread->Finish();
 
 	}
-	else{
+	else if (mainThread->getHasForked())
+	{
+		//currentThread is a user level thread
+		ASSERT(userThreads != NULL);
 
+		while (1) {
+			t = (Thread*)userThreads->Remove();
+			if (t == NULL) break;
+			if (t == currentThread) continue;
+			delete t;
+		}
+		delete userThreads;
+
+		delete mainThread;
+		currentThread->Finish();
+	}
+	else
+	{
 		//minor case, when process is created by mistake
 		//come to here because the process is being deleted by kenel but not itself.
-		ASSERT(!mainThread->getHasForked());//should not be forked
+		//mainThread should not be forked
 		delete mainThread;
-
 	}
 
 }
@@ -188,5 +222,22 @@ int Process::PipelineAdd(Process* proc, bool hasin, bool hasout) {
 		
 		pipeline->Prepend(pipe);
 	}
+	return 0;
+}
+
+int Process::AddThread(Thread* t)
+{
+	int ret;
+	ret = mainThread->space->NewStack();
+	if (ret == -1) {
+		return -1;
+	}
+	t->space = mainThread->space;
+
+	if (userThreads == NULL) {
+		userThreads = new List();
+	}
+	userThreads->Append((void*)t);
+
 	return 0;
 }
