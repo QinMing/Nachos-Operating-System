@@ -293,52 +293,54 @@ void
 
 		case SC_Read:
 		case SC_Write:
-			{
-				Process* currentProcess = (Process*)processTable->Get(currentThread->processId);
-				int size = machine->ReadRegister(5);
-				if (size<=0){
-					printf("Error: Nothing to read or write with size 0, or less than 0\n");
-					machine->WriteRegister(2,-1);//should we return -1 ?
-					return;
-				}
-				OpenFileId fileId = (OpenFileId)machine->ReadRegister(6);
-				if (fileId == ConsoleInput || fileId == ConsoleOutput){
-					
-
-					if (sConsole == NULL)
-						sConsole = new SynchConsole();
-
-					char str[size+1];//a string in kernel
-
-					if (type == SC_Read) {		//SC_Read
-
-						char *buffer = (char*)machine->ReadRegister(4);
-						
-						if (currentProcess->pipeIn == NULL)
-							sConsole->Read(str,size);
-						else
-							currentProcess->pipeIn->Read(str,size);
-							
-						if (strKernel2User(str,buffer,size) == -1){
-							machine->WriteRegister(2,-1);
-							return;
-						}
-
-					} else {					//SC_Write
-
-						if (strUser2Kernel((char*)machine->ReadRegister(4),str,size) == -1){
-							machine->WriteRegister(2,-1);
-							return;
-						}
-						if (currentProcess->pipeOut == NULL)
-							sConsole->Write(str,size);
-						else
-							currentProcess->pipeOut->Write(str,size);
-
-					}
-				}
-				break;
+		{
+			Process* currentProcess = (Process*)processTable->Get(currentThread->processId);
+			int size = machine->ReadRegister(5);
+			if (size <= 0) {
+				printf("Error: Nothing to read or write with size 0, or less than 0\n");
+				machine->WriteRegister(2, -1);//should we return -1 ?
+				return;
 			}
+			OpenFileId fileId = (OpenFileId)machine->ReadRegister(6);
+			if (fileId == ConsoleInput || fileId == ConsoleOutput) {
+
+
+				if (sConsole == NULL)
+					sConsole = new SynchConsole();
+
+				char str[size + 1];//a string in kernel
+
+				if (type == SC_Read) {		//SC_Read
+
+					char *buffer = (char*)machine->ReadRegister(4);
+
+					if (currentProcess->pipeIn == NULL)
+						sConsole->Read(str, size);
+					else
+						currentProcess->pipeIn->Read(str, size);
+
+					if (strKernel2User(str, buffer, size) == -1) {
+						machine->WriteRegister(2, -1);
+						return;
+					}
+
+				}
+				else {					//SC_Write
+
+					if (strUser2Kernel((char*)machine->ReadRegister(4), str, size) == -1) {
+						machine->WriteRegister(2, -1);
+						return;
+					}
+					if (currentProcess->pipeOut == NULL)
+						sConsole->Write(str, size);
+					else
+						currentProcess->pipeOut->Write(str, size);
+
+				}
+			}
+			break;
+		}
+
 		case SC_Join:
 			{
 			  SpaceId idToJoin = (int)machine->ReadRegister(4);
@@ -361,6 +363,16 @@ void
 			  machine->WriteRegister(2, result);
 			break;
 			}
+
+		case SC_Fork:
+		{
+
+		}
+		
+		case SC_Yield:
+		{
+					
+		}
 
 		default:
 			printf("Unexpected exception type %d %d\n", which, type);
