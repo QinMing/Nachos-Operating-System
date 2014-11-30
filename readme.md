@@ -31,12 +31,20 @@ Group 44 - Ming Qin, Xinyu Qian, Evan Carey, Kevin Caasi
 
 ##4. Console Read/Write
 
-...Description...
+We implemented function to synchronously read from and write to the console.This was done by creating a SynchConsole class (/userprog/synchconsole.{cc,h}) that serves as a wrapper to the Nachos built-in asynchronous Console class. 
+Reading from the console is done by the Read function, which uses a lock (readLock) and a semaphore (read) to guarantee mutual exclusion and then calls the Console's getChar function, reading from stdin and storing the returned character in the system buffer.
+Writing to the console is done by the Write function, which uses a lock (writeLock) and a semaphore (write) to guarantee mutual exclusion and then calls the Console's putChar function, writing characters from the system buffer to stdout.
 --------------------
 
 ##5. Exception Handling
 
-...Description...
+We added functionality to the ExceptionHandler function in /userprog/exception.cc to handle user exceptions. When one of these exceptions {PageFaultException, ReadOnlyException, BusErrorException, AddressErrorException, OverflowException, IllegalInstrException} occurs, the triggering process is terminated, but other processes (and Nachos) are unaffected.
+
+    Tests: (called from userprog by executing ./nachos -x ../test/{testname})
+        testp5 - Triggers an IllegalInstrException by attempting to divide by zero.
+        testp5_exec - Triggers an IllegalInstrException in a process created by the Exec system call
+        testp5_2 - Triggers an AddressErrorException by attempting to access a bogus address and write it to the console.
+        testp5_2_exec - Triggers an AddressErrorException in a process created by the Exec system call
 --------------------
 
 ##6. Join
