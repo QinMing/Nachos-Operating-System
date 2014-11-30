@@ -5,6 +5,58 @@ CSE 120 Project for UCSD
 Group 44 - Ming Qin, Xinyu Qian, Evan Carey, Kevin Caasi
 
 ---------------------
+## Project 2: Multiprogramming
+
+#### Members of Group 44
+- Ming Qin - 
+- Xinyu Qian - 
+- Evan Carey - Console Read/Write, Exception Handling, Testing
+- Kevin Caasi - 
+-------------------
+
+###1. System Call Handling and Multiprogramming
+
+...Description...
+---------------------
+
+##2. Exec and Exit
+
+...Description...
+---------------------
+
+##3. Improved Exec
+
+...Description...
+---------------------
+
+##4. Console Read/Write
+
+...Description...
+--------------------
+
+##5. Exception Handling
+
+...Description...
+--------------------
+
+##6. Join
+
+...Description...
+--------------------
+
+##7. Piping
+
+...Description...
+--------------------
+
+##8. Multithreading
+
+...Description...
+--------------------
+
+
+
+---------------------
 ## Project 1: Threads
 
 #### Members of Group 44
