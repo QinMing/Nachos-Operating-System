@@ -8,7 +8,7 @@
 
 #include <syscall.h>
 
-int
+
 main()
 {
 	OpenFileId input = ConsoleInput;
@@ -17,14 +17,21 @@ main()
     Exec("../test/testp7_pipetest_produce", 0, 0, 2);
 	Exec("../test/testp7_pipetest_mid", 0, 0, 6);
 	Exec("../test/testp7_pipetest_mid", 0, 0, 6);
-    SpaceId pid = Exec("../test/testp7_pipetest_consume", 0, 0, 4);
+    SpaceId pid = Exec("../test/testp7_pipetest_consume", 0, 0, 0x4|0x01);
 	
 	Write("Enter a letter. For example: B<enter>. >>    ", 45, output);
-	//what if we exit now. Will system crash by bad pipe pointer?
 	//do{//dead loop
 	//	pid=1;
 	//}while(pid==1);
-	//Join(pid);
+
+	//char debug;
+	//debug = (char) pid + 48;
+	//Write(&debug,sizeof(int),output);
+	
+	int result;
+	result=Join(pid);
+
 	//Yield();
-	return 0;
+	//return 0;
+	Exit(result);
 }

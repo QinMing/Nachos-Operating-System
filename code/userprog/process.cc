@@ -1,26 +1,45 @@
 #include "copyright.h"
 #include "process.h"
+#include "synch.h"
+
 
 Process::Process(char* newname,bool willJoin){
 	mainThread = new Thread(newname);
 	name = newname;
-	willBeJoined = willJoin;
 	numThread = 1;
+	
+	willBeJoined = willJoin;
+	hasJoined = false;
+	joinedOnMe = new Condition("JoinedOnMe");
+	lock = new Lock("Lock");
+	exitStatus =-65535;
+
 	pipeline = NULL;
 	pipeIn = pipeOut = NULL;
+
 }
 
 Process::Process(char* newname,bool willJoin,Thread* t){
 	mainThread = t;
 	name = newname;
-	willBeJoined = willJoin;
 	numThread = 1;
+
+	willBeJoined = willJoin;
+	hasJoined = false;
+	joinedOnMe = new Condition("JoinedOnMe");
+	lock = new Lock("Lock");
+	exitStatus = -65535;
+	
 	pipeline = NULL;
 	pipeIn = pipeOut = NULL;
 }
 
 Process::~Process(){
 
+	// A thread that will be joined is only destroyed once
+	// Join has been called on it
+	// ASSERT(hasJoined || !willBeJoined);
+  
 	//should not delete space in Thread::~Thread() because
 	//if there are lots of newly created thread, then this space will
 	//not be deleted until another thread wakes up from SWITCH(oldThread, nextThread);
@@ -64,7 +83,66 @@ Process::~Process(){
 
 void Process::Finish(){
 	ASSERT(mainThread == currentThread);
+	
+	lock->Acquire();
+	
+	if (hasJoined){
+		
+		joinedOnMe->Signal(lock);
+		joinedOnMe->Wait(lock);
+		
+	}
+	else if(willBeJoined)
+	{ // will be joined but hasn't been -> must wait until after Join has been called and returns
+		
+		joinedOnMe->Wait(lock);
+		joinedOnMe->Signal(lock);
+		joinedOnMe->Wait(lock);
 
+	}
+	
+	lock->Release();
+}
+
+int Process::Join() {
+	// get lock
+	lock->Acquire();
+	
+	if (hasJoined)		// join is not called more that once on the same process
+	{
+		lock->Release();
+		return -65535;
+	}
+	if (!willBeJoined)	// join is only invoked on processes created to be joined
+	{
+		lock->Release();
+		return -65535;
+	}
+
+	willBeJoined = false; // ensure Join() can only be called once
+	hasJoined = true;
+
+	joinedOnMe->Signal(lock);
+
+	/*
+	//promote the joinee's priority if it's lower than joiner's
+	if (currentThread->getPriority() > this->getPriority() ){
+		//if the priority is larger than lock holder's
+        currentThread->dependThread = this;
+		this -> promotePriority( currentThread->getPriority() );
+	}
+	*/
+
+	// add currentThread to the queue
+	joinedOnMe->Wait(lock);
+    
+	//currentThread->dependThread = NULL;
+
+	joinedOnMe->Signal(lock);
+
+	// release lock
+	lock->Release();
+	return exitStatus;
 }
 
 int Process::Load(char *filename,int argc, char **argv){

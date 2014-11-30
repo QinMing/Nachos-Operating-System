@@ -304,7 +304,6 @@ void
 AddrSpace::InitRegisters()
 {
     int i;
-
     for (i = 0; i < NumTotalRegs; i++)
         machine->WriteRegister(i, 0);
 
