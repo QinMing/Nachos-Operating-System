@@ -5,7 +5,7 @@ CSE 120 Project for UCSD
 Group 44 - Ming Qin, Xinyu Qian, Evan Carey, Kevin Caasi
 
 ---------------------
-## Project 2: Multiprogramming
+# Project 2: Multiprogramming
 
 #### Members of Group 44
 - Ming Qin - 
@@ -14,15 +14,14 @@ Group 44 - Ming Qin, Xinyu Qian, Evan Carey, Kevin Caasi
 - Kevin Caasi - 
 -------------------
 
-###1. System Call Handling and Multiprogramming
+##1. Load processes into the memory
 
-...Description...
+We created class MemoryManager based on class BitMap. In addition, we use a Process class to manage operations of exec, exit, join, pipeline and multithreading. The codes in AddrSpace's constructor was moved into AddrSpace::Initialize(), which is called by Process::Load(), and Load is call by exec() and StartProcess().
+The functionality of this part is tested in later parts.
 ---------------------
 
 ##2. Exec and Exit
 
-
-...Description...
 	Tests:(called from userprog by executing ./nachos -x ../test/{testname})
 		testp2 - the first process calls Exec to create a second process(array) and save the return value of Exec as Exit status value. Both call Exit when come to an end. Both get the proper Exit status value which is 2(SpaceId for the second process) for the first and 1128 for the second
 		testp2_fileNameNotExist - call Exec with an in file name can not be found. Cause a fault Exec returns 0
@@ -32,9 +31,15 @@ Group 44 - Ming Qin, Xinyu Qian, Evan Carey, Kevin Caasi
 		testp2_physicalMemoryBoundary - Use this test to check the system is able to load many programs one after another, and the Exit really deletes process. This test calls Exec to creat itself and then exit. So if exit really deletes the process the test will last forever otherwise it will stop when reaching the memory boundary.
 ---------------------
 
-##3. Improved Exec
+##3. Passing arguments in Exec
 
-...Description...
+Two functions are created in exception.cc, which are strUser2Kernel(char* src, char** dst) and strKernel2User(char* src, char* dst, int size). They copy strings between virtual memory and kernel memory. 
+After argc and argv are copied into kernel, they are passed to Process::Load(), and then to AddrSpace::Initialize(). In Initialize(), argv is copied right after the 3 segment of code, initdata and uninitdata. The space is enlarged accordingly. The argc and the pointer of argv is then keep in some private variables in class AddrSpace for future initialization.
+
+    Tests:(called from userprog by executing ./nachos -x ../test/testp3)
+        testp3 - Generate 3 strings, "1", "3" and "5", and then exec testp3_addition. Here argc is 3.
+                In testp3_addition the 3 digits will be summed up and shown in Exit value.
+                We can find "Process 2 Exit(9)" in the output, since 1+3+5=9.
 ---------------------
 
 ##4. Console Read/Write
@@ -42,6 +47,12 @@ Group 44 - Ming Qin, Xinyu Qian, Evan Carey, Kevin Caasi
 We implemented function to synchronously read from and write to the console.This was done by creating a SynchConsole class (/userprog/synchconsole.{cc,h}) that serves as a wrapper to the Nachos built-in asynchronous Console class. 
 Reading from the console is done by the Read function, which uses a lock (readLock) and a semaphore (read) to guarantee mutual exclusion and then calls the Console's getChar function, reading from stdin and storing the returned character in the system buffer.
 Writing to the console is done by the Write function, which uses a lock (writeLock) and a semaphore (write) to guarantee mutual exclusion and then calls the Console's putChar function, writing characters from the system buffer to stdout.
+
+    Tests:(called from userprog by executing ./nachos -x ../test/{testname})
+        testp4_shell -  A simple shell that can execute other programs, for example try to
+                type in "../test/snake". In this shell, argument is not surpported.
+        snake - A test program that exercises Write system call implementation, provided by Professor Voelker.
+        echo - It will repeat what you type in.
 --------------------
 
 ##5. Exception Handling
@@ -80,7 +91,7 @@ We implemented join system call. It takes one argument, the SpaceId of the proce
 
 
 ---------------------
-## Project 1: Threads
+# Project 1: Threads
 
 #### Members of Group 44
 - Ming Qin - Join, Mailbox, Testing, Priority
