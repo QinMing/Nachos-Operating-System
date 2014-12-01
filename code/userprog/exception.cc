@@ -176,7 +176,7 @@ void exit() {
 }
 
 void ProcessStart(int arg) {
-	DEBUG('b', "[OS]Process %d starts\n", ( (Process*)processTable->Get(currentThread->processId) )->GetId());
+	printf("[OS]Process %d starts\n", ( (Process*)processTable->Get(currentThread->processId) )->GetId());
 	currentThread->space->InitRegisters();		// set the initial register values
 	currentThread->space->RestoreState();		// load page table register
 	machine->Run();			// jump to the user program
@@ -184,7 +184,7 @@ void ProcessStart(int arg) {
 }
 
 void UserThreadStart(int func) {
-	DEBUG('b', "[OS]New user level thread starts\n");
+	printf("[OS]New user level thread starts\n");
 	currentThread->space->InitNewThreadRegs(func);
 	currentThread->space->RestoreState();		// load page table register
 	machine->Run();			// jump to the user program

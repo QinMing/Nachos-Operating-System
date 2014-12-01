@@ -51,7 +51,7 @@ void pong()
 		Write(str, Length, ConsoleOutput);
 		Yield();
 	}
-	Write("\n(Demo end)\n", 12, ConsoleOutput);
+	Write("(Demo end)\n", 11, ConsoleOutput);
 	Exit(333);
 }
 
@@ -65,9 +65,10 @@ void main()
 	str[4] = '-';
 	str[5] = '?';
 	str[6] = ' ';
-	str[7] = ' ';
+	str[7] = '\n';
 	str[8] = '\0';
 
-	Fork(pong);
-	ping();
+	Fork(ping);
+	Yield();
+	pong();
 }
