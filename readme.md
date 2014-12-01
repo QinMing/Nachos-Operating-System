@@ -14,15 +14,14 @@ Group 44 - Ming Qin, Xinyu Qian, Evan Carey, Kevin Caasi
 - Kevin Caasi - 
 -------------------
 
-###1. System Call Handling and Multiprogramming
+###1. Load processes into the memory
 
-...Description...
+We created class MemoryManager based on class BitMap. In addition, we use a Process class to manage operations of exec, exit, join, pipeline and multithreading. The codes in AddrSpace's constructor was moved into AddrSpace::Initialize(), which is called by Process::Load(), and Load is call by exec() and StartProcess().
+The functionality of this part is tested in later parts.
 ---------------------
 
 ##2. Exec and Exit
 
-
-...Description...
 	Tests:(called from userprog by executing ./nachos -x ../test/{testname})
 		testp2 - the first process calls Exec to create a second process(array) and save the return value of Exec as Exit status value. Both call Exit when come to an end. Both get the proper Exit status value which is 2(SpaceId for the second process) for the first and 1128 for the second
 		testp2_fileNameNotExist - call Exec with an in file name can not be found. Cause a fault Exec returns 0
