@@ -103,7 +103,10 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 	if ((noffH.noffMagic != NOFFMAGIC) &&
 		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
 		SwapHeader(&noffH);
-	ASSERT(noffH.noffMagic == NOFFMAGIC);
+	if (noffH.noffMagic != NOFFMAGIC) {
+		printf("Error: The file may not be a good executable.\n");
+		return -1;
+	}
 	//Check if there is bubble in the virtual space of the executable
 	//use i to keep the max possible virtual address
 	size = 0;
@@ -141,7 +144,7 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 		pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
 		pageTable[i].physicalPage = mm->AllocPage();
 		if (pageTable[i].physicalPage == -1){
-			printf("run out of physical memory\n");
+			printf("Error: run out of physical memory\n");
 			for (int j=0;j<i;j++)
 				mm->FreePage(pageTable[j].physicalPage);
 			delete[] pageTable;
@@ -276,6 +279,8 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 			virtAddr += 4;
 		}
 	}
+	for (int i = 0; i<argc; i++)
+		printf("[ %d]%s\n", i, argv[i]);
 	//mm->Print();
 	return 0;
 }
@@ -315,7 +320,7 @@ int AddrSpace::NewStack()
 		pageTable[i].virtualPage = i;
 		pageTable[i].physicalPage = mm->AllocPage();
 		if (pageTable[i].physicalPage == -1) {
-			printf("run out of physical memory\n");
+			printf("Error: run out of physical memory\n");
 			for (int j = oldNumPages; j<i; j++)
 				mm->FreePage(pageTable[j].physicalPage);
 			numPages -= UserStackNumPage;
@@ -368,7 +373,6 @@ void AddrSpace::InitNewThreadRegs(int func)
 	for (i = 0; i < NumTotalRegs; i++)
 		machine->WriteRegister(i, 0);
 
-	printf("func=%d\n", func);
 	machine->WriteRegister(PCReg, func);
 
 	machine->WriteRegister(NextPCReg, func+4);

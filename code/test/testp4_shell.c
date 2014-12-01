@@ -24,7 +24,9 @@ main() {
 
         if (i > 0) {
             newProc = Exec(buffer, 0, 0, 1);
-            Join(newProc);
+            if (newProc>1)
+				Join(newProc);
+			Yield();//allow the process to print out exit information
         }
     }
 }

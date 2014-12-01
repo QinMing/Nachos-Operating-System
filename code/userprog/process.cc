@@ -4,37 +4,24 @@
 
 
 Process::Process(char* newname,bool willJoin){
-	mainThread = new Thread(newname);
 	name = newname;
-	numThread = 1;
-	
-	willBeJoined = willJoin;
-	hasJoined = false;
-	joinedOnMe = new Condition("JoinedOnMe");
-	lock = new Lock("Lock");
-	exitStatus =-65535;
+	space = NULL;
+	pid = 0;
 
-	pipeline = NULL;
-	pipeIn = pipeOut = NULL;
-	userThreads = NULL;
-
-}
-
-Process::Process(char* newname,bool willJoin,Thread* t){
-	mainThread = t;
-	name = newname;
-	numThread = 1;
-
+	//initialization for Join
 	willBeJoined = willJoin;
 	hasJoined = false;
 	joinedOnMe = new Condition("JoinedOnMe");
 	lock = new Lock("Lock");
 	exitStatus = -65535;
 	
+	//initialization for pipe
 	pipeline = NULL;
 	pipeIn = pipeOut = NULL;
-	userThreads = NULL;
 
+	//initialization for multithread
+	numThread = 0;
+	//userThreads = new List();
 }
 
 Process::~Process(){
@@ -47,7 +34,7 @@ Process::~Process(){
 	//if there are lots of newly created thread, then this space will
 	//not be deleted until another thread wakes up from SWITCH(oldThread, nextThread);
 	//So here it's just to free the memory in advance.
-	delete mainThread->space;
+	delete space;
 	
 	//delete the pipe list, but pipes are deleted by processes that use them. See below.
 	delete pipeline;
@@ -66,53 +53,13 @@ Process::~Process(){
 		}
 	}
 
-	Thread* t;
+	//delete userThreads;//List will delete elements in the destructor
 
-	//Finish the thread
-	//Because Join are implemented in process level,
-	//we assume these threads will not join or be joined.
+	//now Thread::Finish is called outside
+	//currentThread->Finish();
+	//the thread will then be deleted in scheduler::Run()
+	////deleting a thread without finish will fault because it's still in ready list.
 
-	//delete a thread without finish will fault because it's still in ready list.
-	if (currentThread == mainThread) {
-
-		if (userThreads != NULL)
-		{
-			while (1) {
-				t = (Thread*)userThreads->Remove();
-				if (t == NULL) break;
-				delete t;
-			}
-			delete userThreads;
-		}
-
-
-		//the thread will then be deleted in scheduler::Run()
-		mainThread->Finish();
-
-	}
-	else if (mainThread->getHasForked())
-	{
-		//currentThread is a user level thread
-		ASSERT(userThreads != NULL);
-
-		while (1) {
-			t = (Thread*)userThreads->Remove();
-			if (t == NULL) break;
-			if (t == currentThread) continue;
-			delete t;
-		}
-		delete userThreads;
-
-		delete mainThread;
-		currentThread->Finish();
-	}
-	else
-	{
-		//minor case, when process is created by mistake
-		//come to here because the process is being deleted by kenel but not itself.
-		//mainThread should not be forked
-		delete mainThread;
-	}
 
 }
 
@@ -178,20 +125,25 @@ int Process::Join() {
 	return exitStatus;
 }
 
-int Process::Load(char *filename,int argc, char **argv){
+int Process::Load(Thread* firstThread, char *filename, int argc, char **argv) {
 	OpenFile *executable = fileSystem->Open(filename);
 	if (executable == NULL) {
-		printf("Unable to open file %s\n", filename);
+		printf("Error: Unable to open file %s\n", filename);
 		return -1;
 	}
-	AddrSpace *space = new AddrSpace();
+	space = new AddrSpace();
 	if (space->Initialize(executable,argc,argv) == -1){
 		delete executable;
 		delete space;
+		space = NULL;
 		return -1;
 	}
-	mainThread->space = space;
 	delete executable;			// close file
+	firstThread->space = space;
+	firstThread->processId = pid;
+	numThread = 1;
+	//userThreads->Append((void*)firstThread);
+
 	return 0;
 }
 
@@ -227,16 +179,15 @@ int Process::PipelineAdd(Process* proc, bool hasin, bool hasout) {
 int Process::AddThread(Thread* t)
 {
 	int ret;
-	ret = mainThread->space->NewStack();
+	ret = space->NewStack();
 	if (ret == -1) {
 		return -1;
 	}
-	t->space = mainThread->space;
+	numThread++;
+	t->space = space;
+	t->processId = pid;
 
-	if (userThreads == NULL) {
-		userThreads = new List();
-	}
-	userThreads->Append((void*)t);
+	//userThreads->Append((void*)t);
 
 	return 0;
 }

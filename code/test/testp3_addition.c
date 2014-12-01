@@ -21,5 +21,5 @@ int main(int argc, char *argv[])
 		number = (int)argv[i][0] - 48;
 		sum += number;
 	}
-	Exit(sum);
+	Exit(argv[i][1]);
 }

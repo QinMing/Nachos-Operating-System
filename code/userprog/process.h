@@ -3,6 +3,7 @@
 
 #include "copyright.h"
 #include "system.h"
+#include "addrspace.h"
 #include "pipe.h"
 #include "synch.h"
 
@@ -11,25 +12,18 @@
 class Process {
 
 public:
-	//Public var
-	int  numThread;
-	Thread* mainThread;
+	
 	Process(char* newname,bool willJoin);
-	Process(char* newname,bool willJoin,Thread* t);//initialize with a existing thread
 	~Process();
 	int Join();
-	int  Load(char *filename,int argc, char **argv);
+	int  Load(Thread* firstThread, char *filename, int argc, char **argv);
 	void Finish();
-	void SetId(SpaceId i){
-		pid = i;
-		mainThread->processId = i;
-	}
-	SpaceId GetId(){
-		return pid;
-	}
-	char* GetName(){
-		return name;
-	}
+	void SetId(SpaceId i) { pid = i; }
+	SpaceId GetId() { return pid; }
+	char* GetName() { return name; }
+
+	//Public var
+	int  numThread;
 
 	//pipeline functions 
 	int PipelineAdd(Process* proc, bool hasin, bool hasout);
@@ -57,7 +51,8 @@ private:
 
 	List *pipeline;
 
-	List *userThreads;
+	AddrSpace* space;
+	//List *userThreads;
 	
 };
 
