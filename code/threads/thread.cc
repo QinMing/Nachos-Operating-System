@@ -49,6 +49,7 @@ Thread::Thread(char* threadName, int join)
 
 #ifdef USER_PROGRAM
     space = NULL;
+	isInSyscall = false;
 #endif
 }
 

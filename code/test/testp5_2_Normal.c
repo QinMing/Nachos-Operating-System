@@ -5,11 +5,9 @@
 
 int main() {
 
-    int *i;
+	int *i;
+	i = 65533;
+	( *i ) = 2;
 
-    int ar[5];
-    i=ar[5];
-    Write(*i, 1, ConsoleOutput);
-
-    return 0;
+	Exit(0);
 }

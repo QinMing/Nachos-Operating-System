@@ -159,6 +159,7 @@ public:
 
     AddrSpace *space;			// User code this thread is running.
 	int processId;		//Assuming one kernel-level thread will not switch among processes
+	bool isInSyscall;
 #endif
 };
 
