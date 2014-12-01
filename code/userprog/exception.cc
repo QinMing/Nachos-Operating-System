@@ -56,7 +56,6 @@
 //src: char* in virtual memory space
 //dst: a pointer to a char* in OS memory. 
 //assume dst == NULL
-//There's a overload function below for pre-allocated dst
 int strUser2Kernel(char* src, char** dst) {
 	char buff[MaxStringLength];
 	int virtAddr = (int)src;
@@ -91,29 +90,38 @@ int strUser2Kernel(char* src, char** dst) {
 //copy a string from user memory to OS memory, for the currently runing user process
 //this overload function is using dst as a already allocated char[],
 //so no need to use buffer
-int strUser2Kernel(char* src, char* dst) {
-	int virtAddr = (int)src;
-	char ch;
-	int count = 0;
-	do {
-		if (!machine->ReadMem(virtAddr, sizeof(char), (int*)&ch))
-			return -1;	//In fact ReadMem() itself will call machine->RaiseException.
-		dst[count] = ch;
-		count++;
-		if (ch == '\0')
-			break;
-		virtAddr++;
-		if (count >= MaxStringLength) {
-			//next byte in buff should be out of boundary
-			printf("Error: Exceeded the maximun "
-				"string length of %d bytes, or the string does not end in null character.\n", MaxStringLength);
-			dst[MaxStringLength - 1] = '\0';
-			DEBUG('a', "The string was ""%s""\n", dst);
-			return -1;
-		}
-	} while (1);
-	return 0;
-}
+//int strUser2Kernel(char* src, char* dst2) {
+//	char* dst = dst2;
+//	char buff[MaxStringLength];
+//	int virtAddr = (int)src;
+//	char ch;
+//	int count = 0;
+//	do {
+//		if (!machine->ReadMem(virtAddr, sizeof(char), (int*)&ch))
+//			return -1;	//In fact ReadMem() itself will call machine->RaiseException.
+//		dst[count] = ch;
+//		count++;
+//		if (ch == '\0')
+//			break;
+//		virtAddr++;
+//		if (count >= MaxStringLength) {
+//			//next byte in buff should be out of boundary
+//			printf("Error: Exceeded the maximun "
+//				"string length of %d bytes, or the string does not end in null character.\n", MaxStringLength);
+//			dst[MaxStringLength - 1] = '\0';
+//			DEBUG('a', "The string was ""%s""\n", dst);
+//			return -1;
+//		}
+//	} while (1);
+//
+//	//for (int i = 0; i < count; i++) {
+//	//	dst[i] = buff[i];
+//	//}
+//
+//	//debug
+//	printf("--->%s|\n", dst);
+//	return 0;
+//}
 
 //copy a string from user memory to OS memory, for the currently runing user process
 //This is an overload function that knows the size of data being copied
@@ -154,14 +162,14 @@ void exit() {
 		process->exitStatus = (int)machine->ReadRegister(4);
 		process->Finish();
 		processTable->Release(pid);
-		DEBUG('b', "[OS]Process %d Exit(%d)\n", pid, process->exitStatus);
+		printf("[OS]Process %d Exit(%d)\n", pid, process->exitStatus);
 		delete process;
 		currentThread->Finish();
 	}
 	else
 	{
 		process->numThread--;
-		DEBUG('b', "[OS]One thread in process %d Exit(%d)\n", pid, (int)machine->ReadRegister(4));
+		printf("[OS]One thread in process %d Exit(%d)\n", pid, (int)machine->ReadRegister(4));
 		currentThread->Finish();
 	}
 	ASSERT(FALSE);
@@ -244,8 +252,6 @@ void
 ExceptionHandler(ExceptionType which)
 {
 	int type = machine->ReadRegister(2);
-	//for (int i=0;i<10;i++)	printf("[%d]%d\n",i,(int)machine->ReadRegister(i));
-	//printf("exception %d %d\n", which, type);
 
 	IncreasePC();
 
@@ -294,18 +300,18 @@ ExceptionHandler(ExceptionType which)
 			char** argv = NULL;
 			if (argc > 0) {
 				//convert argument list
-				int* data = new int;
+				int data;
 				char** virtArgv = (char**)machine->ReadRegister(6);
 				argv=new char*[argc];
 				for (i = 0; i < argc; i++) {
-					argv[i] = new char[MaxStringLength];
+					//argv[i] = new char[MaxStringLength];
 					//read the string head pointer
-					if (!machine->ReadMem((int)&( virtArgv[i] ), 4, data)) {
+					if (!machine->ReadMem((int)&( virtArgv[i] ), 4, &data)) {
 						machine->WriteRegister(2, 0);//return SpaceId 0
 						return;
 					}
 					//copy the string to OS memory
-					result = strUser2Kernel((char*)( *data ), argv[i]);
+					result = strUser2Kernel((char*)data , &argv[i]);
 					if (result == -1) {
 						machine->WriteRegister(2, 0);//return SpaceId 0
 						return;
@@ -315,10 +321,11 @@ ExceptionHandler(ExceptionType which)
 
 			//read 4th argument
 			int opt = machine->ReadRegister(7);
-
-			/*for (i = 0; i<argc; i++)
-				printf("[%d]%s\n", i, argv[i]);
-			printf("name=%s\n", name);*/
+#if 0
+			for (i = 0; i<argc; i++)
+				printf("[%d]""%s""\n", i, argv[i]);
+			printf("name=%s\n", name);
+#endif
 
 			result = exec(name, argc, (char**)argv, opt);
 			machine->WriteRegister(2, result);

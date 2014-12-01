@@ -279,8 +279,6 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 			virtAddr += 4;
 		}
 	}
-	for (int i = 0; i<argc; i++)
-		printf("[ %d]%s\n", i, argv[i]);
 	//mm->Print();
 	return 0;
 }
@@ -344,6 +342,7 @@ void
 AddrSpace::InitRegisters()
 {
     int i;
+
     for (i = 0; i < NumTotalRegs; i++)
         machine->WriteRegister(i, 0);
 

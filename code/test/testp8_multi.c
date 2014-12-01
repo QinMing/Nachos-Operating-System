@@ -3,7 +3,7 @@
 
 #include<syscall.h>
 #define Length 8
-char str[Length+2];
+char str[Length + 2];
 
 
 //void nothing()
@@ -27,7 +27,7 @@ void ping()
 	int i;
 	for (i = 0; i < 5; i++) {
 		str[1] = 'i';
-		if (i<10)
+		if (i < 10)
 			str[5] = i + 48;
 		else
 			str[5] = '*';
@@ -43,7 +43,7 @@ void pong()
 	int i;
 	for (i = 0; i < 5; i++) {
 		str[1] = 'o';
-		if (i<10)
+		if (i < 10)
 			str[5] = i + 48;
 		else
 			str[5] = '*';
@@ -51,7 +51,7 @@ void pong()
 		Write(str, Length, ConsoleOutput);
 		Yield();
 	}
-	Write("\n(Demo end)\n",12,ConsoleOutput);
+	Write("\n(Demo end)\n", 12, ConsoleOutput);
 	Exit(333);
 }
 
