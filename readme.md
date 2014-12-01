@@ -37,10 +37,9 @@ Two functions are created in exception.cc, which are strUser2Kernel(char* src, c
 After argc and argv are copied into kernel, they are passed to Process::Load(), and then to AddrSpace::Initialize(). In Initialize(), argv is copied right after the 3 segment of code, initdata and uninitdata. The space is enlarged accordingly. The argc and the pointer of argv is then keep in some private variables in class AddrSpace for future initialization.
 
     Tests:(called from userprog by executing ./nachos -x ../test/testp3)
-        testp3 - Generate 3 strings, "1", "3" and "5", and then exec testp3_addition. 
+        testp3 - Generate 3 strings, "1", "3" and "5", and then exec testp3_addition. Here argc is 3.
                 In testp3_addition the 3 digits will be summed up and shown in Exit value.
                 We can find "Process 2 Exit(9)" in the output, since 1+3+5=9.
-
 ---------------------
 
 ##4. Console Read/Write
@@ -48,6 +47,11 @@ After argc and argv are copied into kernel, they are passed to Process::Load(), 
 We implemented function to synchronously read from and write to the console.This was done by creating a SynchConsole class (/userprog/synchconsole.{cc,h}) that serves as a wrapper to the Nachos built-in asynchronous Console class. 
 Reading from the console is done by the Read function, which uses a lock (readLock) and a semaphore (read) to guarantee mutual exclusion and then calls the Console's getChar function, reading from stdin and storing the returned character in the system buffer.
 Writing to the console is done by the Write function, which uses a lock (writeLock) and a semaphore (write) to guarantee mutual exclusion and then calls the Console's putChar function, writing characters from the system buffer to stdout.
+
+    Tests:(called from userprog by executing ./nachos -x ../test/{testname})
+        testp4_shell -  Then type in "../test/{name}" in shell.
+        snake - 
+                In testp3_addition the 3 digits will be summed up and shown in Exit value.
 --------------------
 
 ##5. Exception Handling
