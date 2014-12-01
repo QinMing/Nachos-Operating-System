@@ -46,7 +46,8 @@ After argc and argv are copied into kernel, they are passed to Process::Load(), 
 
 We implemented function to synchronously read from and write to the console.This was done by creating a SynchConsole class (/userprog/synchconsole.{cc,h}) that serves as a wrapper to the Nachos built-in asynchronous Console class. 
 Reading from the console is done by the Read function, which uses a lock (readLock) and a semaphore (read) to guarantee mutual exclusion and then calls the Console's getChar function, reading from stdin and storing the returned character in the system buffer.
-Writing to the console is done by the Write function, which uses a lock (writeLock) and a semaphore (write) to guarantee mutual exclusion and then calls the Console's putChar function, writing characters from the system buffer to stdout.
+Writing to the console is done by the Write function, which uses a lock (writeLock) and a semaphore (write) to guarantee mutual exclusion and then calls the Console's putChar function, writing characters from the system buffer to stdout. 
+If the arguments to Read and Write are invalid, the system calls will return -1 as an error. See tests of part 5.
 
     Tests:(called from userprog by executing ./nachos -x ../test/{testname})
         testp4_shell -  A simple shell that can execute other programs, for example try to
@@ -62,8 +63,10 @@ We added functionality to the ExceptionHandler function in /userprog/exception.c
     Tests: (called from userprog by executing ./nachos -x ../test/{testname})
         testp5 - Triggers an IllegalInstrException by attempting to divide by zero.
         testp5_exec - Triggers an IllegalInstrException in a process created by the Exec system call
-        testp5_2 - Triggers an AddressErrorException by attempting to access a bogus address and write it to the console.
-        testp5_2_exec - Triggers an AddressErrorException in a process created by the Exec system call
+        testp5_2_exec - Calls 3 other programs that will trigger AddressErrorException. They are:
+                                1. testp5_2_Normal - Directly access an invalid address. The kernel will kill this program by force.
+                                2. testp5_2_Write - Writes to console using invalid buffer address. The system call will return -1 and the program will Exit normally.
+                                3. testp5_2_Read - Similar to Write.
 --------------------
 
 ##6. Join
