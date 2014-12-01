@@ -9,7 +9,7 @@ Group 44 - Ming Qin, Xinyu Qian, Evan Carey, Kevin Caasi
 
 #### Members of Group 44
 - Ming Qin - 
-- Xinyu Qian - 
+- Xinyu Qian - MemoryManager, Exec and Exit, Join, Testing
 - Evan Carey - Console Read/Write, Exception Handling, Testing
 - Kevin Caasi - 
 -------------------
@@ -21,7 +21,15 @@ Group 44 - Ming Qin, Xinyu Qian, Evan Carey, Kevin Caasi
 
 ##2. Exec and Exit
 
+
 ...Description...
+	Tests:(called from userprog by executing ./nachos -x ../test/{testname})
+		testp2 - the first process calls Exec to create a second process(array) and save the return value of Exec as Exit status value. Both call Exit when come to an end. Both get the proper Exit status value which is 2(SpaceId for the second process) for the first and 1128 for the second
+		testp2_fileNameNotExist - call Exec with an in file name can not be found. Cause a fault Exec returns 0
+		testp2_fileNameTooLong - call Exec with a file name too long. Cause a fault Exec returns 0
+		testp2_fileNameNotEndWithNull - call Exec with a file name not ended in a null character. Since the undefined characters are NULLs, so system will always read a null character at the end. Thus the system regards the filename not ended in null the same as normal ones, if other situations are the same
+		testp2_sizeTooLarge - call Exec on a process exceeds the physical memory. The system print "run out of physical memory" and Exec returns 0
+		testp2_physicalMemoryBoundary - Use this test to check the system is able to load many programs one after another, and the Exit really deletes process. This test calls Exec to creat itself and then exit. So if exit really deletes the process the test will last forever otherwise it will stop when reaching the memory boundary.
 ---------------------
 
 ##3. Improved Exec
@@ -49,7 +57,14 @@ We added functionality to the ExceptionHandler function in /userprog/exception.c
 
 ##6. Join
 
-...Description...
+We implemented join system call. It takes one argument, the SpaceId of the process that the caller wants to wait for. The process to be Joined must have been Exec'ed with its willJoin argument's last bit set to 1(sharing willJoin with pipe part7). Join returns the process status (Exit) code of the process that was Joined. Return -65535 from Join to signify an error.We implemented 4 errors,each with a test.
+
+	Tests:(called from userprog by executing ./nachos -x ../test/{testname})
+		testp6 - first process calls Join on the second process(array) and receives the second process' exit status(1128)
+		testp6_join2ndTime - two processes calls Join on the same process and one of the caller result in a fault(Return value -65535)
+		testp6_joinOnItself - the process calls Join on itself and result in a fault(Return value -65535)
+		testp6_joinOnNotToJoined - the process calls Join on a process whose argument willJoin's last bit not set to 1, result in a fault(Return value -65535)
+		tsetp6_joinOnAnUnForked - the process calls Join on a process whose Space Id can't not be found. Result in a fault(Return value -65535)
 --------------------
 
 ##7. Piping
