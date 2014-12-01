@@ -47,8 +47,8 @@ slot has not been allocated. */
 void* Table::Get(int index){
 	lock->Acquire();
 	//Notice the table starts from 1 because no in Nachos, no process has SpaceId 0. 
-	ASSERT(index>0 && index < tabsize);
-	if (inUse[index]==false){
+	// check (index>0 && index < tabsize);
+	if (index < 1 || index >= tabsize || !inUse[index]){
 		lock->Release();
 		return NULL;
 	}else{
@@ -63,10 +63,10 @@ void Table::Release(int index){
 	lock->Acquire();
 	
 	//Notice the table starts from 1 because no in Nachos, no process has SpaceId 0. 
-	ASSERT(index>0 && index < tabsize);
-	ASSERT(inUse[index]);//panic if the slot is not allocated
-	inUse[index]=false;
-	//Assume the object has been deleted outside
+	if (index > 0 && index < tabsize && inUse[index] ) {
+		inUse[index] = false;
+		//Assume the object has been deleted outside
+	}
 	
 	lock->Release();
 }

@@ -148,22 +148,36 @@ int strKernel2User(char* src, char* dst, int size) {
 void exit() {
 	SpaceId pid = currentThread->processId;
 	Process* process = (Process*)processTable->Get(pid);
-	/*if(process->willBeJoined){
-		machine->WriteRegister(2,(int)machine->ReadRegister(4));//return status
-	}*/
-	process->exitStatus = (int)machine->ReadRegister(4);
 
-	process->Finish();
-	processTable->Release(pid);
-	printf("== the user program (PID=%d) Exit(%d)\n", pid, (int)machine->ReadRegister(4));
-	delete process;
+	if (process->numThread == 1)
+	{
+		process->exitStatus = (int)machine->ReadRegister(4);
+		process->Finish();
+		processTable->Release(pid);
+		DEBUG('b', "[OS]Process %d Exit(%d)\n", pid, process->exitStatus);
+		delete process;
+		currentThread->Finish();
+	}
+	else
+	{
+		process->numThread--;
+		DEBUG('b', "[OS]One thread in process %d Exit(%d)\n", pid, (int)machine->ReadRegister(4));
+		currentThread->Finish();
+	}
 	ASSERT(FALSE);
 }
 
 void ProcessStart(int arg) {
-	//degug
-	printf("Process ""PID=%d"" starts\n", ( (Process*)processTable->Get(currentThread->processId) )->GetId());
+	DEBUG('b', "[OS]Process %d starts\n", ( (Process*)processTable->Get(currentThread->processId) )->GetId());
 	currentThread->space->InitRegisters();		// set the initial register values
+	currentThread->space->RestoreState();		// load page table register
+	machine->Run();			// jump to the user program
+	ASSERT(FALSE);
+}
+
+void UserThreadStart(int func) {
+	DEBUG('b', "[OS]New user level thread starts\n");
+	currentThread->space->InitNewThreadRegs(func);
 	currentThread->space->RestoreState();		// load page table register
 	machine->Run();			// jump to the user program
 	ASSERT(FALSE);
@@ -177,13 +191,11 @@ SpaceId exec(char *filename, int argc, char **argv, int opt) {
 
 	Process* process = new Process("P", willJoin);
 	SpaceId pid = processTable->Alloc(process);
-
 	if (pid == -1) {
 		delete process;
 		return 0;//maybe too many processes there. Return SpaceId 0 as error code
 	}
 	process->SetId(pid);
-
 
 	if (hasin || hasout) {
 		Process* currentProcess = (Process*)processTable->Get(currentThread->processId);
@@ -193,12 +205,26 @@ SpaceId exec(char *filename, int argc, char **argv, int opt) {
 		}
 	}
 
-	if (process->Load(filename, argc, argv) == -1) {
+	Thread* t = new Thread("P");
+	if (process->Load(t,filename, argc, argv) == -1) {
 		delete process;
+		delete t;
 		return 0;	//Return SpaceId 0 as error code
 	}
-	process->mainThread->Fork(ProcessStart, 0);	//thread's willJoin is always set to 0
+	t->Fork(ProcessStart, 0);	//thread's willJoin is always set to 0
 	return pid;
+}
+
+int fork(void(*func)( ))
+{
+	Process* currentProcess = (Process*)processTable->Get(currentThread->processId);
+	Thread* t = new Thread("user level thread");
+	if (currentProcess->AddThread(t) == -1) {
+		delete t;
+		return -1;
+	}
+	t->Fork(UserThreadStart, (int)func);
+	return 0;
 }
 
 void IncreasePC() {
@@ -233,7 +259,6 @@ ExceptionHandler(ExceptionType which)
 			//delete memory manager
 			//delete mm;
 
-			//delete processTable
 			delete processTable;
 
 			//SynchConsole doesn't need to be deleted since console never ends.
@@ -248,6 +273,7 @@ ExceptionHandler(ExceptionType which)
 
 		case SC_Exec:
 		{
+			int i;
 			//read 1st argument
 			char* name = NULL;
 			int result = strUser2Kernel((char*)machine->ReadRegister(4), &name);
@@ -264,13 +290,15 @@ ExceptionHandler(ExceptionType which)
 			}
 
 			//read 3rd argument
-			char argv[argc][MaxStringLength];
+			//char argv[argc][MaxStringLength];
+			char** argv = NULL;
 			if (argc > 0) {
 				//convert argument list
 				int* data = new int;
 				char** virtArgv = (char**)machine->ReadRegister(6);
-				//argv=new char*[argc];
-				for (int i = 0; i < argc; i++) {
+				argv=new char*[argc];
+				for (i = 0; i < argc; i++) {
+					argv[i] = new char[MaxStringLength];
 					//read the string head pointer
 					if (!machine->ReadMem((int)&( virtArgv[i] ), 4, data)) {
 						machine->WriteRegister(2, 0);//return SpaceId 0
@@ -288,12 +316,18 @@ ExceptionHandler(ExceptionType which)
 			//read 4th argument
 			int opt = machine->ReadRegister(7);
 
-			/*for (int i=0;i<argc;i++){
-				printf("[%d]%s\n",i,argv[i]);
-			}*/
-			//printf("[]""%s""\n", name);
+			/*for (i = 0; i<argc; i++)
+				printf("[%d]%s\n", i, argv[i]);
+			printf("name=%s\n", name);*/
+
 			result = exec(name, argc, (char**)argv, opt);
 			machine->WriteRegister(2, result);
+			if (argc > 0) {
+				for (i = 0; i < argc; i++) {
+					delete[] argv[i];
+				}
+				delete[] argv;
+			}
 			break;
 		}
 
@@ -349,35 +383,45 @@ ExceptionHandler(ExceptionType which)
 
 		case SC_Join:
 		{
-			SpaceId idToJoin = (int)machine->ReadRegister(4);
-			int result;
-			if (processTable->Get(idToJoin) == NULL) //process to join is not found
-			{
-				machine->WriteRegister(2, -65535);// signify an error
-				return;
-			}
 			SpaceId pid = currentThread->processId;
-			if (idToJoin == pid)		// cannot call join on itself
+			SpaceId idToJoin = (int)machine->ReadRegister(4);
+			//if (idToJoin < 1) {
+			//	this case is handled by table itself
+			//}
+			if (idToJoin == pid)
 			{
+				printf("Error: Can not call join on process itself\n");
 				machine->WriteRegister(2, -65535);// signify an error
 				return;
 			}
 
 			Process* processToJoin = (Process*)processTable->Get(idToJoin);
-			result = processToJoin->Join();
+			if (processToJoin == NULL) //process to join is not found
+			{
+				printf("Error: Process to be joined is not found\n");
+				machine->WriteRegister(2, -65535);// signify an error
+				return;
+			}
 
+			int result = processToJoin->Join();
 			machine->WriteRegister(2, result);
 			break;
 		}
 
 		case SC_Fork:
 		{
-
+			void(*func)( );
+			func = ( void(*)( ) )machine->ReadRegister(4);
+			fork(func);
+			break;
 		}
 
 		case SC_Yield:
 		{
-
+			//printf("{yield}");
+			//DEBUG('b', "{yield}");
+			currentThread->Yield();
+			break;
 		}
 
 		default:

@@ -4,34 +4,25 @@
 
 
 Process::Process(char* newname,bool willJoin){
-	mainThread = new Thread(newname);
 	name = newname;
-	numThread = 1;
-	
-	willBeJoined = willJoin;
-	hasJoined = false;
-	joinedOnMe = new Condition("JoinedOnMe");
-	lock = new Lock("Lock");
-	exitStatus =-65535;
+	space = NULL;
+	pid = 0;
 
-	pipeline = NULL;
-	pipeIn = pipeOut = NULL;
-
-}
-
-Process::Process(char* newname,bool willJoin,Thread* t){
-	mainThread = t;
-	name = newname;
-	numThread = 1;
-
+	//initialization for Join
 	willBeJoined = willJoin;
 	hasJoined = false;
 	joinedOnMe = new Condition("JoinedOnMe");
 	lock = new Lock("Lock");
 	exitStatus = -65535;
 	
+	//initialization for pipe
 	pipeline = NULL;
 	pipeIn = pipeOut = NULL;
+
+	//initialization for multithread
+	numThread = 0;
+
+	//userThreads = new List();
 }
 
 Process::~Process(){
@@ -44,7 +35,7 @@ Process::~Process(){
 	//if there are lots of newly created thread, then this space will
 	//not be deleted until another thread wakes up from SWITCH(oldThread, nextThread);
 	//So here it's just to free the memory in advance.
-	delete mainThread->space;
+	delete space;
 	
 	//delete the pipe list, but pipes are deleted by processes that use them. See below.
 	delete pipeline;
@@ -63,27 +54,17 @@ Process::~Process(){
 		}
 	}
 
-	//Finish the thread
-	if (currentThread == mainThread){
+	//delete userThreads;//List will delete elements in the destructor
 
-		//the thread will then be deleted in scheduler::Run()
-		mainThread->Finish();
+	//now Thread::Finish is called outside
+	//currentThread->Finish();
+	//the thread will then be deleted in scheduler::Run()
+	////deleting a thread without finish will fault because it's still in ready list.
 
-	}
-	else{
-
-		//minor case, when process is created by mistake
-		//come to here because the process is being deleted by kenel but not itself.
-		ASSERT(!mainThread->getHasForked());//should not be forked
-		delete mainThread;
-
-	}
 
 }
 
 void Process::Finish(){
-	ASSERT(mainThread == currentThread);
-	
 	lock->Acquire();
 	
 	if (hasJoined){
@@ -145,20 +126,25 @@ int Process::Join() {
 	return exitStatus;
 }
 
-int Process::Load(char *filename,int argc, char **argv){
+int Process::Load(Thread* firstThread, char *filename, int argc, char **argv) {
 	OpenFile *executable = fileSystem->Open(filename);
 	if (executable == NULL) {
-		printf("Unable to open file %s\n", filename);
+		printf("Error: Unable to open file %s\n", filename);
 		return -1;
 	}
-	AddrSpace *space = new AddrSpace();
+	space = new AddrSpace();
 	if (space->Initialize(executable,argc,argv) == -1){
 		delete executable;
 		delete space;
+		space = NULL;
 		return -1;
 	}
-	mainThread->space = space;
 	delete executable;			// close file
+	firstThread->space = space;
+	firstThread->processId = pid;
+	numThread = 1;
+	//userThreads->Append((void*)firstThread);
+
 	return 0;
 }
 
@@ -188,5 +174,21 @@ int Process::PipelineAdd(Process* proc, bool hasin, bool hasout) {
 		
 		pipeline->Prepend(pipe);
 	}
+	return 0;
+}
+
+int Process::AddThread(Thread* t)
+{
+	int ret;
+	ret = space->NewStack();
+	if (ret == -1) {
+		return -1;
+	}
+	numThread++;
+	t->space = space;
+	t->processId = pid;
+
+	//userThreads->Append((void*)t);
+
 	return 0;
 }

@@ -9,7 +9,7 @@
 #include <syscall.h>
 
 
-main()
+int main()
 {
 	OpenFileId input = ConsoleInput;
     OpenFileId output = ConsoleOutput;
@@ -17,21 +17,15 @@ main()
     Exec("../test/testp7_pipetest_produce", 0, 0, 2);
 	Exec("../test/testp7_pipetest_mid", 0, 0, 6);
 	Exec("../test/testp7_pipetest_mid", 0, 0, 6);
-    SpaceId pid = Exec("../test/testp7_pipetest_consume", 0, 0, 0x4|0x01);
-	
-	Write("Enter a letter. For example: B<enter>. >>    ", 45, output);
-	//do{//dead loop
-	//	pid=1;
-	//}while(pid==1);
-
-	//char debug;
-	//debug = (char) pid + 48;
-	//Write(&debug,sizeof(int),output);
+	SpaceId pid = Exec("../test/testp7_pipetest_consume", 0, 0, 0x4|0x01);
+	Yield(); 
+	int i;
+	i = 2;
+	Yield();
+	Write("Enter a letter or a digit >> ", 29, output);
 	
 	int result;
 	result=Join(pid);
 
-	//Yield();
-	//return 0;
-	Exit(result);
+	return result;
 }
