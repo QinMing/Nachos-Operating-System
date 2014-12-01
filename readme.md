@@ -5,7 +5,7 @@ CSE 120 Project for UCSD
 Group 44 - Ming Qin, Xinyu Qian, Evan Carey, Kevin Caasi
 
 ---------------------
-## Project 2: Multiprogramming
+# Project 2: Multiprogramming
 
 #### Members of Group 44
 - Ming Qin - 
@@ -49,9 +49,10 @@ Reading from the console is done by the Read function, which uses a lock (readLo
 Writing to the console is done by the Write function, which uses a lock (writeLock) and a semaphore (write) to guarantee mutual exclusion and then calls the Console's putChar function, writing characters from the system buffer to stdout.
 
     Tests:(called from userprog by executing ./nachos -x ../test/{testname})
-        testp4_shell -  Then type in "../test/{name}" in shell.
-        snake - 
-                In testp3_addition the 3 digits will be summed up and shown in Exit value.
+        testp4_shell -  A simple shell that can execute other programs, for example try to
+                type in "../test/snake". In this shell, argument is not surpported.
+        snake - A test program that exercises Write system call implementation, provided by Professor Voelker.
+        echo - It will repeat what you type in.
 --------------------
 
 ##5. Exception Handling
@@ -90,7 +91,7 @@ We implemented join system call. It takes one argument, the SpaceId of the proce
 
 
 ---------------------
-## Project 1: Threads
+# Project 1: Threads
 
 #### Members of Group 44
 - Ming Qin - Join, Mailbox, Testing, Priority
