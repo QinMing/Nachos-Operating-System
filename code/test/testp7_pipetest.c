@@ -21,16 +21,8 @@ int main()
 	Yield(); 
 	int i;
 	i = 2;
-	Yield();//why "yield" comes after Write during test ??????????????
 	Yield();
 	Write("Enter a letter or a digit >> ", 29, output);
-	//do{//dead loop
-	//	pid=1;
-	//}while(pid==1);
-
-	//char debug;
-	//debug = (char) pid + 48;
-	//Write(&debug,sizeof(int),output);
 	
 	int result;
 	result=Join(pid);

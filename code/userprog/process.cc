@@ -21,6 +21,7 @@ Process::Process(char* newname,bool willJoin){
 
 	//initialization for multithread
 	numThread = 0;
+
 	//userThreads = new List();
 }
 

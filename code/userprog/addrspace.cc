@@ -131,7 +131,7 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 
 	// how big is address space?
 	size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
-		+ argSize + UserStackSize;// to leave room for the stack
+		+ argSize + UserStackSize;
 
 	numPages = divRoundUp(size, PageSize);
 
