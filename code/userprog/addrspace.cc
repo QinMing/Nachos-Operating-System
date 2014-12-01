@@ -368,7 +368,7 @@ void AddrSpace::InitNewThreadRegs(int func)
 	for (i = 0; i < NumTotalRegs; i++)
 		machine->WriteRegister(i, 0);
 
-	// Initial program counter -- must be location of "Start"
+	printf("func=%d\n", func);
 	machine->WriteRegister(PCReg, func);
 
 	machine->WriteRegister(NextPCReg, func+4);

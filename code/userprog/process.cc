@@ -71,7 +71,8 @@ Process::~Process(){
 	//Finish the thread
 	//Because Join are implemented in process level,
 	//we assume these threads will not join or be joined.
-	//So we can delete the thread.
+
+	//delete a thread without finish will fault because it's still in ready list.
 	if (currentThread == mainThread) {
 
 		if (userThreads != NULL)
@@ -116,8 +117,6 @@ Process::~Process(){
 }
 
 void Process::Finish(){
-	ASSERT(mainThread == currentThread);
-	
 	lock->Acquire();
 	
 	if (hasJoined){

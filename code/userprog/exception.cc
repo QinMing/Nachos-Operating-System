@@ -152,18 +152,26 @@ void exit() {
 	/*if(process->willBeJoined){
 		machine->WriteRegister(2,(int)machine->ReadRegister(4));//return status
 	}*/
-	process->exitStatus = (int)machine->ReadRegister(4);
 
+	//if (process->numThread == 1)
+	//{
+	process->exitStatus = (int)machine->ReadRegister(4);
 	process->Finish();
 	processTable->Release(pid);
-	printf("== the user program (PID=%d) Exit(%d)\n", pid, (int)machine->ReadRegister(4));
+	DEBUG('b', "[OS] The user program (PID=%d) Exit(%d)\n", pid, (int)machine->ReadRegister(4));
 	delete process;
+	//}
+	//else
+	//{
+	//	process->numThread--;
+	//	currentThread->Finish();
+	//}
 	ASSERT(FALSE);
 }
 
 void ProcessStart(int arg) {
 	//debug
-	printf("Process ""PID=%d"" starts\n", ( (Process*)processTable->Get(currentThread->processId) )->GetId());
+	DEBUG('b', "[OS] Process ""PID=%d"" starts\n", ( (Process*)processTable->Get(currentThread->processId) )->GetId());
 	currentThread->space->InitRegisters();		// set the initial register values
 	currentThread->space->RestoreState();		// load page table register
 	machine->Run();			// jump to the user program
@@ -171,7 +179,7 @@ void ProcessStart(int arg) {
 }
 
 void UserThreadStart(int func) {
-	printf("new user thread starts\n");
+	DEBUG('b', "[OS] New user level thread starts\n");
 	currentThread->space->InitNewThreadRegs(func);
 	currentThread->space->RestoreState();		// load page table register
 	machine->Run();			// jump to the user program
@@ -218,6 +226,7 @@ int fork(void(*func)( ))
 		delete t;
 		return -1;
 	}
+	t->processId = currentThread->processId;
 	t->Fork(UserThreadStart, (int)func);
 	return 0;
 }
@@ -401,7 +410,9 @@ ExceptionHandler(ExceptionType which)
 
 		case SC_Yield:
 		{
-
+			//printf("{yield}");
+			DEBUG('b', "{yield}");
+			currentThread->Yield();
 			break;
 		}
 
