@@ -29,7 +29,6 @@
 #include "process.h"
 #include "synchconsole.h"
 
-
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
