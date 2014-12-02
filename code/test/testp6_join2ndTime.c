@@ -3,10 +3,13 @@
 int main()
 {
 	int result;
+	//int id;
+	char* argv[1];
 
-	Exec("../test/testp6_joinTwice", 0, 0, 0);
 	Exec("../test/array", 0, 0, 1);
-	result = Join(3); //the exit status of process #2 is passed to result
+	argv[0] = "2";
+	Exec("../test/testp6_joinTwice", 1, argv, 0);
+	result = Join(2); //the exit status of process #2 is passed to result
 
 	Exit(result);
 }
