@@ -86,7 +86,7 @@ We implemented join system call. It takes one argument, the SpaceId of the proce
 We created the Pipe class. The parent process maintains a list of pipe line. Everytime it exec a new process with appropriate pipecrtl, it adds a new pipe to the list and set the inputPipe and outputPipe of the new process accordingly. 
 
 	Tests:(called from userprog by executing ./nachos -x ../test/{testname})
-		testp7_pipetest - Execute one pipetest_produce, two pipetest_mid and one pipetest_consume.
+        testp7_pipetest - Execute 4 process as follows: one pipetest_produce, two pipetest_mid and one pipetest_consume.
             The first process pipetest_produce will read a letter from the console, and pass it to the
             next process. Every process will add one letter to the string. The last process, 
             pipetest_consume, will print the string to the console.		

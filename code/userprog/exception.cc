@@ -162,21 +162,21 @@ void exit(int code) {
 		process->exitStatus = code;
 		process->Finish();
 		processTable->Release(pid);
-		printf("[]Process %d Exit(%d)\n", pid, process->exitStatus);
+		printf("##Process %d Exit(%d)\n", pid, process->exitStatus);
 		delete process;
 		currentThread->Finish();
 	}
 	else
 	{
 		process->numThread--;
-		printf("[]One thread in process %d Exit(%d)\n", pid, code);
+		printf("##One thread in process %d Exit(%d)\n", pid, code);
 		currentThread->Finish();
 	}
 	ASSERT(FALSE);
 }
 
 void ProcessStart(int arg) {
-	printf("[]Process %d starts\n", ( (Process*)processTable->Get(currentThread->processId) )->GetId());
+	printf("##Process %d starts\n", ( (Process*)processTable->Get(currentThread->processId) )->GetId());
 	currentThread->space->InitRegisters();		// set the initial register values
 	currentThread->space->RestoreState();		// load page table register
 	machine->Run();			// jump to the user program
@@ -184,7 +184,7 @@ void ProcessStart(int arg) {
 }
 
 void UserThreadStart(int func) {
-	printf("[]New user level thread starts\n");
+	printf("##New user level thread starts\n");
 	currentThread->space->InitNewThreadRegs(func);
 	currentThread->space->RestoreState();		// load page table register
 	machine->Run();			// jump to the user program
@@ -316,12 +316,20 @@ ExceptionHandler(ExceptionType which)
 					//read the string head pointer
 					if (!machine->ReadMem((int)&( virtArgv[i] ), 4, &data)) {
 						returnSyscall(0);//return SpaceId 0
+                        for (int j = 0; j < i; j++) {
+                            delete[] argv[j];
+                        }
+                        delete[] argv;
 						return;
 					}
 					//copy the string to OS memory
 					result = strUser2Kernel((char*)data, &argv[i]);
 					if (result == -1) {
 						returnSyscall(0);//return SpaceId 0
+                        for (int j = 0; j < i; j++) {
+                            delete[] argv[j];
+                        }
+                        delete[] argv;
 						return;
 					}
 				}
@@ -357,8 +365,8 @@ ExceptionHandler(ExceptionType which)
 				return;
 			}
 			OpenFileId fileId = (OpenFileId)machine->ReadRegister(6);
-			if (fileId == ConsoleInput || fileId == ConsoleOutput) {
-
+			if ((fileId == ConsoleInput && type == SC_Read)
+                || (fileId == ConsoleOutput && type == SC_Write)) {
 
 				if (sConsole == NULL)
 					sConsole = new SynchConsole();
@@ -380,7 +388,8 @@ ExceptionHandler(ExceptionType which)
 					}
 
 				}
-				else {					//SC_Write
+				else
+                {					//SC_Write
 
 					if (strUser2Kernel((char*)machine->ReadRegister(4), str, size) == -1) {
 						returnSyscall(-1);
@@ -393,7 +402,8 @@ ExceptionHandler(ExceptionType which)
 
 				}
 			}
-			else {
+			else
+            {
 				returnSyscall(-1);
 				return;
 			}
@@ -405,9 +415,8 @@ ExceptionHandler(ExceptionType which)
 		{
 			SpaceId pid = currentThread->processId;
 			SpaceId idToJoin = (int)machine->ReadRegister(4);
-			//if (idToJoin < 1) {
+			//if (idToJoin < 1)
 			//	this case is handled by table itself
-			//}
 			if (idToJoin == pid)
 			{
 				printf("Error: Can not call join on process itself\n");

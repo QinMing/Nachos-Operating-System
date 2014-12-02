@@ -91,11 +91,13 @@ int Process::Join() {
 	
 	if (hasJoined)		// join is not called more that once on the same process
 	{
+        printf("Error: Join is called more that once on the same process\n");
 		lock->Release();
 		return -65535;
 	}
 	if (!willBeJoined)	// join is only invoked on processes created to be joined
 	{
+        printf("Error: The process is marked as not to be joined\n");
 		lock->Release();
 		return -65535;
 	}
