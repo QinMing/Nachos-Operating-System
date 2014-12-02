@@ -42,7 +42,7 @@ After argc and argv are copied into kernel, they are passed to Process::Load(), 
                 We can find "Process 2 Exit(9)" in the output, since 1+3+5=9.
 ---------------------
 
-##4. Console Read/Write
+##4. Synchronized console and Read/Write syscall
 
 We implemented function to synchronously read from and write to the console.This was done by creating a SynchConsole class (/userprog/synchconsole.{cc,h}) that serves as a wrapper to the Nachos built-in asynchronous Console class. 
 Reading from the console is done by the Read function, which uses a lock (readLock) and a semaphore (read) to guarantee mutual exclusion and then calls the Console's getChar function, reading from stdin and storing the returned character in the system buffer.
@@ -81,7 +81,7 @@ We implemented join system call. It takes one argument, the SpaceId of the proce
 		testp6_joinOnInvalidPID - the process calls Join on a process whose Space Id can't not be found. Result in a fault(Return value -65535)
 --------------------
 
-##7. Piping
+##7. Pipe
 
 We created the Pipe class. The parent process maintains a list of pipe line. Everytime it exec a new process with appropriate pipecrtl, it adds a new pipe to the list and set the inputPipe and outputPipe of the new process accordingly. 
 
