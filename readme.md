@@ -8,7 +8,7 @@ Group 44 - Ming Qin, Xinyu Qian, Evan Carey, Kevin Caasi
 # Project 2: Multiprogramming
 
 #### Members of Group 44
-- Ming Qin - addrspace, Exec and Exit, pipe, fork and yield, Testing
+- Ming Qin - Addrspace, Exec and Exit, pipe, fork and yield, Testing
 - Xinyu Qian - MemoryManager, Exec and Exit, Join, Testing
 - Evan Carey - Console Read/Write, Exception Handling, Testing
 - Kevin Caasi - Exception Handling, Testing

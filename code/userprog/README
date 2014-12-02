@@ -1,0 +1,107 @@
+CSE 120 Project for UCSD
+
+Group 44 - Ming Qin, Xinyu Qian, Evan Carey, Kevin Caasi
+
+---------------------
+# Project 2: Multiprogramming
+
+#### Members of Group 44
+- Ming Qin - Addrspace, Exec and Exit, pipe, fork and yield, Testing
+- Xinyu Qian - MemoryManager, Exec and Exit, Join, Testing
+- Evan Carey - Console Read/Write, Exception Handling, Testing
+- Kevin Caasi - Exception Handling, Testing
+-------------------
+
+##1. Load processes into the memory
+
+We created class MemoryManager based on class BitMap. In addition, we use a Process class to manage operations of exec, exit, join, pipeline and multithreading. The codes in AddrSpace's constructor was moved into AddrSpace::Initialize(), which is called by Process::Load(), and Load is call by exec() and StartProcess().
+The functionality of this part is tested in later parts.
+---------------------
+
+##2. Exec and Exit
+
+	We implemented Exec and Exit, which create and exit a process. We use processTable to keep track of every process created. Exec returns a process identifier (SpaceId), and Exit will print out the status value passed as the parameter.
+
+	Tests:(called from userprog by executing ./nachos -x ../test/{testname})
+		testp2 - the first process calls Exec to create a second process(array) and save the return value of Exec as Exit status value. They get the proper Exit status value which are 2(SpaceId for the second process) for the first and 1128 for the second
+		testp2_fileNameNotExist - call Exec with an in file name can not be found. Cause a fault Exec returns 0
+		testp2_fileNameTooLong - call Exec with a file name too long(max 256). Cause a fault Exec returns 0
+		testp2_fileNameNotEndWithNull - call Exec with a file name not ended in a null character. Since the undefined characters are NULLs, so system will always read a null character at the end. Thus the system regards the filename not ended in null the same as normal ones, if other conditions are the same.
+		testp2_sizeTooLarge - call Exec on a process exceeds the physical memory. The system print "run out of physical memory" and Exec returns 0
+		testp2_physicalMemoryBoundary - Use this test to check the system is able to load many programs one after another, and the Exit really deletes process. This test calls Exec to creat itself and then exit. So if exit really deletes the process the test will last forever otherwise it will stop when reaching the memory boundary. Press Ctrl+C to exit.
+---------------------
+
+##3. Passing arguments in Exec
+
+Two functions are created in exception.cc, which are strUser2Kernel(char* src, char** dst) and strKernel2User(char* src, char* dst, int size). They copy strings between virtual memory and kernel memory. 
+After argc and argv are copied into kernel, they are passed to Process::Load(), and then to AddrSpace::Initialize(). In Initialize(), argv is copied right after the 3 segment of code, initdata and uninitdata. The space is enlarged accordingly. The argc and the pointer of argv is then keep in some private variables in class AddrSpace for future initialization.
+
+    Tests:(called from userprog by executing ./nachos -x ../test/testp3)
+        testp3 - Generate 3 strings, "1", "3" and "5", and then exec testp3_addition. Here argc is 3.
+                In testp3_addition the 3 digits will be summed up and shown in Exit value.
+                We can find "Process 2 Exit(9)" in the output, since 1+3+5=9.
+---------------------
+
+##4. Synchronized console and Read/Write syscall
+
+We implemented function to synchronously read from and write to the console.This was done by creating a SynchConsole class (/userprog/synchconsole.{cc,h}) that serves as a wrapper to the Nachos built-in asynchronous Console class. 
+Reading from the console is done by the Read function, which uses a lock (readLock) and a semaphore (read) to guarantee mutual exclusion and then calls the Console's getChar function, reading from stdin and storing the returned character in the system buffer.
+Writing to the console is done by the Write function, which uses a lock (writeLock) and a semaphore (write) to guarantee mutual exclusion and then calls the Console's putChar function, writing characters from the system buffer to stdout. 
+If the arguments to Read and Write are invalid, the system calls will return -1 as an error. See tests of part 5.
+
+    Tests:(called from userprog by executing ./nachos -x ../test/{testname})
+        testp4_shell -  A simple shell that can execute other programs, for example try to
+                type in "../test/snake". In this shell, argument is not surpported.
+        snake - A test program that exercises Write system call implementation, provided by Professor Voelker.
+        echo - It will repeat what you type in.
+--------------------
+
+##5. Exception Handling
+
+We added functionality to the ExceptionHandler function in /userprog/exception.cc to handle user exceptions. When one of these exceptions {PageFaultException, ReadOnlyException, BusErrorException, AddressErrorException, OverflowException, IllegalInstrException} occurs, the triggering process is terminated, but other processes (and Nachos) are unaffected.
+
+    Tests: (called from userprog by executing ./nachos -x ../test/{testname})
+        testp5 - Triggers an IllegalInstrException by attempting to divide by zero.
+        testp5_exec - Triggers an IllegalInstrException in a process created by the Exec system call
+        testp5_2_exec - Executes 3 programs that will trigger AddressErrorException. They are:
+            1. testp5_2_Normal - Directly access an invalid address. The kernel will kill this program by force.
+            2. testp5_2_Write - Writes to console using invalid buffer address. The system call will return -1 and the program will Exit normally.
+            3. testp5_2_Read - Similar to Write.
+--------------------
+
+##6. Join
+
+We implemented join system call. It takes one argument, the SpaceId of the process that the caller wants to wait for. The process to be Joined must have been Exec'ed with its willJoin argument's last bit set to 1(sharing willJoin with pipe part7). Join returns the process status (Exit) code of the process that was Joined. Return -65535 from Join to signify an error.We implemented 4 errors,each with a test.
+
+	Tests:(called from userprog by executing ./nachos -x ../test/{testname})
+		testp6 - first process calls Join on the second process(array) and receives the second process' exit status(1128)
+		testp6_join2ndTime - two processes calls Join on the same process and one of the caller result in a fault(Return value -65535)
+		testp6_joinOnItself - the process calls Join on itself and result in a fault(Return value -65535)
+		testp6_joinOnNotToJoined - the process calls Join on a process whose argument willJoin's last bit not set to 1, result in a fault(Return value -65535)
+		testp6_joinOnInvalidPID - the process calls Join on a process whose Space Id can't not be found. Result in a fault(Return value -65535)
+--------------------
+
+##7. Pipe
+
+We created the Pipe class. The parent process maintains a list of pipe line. Everytime it exec a new process with appropriate pipecrtl, it adds a new pipe to the list and set the inputPipe and outputPipe of the new process accordingly. 
+
+	Tests:(called from userprog by executing ./nachos -x ../test/{testname})
+        testp7_pipetest - Execute 4 process as follows: one pipetest_produce, two pipetest_mid and one pipetest_consume.
+            The first process pipetest_produce will read a letter from the console, and pass it to the
+            next process. Every process will add one letter to the string. The last process, 
+            pipetest_consume, will print the string to the console.		
+--------------------
+
+##8. Multithreading
+
+We provide support to multi-thread programs. Now the Exit system call implies that the calling thread is finished, and that if it's the last thread inside the process, the process is finished as well. The return value of the process depends on the last thread to call Exit. As an convention, We need user program to explicitly call Exit when the forked thread is finished.
+In detail, when Fork is called, the kernel will add another user stack at the end of address space, then map the new space into physical memory. The machine registers will be set slightly different when initializing the new thread.
+
+    Tests:(called from userprog by executing ./nachos -x ../test/{testname})
+        testp8_multi - Forks a thread and ping-pong between the two threads.
+--------------------
+
+##9. Other
+
+There's a test program named "sort". To run this test, please increase the UserStackNumPage in addrspace.h.
+---------------------
