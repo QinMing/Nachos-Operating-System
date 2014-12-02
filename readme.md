@@ -103,6 +103,9 @@ In detail, when Fork is called, the kernel will add another user stack at the en
         testp8_multi - Forks a thread and ping-pong between the two threads.
 --------------------
 
+##9. Other
+
+There's a test program named "sort". To run this test, please increase the UserStackNumPage in addrspace.h.
 
 
 ---------------------
