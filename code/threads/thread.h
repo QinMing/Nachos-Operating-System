@@ -44,6 +44,7 @@
 #ifdef USER_PROGRAM
 #include "machine.h"
 #include "addrspace.h"
+class AddrSpace;
 #endif
 
 // CPU register state to be saved on context switch.
@@ -158,6 +159,7 @@ public:
 
     AddrSpace *space;			// User code this thread is running.
 	int processId;		//Assuming one kernel-level thread will not switch among processes
+	bool isInSyscall;
 #endif
 };
 

@@ -14,6 +14,6 @@ int main()
 	argv[0]="1";
 	argv[1]="3";
 	argv[2]="5";
-    result = Exec("../test/testp3_addition", argc, argv, 0);
-    Exit(result);
+    Exec("../test/testp3_addition", argc, argv, 0);
+    Exit(0);
 }

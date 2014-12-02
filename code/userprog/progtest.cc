@@ -35,11 +35,11 @@ void StartProcess(char *filename)
 	mm=new MemoryManager(NumPhysPages);
 	processTable = new Table(MaxNumProcess);
 	
-	Process* process = new Process("FirstProcess",0,currentThread);
+	Process* process = new Process("FirstProcess",0);
 	SpaceId id = processTable->Alloc(process);
 	ASSERT(id!=-1)			//run out of process table. but impossible
 	process->SetId(id);
-	id = process->Load(filename,0,NULL);
+	id = process->Load(currentThread, filename,0,NULL);
 	ASSERT(id!=-1);			//panic. The initial user program has problem.
 	currentThread->space->InitRegisters();		// set the initial register values
 	currentThread->space->RestoreState();		// load page table register

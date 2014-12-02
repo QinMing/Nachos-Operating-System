@@ -56,7 +56,6 @@
 //src: char* in virtual memory space
 //dst: a pointer to a char* in OS memory. 
 //assume dst == NULL
-//There's a overload function below for pre-allocated dst
 int strUser2Kernel(char* src, char** dst) {
 	char buff[MaxStringLength];
 	int virtAddr = (int)src;
@@ -91,29 +90,38 @@ int strUser2Kernel(char* src, char** dst) {
 //copy a string from user memory to OS memory, for the currently runing user process
 //this overload function is using dst as a already allocated char[],
 //so no need to use buffer
-int strUser2Kernel(char* src, char* dst) {
-	int virtAddr = (int)src;
-	char ch;
-	int count = 0;
-	do {
-		if (!machine->ReadMem(virtAddr, sizeof(char), (int*)&ch))
-			return -1;	//In fact ReadMem() itself will call machine->RaiseException.
-		dst[count] = ch;
-		count++;
-		if (ch == '\0')
-			break;
-		virtAddr++;
-		if (count >= MaxStringLength) {
-			//next byte in buff should be out of boundary
-			printf("Error: Exceeded the maximun "
-				"string length of %d bytes, or the string does not end in null character.\n", MaxStringLength);
-			dst[MaxStringLength - 1] = '\0';
-			DEBUG('a', "The string was ""%s""\n", dst);
-			return -1;
-		}
-	} while (1);
-	return 0;
-}
+//int strUser2Kernel(char* src, char* dst2) {
+//	char* dst = dst2;
+//	char buff[MaxStringLength];
+//	int virtAddr = (int)src;
+//	char ch;
+//	int count = 0;
+//	do {
+//		if (!machine->ReadMem(virtAddr, sizeof(char), (int*)&ch))
+//			return -1;	//In fact ReadMem() itself will call machine->RaiseException.
+//		dst[count] = ch;
+//		count++;
+//		if (ch == '\0')
+//			break;
+//		virtAddr++;
+//		if (count >= MaxStringLength) {
+//			//next byte in buff should be out of boundary
+//			printf("Error: Exceeded the maximun "
+//				"string length of %d bytes, or the string does not end in null character.\n", MaxStringLength);
+//			dst[MaxStringLength - 1] = '\0';
+//			DEBUG('a', "The string was ""%s""\n", dst);
+//			return -1;
+//		}
+//	} while (1);
+//
+//	//for (int i = 0; i < count; i++) {
+//	//	dst[i] = buff[i];
+//	//}
+//
+//	//debug
+//	printf("--->%s|\n", dst);
+//	return 0;
+//}
 
 //copy a string from user memory to OS memory, for the currently runing user process
 //This is an overload function that knows the size of data being copied
@@ -145,25 +153,39 @@ int strKernel2User(char* src, char* dst, int size) {
 }
 
 //Exit the current runing process, including currentThread.
-void exit() {
+void exit(int code) {
 	SpaceId pid = currentThread->processId;
 	Process* process = (Process*)processTable->Get(pid);
-	/*if(process->willBeJoined){
-		machine->WriteRegister(2,(int)machine->ReadRegister(4));//return status
-	}*/
-	process->exitStatus = (int)machine->ReadRegister(4);
 
-	process->Finish();
-	processTable->Release(pid);
-	printf("== the user program (PID=%d) Exit(%d)\n", pid, (int)machine->ReadRegister(4));
-	delete process;
+	if (process->numThread == 1)
+	{
+		process->exitStatus = code;
+		process->Finish();
+		processTable->Release(pid);
+		printf("##Process %d Exit(%d)\n", pid, process->exitStatus);
+		delete process;
+		currentThread->Finish();
+	}
+	else
+	{
+		process->numThread--;
+		printf("##One thread in process %d Exit(%d)\n", pid, code);
+		currentThread->Finish();
+	}
 	ASSERT(FALSE);
 }
 
 void ProcessStart(int arg) {
-	//degug
-	printf("Process ""PID=%d"" starts\n", ( (Process*)processTable->Get(currentThread->processId) )->GetId());
+	printf("##Process %d starts\n", ( (Process*)processTable->Get(currentThread->processId) )->GetId());
 	currentThread->space->InitRegisters();		// set the initial register values
+	currentThread->space->RestoreState();		// load page table register
+	machine->Run();			// jump to the user program
+	ASSERT(FALSE);
+}
+
+void UserThreadStart(int func) {
+	printf("##New user level thread starts\n");
+	currentThread->space->InitNewThreadRegs(func);
 	currentThread->space->RestoreState();		// load page table register
 	machine->Run();			// jump to the user program
 	ASSERT(FALSE);
@@ -177,13 +199,11 @@ SpaceId exec(char *filename, int argc, char **argv, int opt) {
 
 	Process* process = new Process("P", willJoin);
 	SpaceId pid = processTable->Alloc(process);
-
 	if (pid == -1) {
 		delete process;
 		return 0;//maybe too many processes there. Return SpaceId 0 as error code
 	}
 	process->SetId(pid);
-
 
 	if (hasin || hasout) {
 		Process* currentProcess = (Process*)processTable->Get(currentThread->processId);
@@ -193,15 +213,29 @@ SpaceId exec(char *filename, int argc, char **argv, int opt) {
 		}
 	}
 
-	if (process->Load(filename, argc, argv) == -1) {
+	Thread* t = new Thread("P");
+	if (process->Load(t,filename, argc, argv) == -1) {
 		delete process;
+		delete t;
 		return 0;	//Return SpaceId 0 as error code
 	}
-	process->mainThread->Fork(ProcessStart, 0);	//thread's willJoin is always set to 0
+	t->Fork(ProcessStart, 0);	//thread's willJoin is always set to 0
 	return pid;
 }
 
-void IncreasePC() {
+int fork(void(*func)( ))
+{
+	Process* currentProcess = (Process*)processTable->Get(currentThread->processId);
+	Thread* t = new Thread("user level thread");
+	if (currentProcess->AddThread(t) == -1) {
+		delete t;
+		return -1;
+	}
+	t->Fork(UserThreadStart, (int)func);
+	return 0;
+}
+
+void returnSyscall(int arg) {
 	//read PC
 	int currentPC = machine->ReadRegister(PCReg);
 	int nextPC = machine->ReadRegister(NextPCReg);
@@ -212,20 +246,26 @@ void IncreasePC() {
 	machine->WriteRegister(PrevPCReg, prevPC);
 	machine->WriteRegister(PCReg, currentPC);
 	machine->WriteRegister(NextPCReg, nextPC);
+
+	//set return value of system call
+	machine->WriteRegister(2, arg);
+
+	//mark the flag in currentThread
+	currentThread->isInSyscall = false;
 }
 
 void
 ExceptionHandler(ExceptionType which)
 {
 	int type = machine->ReadRegister(2);
-	//for (int i=0;i<10;i++)	printf("[%d]%d\n",i,(int)machine->ReadRegister(i));
-	//printf("exception %d %d\n", which, type);
 
-	IncreasePC();
+	//printf("%d,%d\n", which,type);
 
 	switch (which) {
 
 	case SyscallException: // A program executed a system call
+	{
+		currentThread->isInSyscall = true;
 		switch (type) {
 
 		case SC_Halt:
@@ -233,26 +273,26 @@ ExceptionHandler(ExceptionType which)
 			//delete memory manager
 			//delete mm;
 
-			//delete processTable
 			delete processTable;
 
 			//SynchConsole doesn't need to be deleted since console never ends.
 
 			DEBUG('a', "Shutdown, initiated by user program.\n");
 			interrupt->Halt();
-			break;
+			return;
 
 		case SC_Exit:
-			exit();//will exit the whole current process
-			break;
+			exit((int)machine->ReadRegister(4));//will exit the whole current process
+			return;
 
 		case SC_Exec:
 		{
+			int i;
 			//read 1st argument
 			char* name = NULL;
 			int result = strUser2Kernel((char*)machine->ReadRegister(4), &name);
 			if (result == -1) {
-				machine->WriteRegister(2, 0);//return SpaceId 0
+				returnSyscall(0);//return SpaceId 0
 				return;
 			}
 
@@ -264,22 +304,32 @@ ExceptionHandler(ExceptionType which)
 			}
 
 			//read 3rd argument
-			char argv[argc][MaxStringLength];
+			//char argv[argc][MaxStringLength];
+			char** argv = NULL;
 			if (argc > 0) {
 				//convert argument list
-				int* data = new int;
+				int data;
 				char** virtArgv = (char**)machine->ReadRegister(6);
-				//argv=new char*[argc];
-				for (int i = 0; i < argc; i++) {
+				argv = new char*[argc];
+				for (i = 0; i < argc; i++) {
+					//argv[i] = new char[MaxStringLength];
 					//read the string head pointer
-					if (!machine->ReadMem((int)&( virtArgv[i] ), 4, data)) {
-						machine->WriteRegister(2, 0);//return SpaceId 0
+					if (!machine->ReadMem((int)&( virtArgv[i] ), 4, &data)) {
+						returnSyscall(0);//return SpaceId 0
+                        for (int j = 0; j < i; j++) {
+                            delete[] argv[j];
+                        }
+                        delete[] argv;
 						return;
 					}
 					//copy the string to OS memory
-					result = strUser2Kernel((char*)( *data ), argv[i]);
+					result = strUser2Kernel((char*)data, &argv[i]);
 					if (result == -1) {
-						machine->WriteRegister(2, 0);//return SpaceId 0
+						returnSyscall(0);//return SpaceId 0
+                        for (int j = 0; j < i; j++) {
+                            delete[] argv[j];
+                        }
+                        delete[] argv;
 						return;
 					}
 				}
@@ -287,14 +337,21 @@ ExceptionHandler(ExceptionType which)
 
 			//read 4th argument
 			int opt = machine->ReadRegister(7);
-
-			/*for (int i=0;i<argc;i++){
-				printf("[%d]%s\n",i,argv[i]);
-			}*/
-			//printf("[]""%s""\n", name);
+#if 0
+			for (i = 0; i < argc; i++)
+				printf("[%d]""%s""\n", i, argv[i]);
+			printf("name=%s\n", name);
+#endif
 			result = exec(name, argc, (char**)argv, opt);
-			machine->WriteRegister(2, result);
-			break;
+
+			if (argc > 0) {
+				for (i = 0; i < argc; i++) {
+					delete[] argv[i];
+				}
+				delete[] argv;
+			}
+			returnSyscall(result);//return SpaceId 0
+			return;
 		}
 
 		case SC_Read:
@@ -304,12 +361,12 @@ ExceptionHandler(ExceptionType which)
 			int size = machine->ReadRegister(5);
 			if (size <= 0) {
 				printf("Error: Nothing to read or write with size 0, or less than 0\n");
-				machine->WriteRegister(2, -1);//should we return -1 ?
+				returnSyscall(-1);
 				return;
 			}
 			OpenFileId fileId = (OpenFileId)machine->ReadRegister(6);
-			if (fileId == ConsoleInput || fileId == ConsoleOutput) {
-
+			if ((fileId == ConsoleInput && type == SC_Read)
+                || (fileId == ConsoleOutput && type == SC_Write)) {
 
 				if (sConsole == NULL)
 					sConsole = new SynchConsole();
@@ -326,15 +383,16 @@ ExceptionHandler(ExceptionType which)
 						currentProcess->pipeIn->Read(str, size);
 
 					if (strKernel2User(str, buffer, size) == -1) {
-						machine->WriteRegister(2, -1);
+						returnSyscall(-1);
 						return;
 					}
 
 				}
-				else {					//SC_Write
+				else
+                {					//SC_Write
 
 					if (strUser2Kernel((char*)machine->ReadRegister(4), str, size) == -1) {
-						machine->WriteRegister(2, -1);
+						returnSyscall(-1);
 						return;
 					}
 					if (currentProcess->pipeOut == NULL)
@@ -344,72 +402,124 @@ ExceptionHandler(ExceptionType which)
 
 				}
 			}
-			break;
+			else
+            {
+				returnSyscall(-1);
+				return;
+			}
+			returnSyscall(0);
+			return;
 		}
 
 		case SC_Join:
 		{
-			SpaceId idToJoin = (int)machine->ReadRegister(4);
-			int result;
-			if (processTable->Get(idToJoin) == NULL) //process to join is not found
-			{
-				machine->WriteRegister(2, -65535);// signify an error
-				return;
-			}
 			SpaceId pid = currentThread->processId;
-			if (idToJoin == pid)		// cannot call join on itself
+			SpaceId idToJoin = (int)machine->ReadRegister(4);
+			//if (idToJoin < 1)
+			//	this case is handled by table itself
+			if (idToJoin == pid)
 			{
-				machine->WriteRegister(2, -65535);// signify an error
+				printf("Error: Can not call join on process itself\n");
+				returnSyscall(-65535);
 				return;
 			}
 
 			Process* processToJoin = (Process*)processTable->Get(idToJoin);
-			result = processToJoin->Join();
+			if (processToJoin == NULL) //process to join is not found
+			{
+				printf("Error: Process to be joined is not found\n");
+				returnSyscall(-65535);
+				return;
+			}
 
-			machine->WriteRegister(2, result);
-			break;
+			int result = processToJoin->Join();
+			returnSyscall(result);
+			return;
 		}
 
 		case SC_Fork:
 		{
-
+			void(*func)( );
+			func = ( void(*)( ) )machine->ReadRegister(4);
+			int result = fork(func);
+			returnSyscall(result);
+			return;
 		}
 
 		case SC_Yield:
 		{
-
+			//printf("{yield}");
+			//DEBUG('b', "{yield}");
+			currentThread->Yield();
+			returnSyscall(0);
+			return;
 		}
 
 		default:
 			printf("Unexpected exception type %d %d\n", which, type);
 			ASSERT(FALSE);
-			break;
+			return;
+		}
+		return;
+	}
+	case PageFaultException: // No valid translation found
+		if (currentThread->isInSyscall) {
+			printf("PageFaultException: In system call, no valid translation found.\n");
+        }else{
+            printf("PageFaultException: No valid translation found. Terminating process...\n");
+            exit(-65535);
+        }
+		break;
+
+	case ReadOnlyException: // Write attempted to page marked "read-only"
+        if (currentThread->isInSyscall) {
+			printf("PageFaultException: In system call, write attempted to page marked \"read-only\".\n");
+        }else{
+            printf("ReadOnlyException: Write attempted to page marked \"read-only\". Terminating process...\n");
+            exit(-65535);
+        }
+		break;
+
+	case BusErrorException: // Translation resulted in an invalid physical addresss
+		if (currentThread->isInSyscall) {
+			printf("BusErrorException: In system call, translation resulted in an invalid physical address.\n");
+		}
+		else {
+			printf("BusErrorException: Translation resulted in an invalid physical address. Terminating process...\n");
+			exit(-65535);
 		}
 		break;
-	case PageFaultException: // No valid translation found
-		printf("PageFaultException: No valid translation found. Terminating process...\n");
-		exit();
-		break;
-	case ReadOnlyException: // Write attempted to page marked "read-only"
-		printf("ReadOnlyException: Write attempted to page marked \"read-only\". Terminating process...\n");
-		exit();
-		break;
-	case BusErrorException: // Translation resulted in an invalid physical addresss
-		printf("BusErrorException: Translation resulted in an invalid physical address. Terminating process...\n");
-		exit();
-		break;
+	
 	case AddressErrorException: // Unaligned reference or one that was beyond the end of the address space
-		printf("AddressErrorException: Unaligned reference or one that was beyond the end of the address space. Terminating process...\n");
-		exit();
+		if (currentThread->isInSyscall) {
+			printf("AddressErrorException: In system call, unaligned reference or one that was beyond the end of the address space.\n");
+		}
+		else {
+			printf("AddressErrorException: Unaligned reference or one that was beyond the end of the address space. Terminating process...\n");
+			exit(-65535);
+		}
 		break;
+	
 	case OverflowException: // Integer overflow in add or subtract
-		printf("OverflowException: Integer overflow in add or subract. Terminating process...\n");
-		exit();
+		if (currentThread->isInSyscall) {
+			printf("OverflowException: In system call, integer overflow in add or subract.\n");
+		}
+		else {
+			printf("OverflowException: Integer overflow in add or subract. Terminating process...\n");
+			exit(-65535);
+		}
 		break;
+	
 	case IllegalInstrException: // Unimplemented or reserved instruction
-		printf("IllegalInstrException: Unimplemented or reserved instruction. Terminating process...\n");
-		exit();
+		if (currentThread->isInSyscall) {
+			printf("IllegalInstrException: In system call, unimplemented or reserved instruction.\n");
+		}
+		else {
+			printf("IllegalInstrException: Unimplemented or reserved instruction. Terminating process...\n");
+			exit(-65535);
+		}
 		break;
+	
 	default:
 		printf("Unexpected user mode exception %d\n", which);
 		ASSERT(FALSE);

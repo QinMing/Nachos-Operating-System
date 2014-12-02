@@ -15,6 +15,6 @@ int main(){
 	
 	Write("Results: ",9,ConsoleOutput);
 	Write(buffer, i+1, ConsoleOutput);
-	return 0;
-	//Exit(010);
+	Write("(Demo end)\n", 11, ConsoleOutput);
+	Exit(0);
 }
