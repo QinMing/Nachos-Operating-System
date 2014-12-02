@@ -23,12 +23,12 @@ The functionality of this part is tested in later parts.
 ##2. Exec and Exit
 
 	Tests:(called from userprog by executing ./nachos -x ../test/{testname})
-		testp2 - the first process calls Exec to create a second process(array) and save the return value of Exec as Exit status value. Both call Exit when come to an end. Both get the proper Exit status value which is 2(SpaceId for the second process) for the first and 1128 for the second
+		testp2 - the first process calls Exec to create a second process(array) and save the return value of Exec as Exit status value. They get the proper Exit status value which are 2(SpaceId for the second process) for the first and 1128 for the second
 		testp2_fileNameNotExist - call Exec with an in file name can not be found. Cause a fault Exec returns 0
 		testp2_fileNameTooLong - call Exec with a file name too long. Cause a fault Exec returns 0
-		testp2_fileNameNotEndWithNull - call Exec with a file name not ended in a null character. Since the undefined characters are NULLs, so system will always read a null character at the end. Thus the system regards the filename not ended in null the same as normal ones, if other situations are the same
+		testp2_fileNameNotEndWithNull - call Exec with a file name not ended in a null character. Since the undefined characters are NULLs, so system will always read a null character at the end. Thus the system regards the filename not ended in null the same as normal ones, if other conditions are the same.
 		testp2_sizeTooLarge - call Exec on a process exceeds the physical memory. The system print "run out of physical memory" and Exec returns 0
-		testp2_physicalMemoryBoundary - Use this test to check the system is able to load many programs one after another, and the Exit really deletes process. This test calls Exec to creat itself and then exit. So if exit really deletes the process the test will last forever otherwise it will stop when reaching the memory boundary.
+		testp2_physicalMemoryBoundary - Use this test to check the system is able to load many programs one after another, and the Exit really deletes process. This test calls Exec to creat itself and then exit. So if exit really deletes the process the test will last forever otherwise it will stop when reaching the memory boundary. Press Ctrl+C to exit.
 ---------------------
 
 ##3. Passing arguments in Exec

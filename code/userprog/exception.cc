@@ -463,17 +463,33 @@ ExceptionHandler(ExceptionType which)
 		return;
 	}
 	case PageFaultException: // No valid translation found
-		printf("PageFaultException: No valid translation found. Terminating process...\n");
-		exit(-65535);
+		if (currentThread->isInSyscall) {
+			printf("PageFaultException: In system call, no valid translation found.\n");
+        }else{
+            printf("PageFaultException: No valid translation found. Terminating process...\n");
+            exit(-65535);
+        }
 		break;
+
 	case ReadOnlyException: // Write attempted to page marked "read-only"
-		printf("ReadOnlyException: Write attempted to page marked \"read-only\". Terminating process...\n");
-		exit(-65535);
+        if (currentThread->isInSyscall) {
+			printf("PageFaultException: In system call, write attempted to page marked \"read-only\".\n");
+        }else{
+            printf("ReadOnlyException: Write attempted to page marked \"read-only\". Terminating process...\n");
+            exit(-65535);
+        }
 		break;
+
 	case BusErrorException: // Translation resulted in an invalid physical addresss
-		printf("BusErrorException: Translation resulted in an invalid physical address. Terminating process...\n");
-		exit(-65535);
+		if (currentThread->isInSyscall) {
+			printf("BusErrorException: In system call, translation resulted in an invalid physical address.\n");
+		}
+		else {
+			printf("BusErrorException: Translation resulted in an invalid physical address. Terminating process...\n");
+			exit(-65535);
+		}
 		break;
+	
 	case AddressErrorException: // Unaligned reference or one that was beyond the end of the address space
 		if (currentThread->isInSyscall) {
 			printf("AddressErrorException: In system call, unaligned reference or one that was beyond the end of the address space.\n");
@@ -483,14 +499,27 @@ ExceptionHandler(ExceptionType which)
 			exit(-65535);
 		}
 		break;
+	
 	case OverflowException: // Integer overflow in add or subtract
-		printf("OverflowException: Integer overflow in add or subract. Terminating process...\n");
-		exit(-65535);
+		if (currentThread->isInSyscall) {
+			printf("OverflowException: In system call, integer overflow in add or subract.\n");
+		}
+		else {
+			printf("OverflowException: Integer overflow in add or subract. Terminating process...\n");
+			exit(-65535);
+		}
 		break;
+	
 	case IllegalInstrException: // Unimplemented or reserved instruction
-		printf("IllegalInstrException: Unimplemented or reserved instruction. Terminating process...\n");
-		exit(-65535);
+		if (currentThread->isInSyscall) {
+			printf("IllegalInstrException: In system call, unimplemented or reserved instruction.\n");
+		}
+		else {
+			printf("IllegalInstrException: Unimplemented or reserved instruction. Terminating process...\n");
+			exit(-65535);
+		}
 		break;
+	
 	default:
 		printf("Unexpected user mode exception %d\n", which);
 		ASSERT(FALSE);

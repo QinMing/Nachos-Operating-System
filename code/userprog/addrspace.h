@@ -18,12 +18,12 @@
 #include "synch.h"
 class Semaphore;
 
-#define UserStackNumPage	16
+#define UserStackNumPage	32
 #define UserStackSize		(UserStackNumPage*PageSize) 	// increase this as necessary!
 	//need to be a multiple of PageSize (128 B) 
 	//when allocating stack for user threads
 
-#define MaxUserThread		32
+#define MaxUserThread		16
 
 
 class AddrSpace {
