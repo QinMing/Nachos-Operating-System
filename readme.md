@@ -63,10 +63,10 @@ We added functionality to the ExceptionHandler function in /userprog/exception.c
     Tests: (called from userprog by executing ./nachos -x ../test/{testname})
         testp5 - Triggers an IllegalInstrException by attempting to divide by zero.
         testp5_exec - Triggers an IllegalInstrException in a process created by the Exec system call
-        testp5_2_exec - Calls 3 other programs that will trigger AddressErrorException. They are:
-                                1. testp5_2_Normal - Directly access an invalid address. The kernel will kill this program by force.
-                                2. testp5_2_Write - Writes to console using invalid buffer address. The system call will return -1 and the program will Exit normally.
-                                3. testp5_2_Read - Similar to Write.
+        testp5_2_exec - Executes 3 programs that will trigger AddressErrorException. They are:
+            1. testp5_2_Normal - Directly access an invalid address. The kernel will kill this program by force.
+            2. testp5_2_Write - Writes to console using invalid buffer address. The system call will return -1 and the program will Exit normally.
+            3. testp5_2_Read - Similar to Write.
 --------------------
 
 ##6. Join
@@ -83,12 +83,22 @@ We implemented join system call. It takes one argument, the SpaceId of the proce
 
 ##7. Piping
 
-...Description...
+We created the Pipe class. The parent process maintains a list of pipe line. Everytime it exec a new process with appropriate pipecrtl, it adds a new pipe to the list and set the inputPipe and outputPipe of the new process accordingly. 
+
+	Tests:(called from userprog by executing ./nachos -x ../test/{testname})
+		testp7_pipetest - Execute one pipetest_produce, two pipetest_mid and one pipetest_consume.
+            The first process pipetest_produce will read a letter from the console, and pass it to the
+            next process. Every process will add one letter to the string. The last process, 
+            pipetest_consume, will print the string to the console.		
 --------------------
 
 ##8. Multithreading
 
-...Description...
+We provide support to multi-thread programs. Now the Exit system call implies that the calling thread is finished, and that if it's the last thread inside the process, the process is finished as well. The return value of the process depends on the last thread to call Exit. As an convention, We need user program to explicitly call Exit when the forked thread is finished.
+In detail, when Fork is called, the kernel will add another user stack at the end of address space, then map the new space into physical memory. The machine registers will be set slightly different when initializing the new thread.
+
+    Tests:(called from userprog by executing ./nachos -x ../test/{testname})
+        testp8_multi - Forks a thread and ping-pong between the two threads.
 --------------------
 
 
