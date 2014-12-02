@@ -78,7 +78,7 @@ We implemented join system call. It takes one argument, the SpaceId of the proce
 		testp6_join2ndTime - two processes calls Join on the same process and one of the caller result in a fault(Return value -65535)
 		testp6_joinOnItself - the process calls Join on itself and result in a fault(Return value -65535)
 		testp6_joinOnNotToJoined - the process calls Join on a process whose argument willJoin's last bit not set to 1, result in a fault(Return value -65535)
-		tsetp6_joinOnAnUnForked - the process calls Join on a process whose Space Id can't not be found. Result in a fault(Return value -65535)
+		testp6_joinOnInvalidPID - the process calls Join on a process whose Space Id can't not be found. Result in a fault(Return value -65535)
 --------------------
 
 ##7. Piping
