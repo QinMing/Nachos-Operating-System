@@ -19,7 +19,7 @@
 #include "system.h"
 #include "addrspace.h"
 #include "memoryManager.h"
-#include "noff.h"
+//#include "noff.h"
 #include "utility.h"
 #ifdef HOST_SPARC
 #include <strings.h>
@@ -85,20 +85,70 @@ AddrSpace::~AddrSpace()
 
 }
 
-//----------------------------------------------------------------------
-// AddrSpace::InitRegisters
-// 	Set the initial values for the user-level register set.
-//
-// 	We write these directly into the "machine" registers, so
-//	that we can immediately jump to user code.  Note that these
-//	will be saved/restored into the currentThread->userRegisters
-//	when this thread is context switched out.
-//----------------------------------------------------------------------
+//determine which segment does a address located in
+//return value: 
+//0 : code, initData or uninitData
+//1 : stack
+int AddrSpace::whichSeg(int virtAddr, Segment* segPtr) {
+	if (noffH.code.size > 0) {
+		if (( virtAddr > noffH.code.virtualAddr ) &&
+			( virtAddr < noffH.code.virtualAddr + noffH.code.size ))
+		{
+			( *segPtr ) = noffH.code;
+			return 0;
+		}
+	}
+	if (noffH.initData.size > 0) {
+		if (( virtAddr > noffH.initData.virtualAddr ) &&
+			( virtAddr < noffH.initData.virtualAddr + noffH.initData.size ))
+		{
+			( *segPtr ) = noffH.initData;
+			return 0;
+		}
+	}
+	if (noffH.uninitData.size > 0) {
+		if (( virtAddr > noffH.uninitData.virtualAddr ) &&
+			( virtAddr < noffH.uninitData.virtualAddr + noffH.uninitData.size ))
+		{
+			( *segPtr ) = noffH.uninitData;
+			return 0;
+		}
+	}
+	return 1;
+}
+
+int AddrSpace::pagein(int vpn) {
+	int readAddr, physAddr, size;
+	int virtAddr = vpn * PageSize;
+	int offs = 0;
+	Segment seg;
+
+	//to do: AllocPage
+
+	do {
+		physAddr = pageTable[vpn].physicalPage * PageSize + offs;
+		if (whichSeg(virtAddr, &seg) == 0) {
+			int segOffs = virtAddr - seg.virtualAddr;
+			readAddr = segOffs + seg.inFileAddr;
+			size = min(PageSize - offs, seg.size - segOffs);
+			exeFile->ReadAt(&( machine->mainMemory[physAddr] ), size, readAddr);
+		}
+		else
+		{
+			bzero(&( machine->mainMemory[physAddr] ), PageSize - offs);
+			return 0;
+		}
+		offs += size;
+		virtAddr += size;
+	} while (offs < PageSize);
+	return 0;
+}
 
 int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
-	NoffHeader noffH;
+	//NoffHeader noffH;
 	int size, i;
 
+	exeFile = executable;
 	executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
 	if ((noffH.noffMagic != NOFFMAGIC) &&
 		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
@@ -151,7 +201,7 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 			pageTable = NULL;
 			return -1;
 		}
-		pageTable[i].valid = TRUE;
+		pageTable[i].valid = FALSE;
 		pageTable[i].use = FALSE;
 		pageTable[i].dirty = FALSE;
 		pageTable[i].readOnly = FALSE;  // if the code segment was entirely on
@@ -338,6 +388,15 @@ int AddrSpace::NewStack()
 	return 0;
 }
 
+//----------------------------------------------------------------------
+// AddrSpace::InitRegisters
+// 	Set the initial values for the user-level register set.
+//
+// 	We write these directly into the "machine" registers, so
+//	that we can immediately jump to user code.  Note that these
+//	will be saved/restored into the currentThread->userRegisters
+//	when this thread is context switched out.
+//----------------------------------------------------------------------
 void
 AddrSpace::InitRegisters()
 {
