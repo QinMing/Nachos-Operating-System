@@ -14,6 +14,7 @@
 #define ADDRSPACE_H
 
 #include "copyright.h"
+#include "noff.h"
 #include "filesys.h"
 #include "synch.h"
 class Semaphore;
@@ -48,6 +49,9 @@ public:
 	int NewStack();
 	void InitNewThreadRegs(int func);
 
+	//functions for demand paging
+	int pagein(int vpn);
+
 
 private:
     TranslationEntry *pageTable;	
@@ -60,6 +64,11 @@ private:
 
 	//synchronize user thread creation
 	Semaphore *createNewThread;
+
+	//Added in project 3 Demand paging
+	NoffHeader noffH;
+	OpenFile *exeFile;
+	int whichSeg(int virtAddr, Segment* segPtr);
 };
 
 #endif // ADDRSPACE_H
