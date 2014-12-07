@@ -87,6 +87,7 @@ USERPROG_H = ../userprog/addrspace.h\
 	../userprog/synchconsole.h\
 	../userprog/process.h\
 	../userprog/pipe.h\
+	../userprog/backingstore.h\
 	../filesys/filesys.h\
 	../filesys/openfile.h\
 	../machine/console.h\
@@ -104,6 +105,7 @@ USERPROG_C = ../userprog/addrspace.cc\
 	../userprog/memoryManager.cc\
 	../userprog/synchconsole.cc\
 	../userprog/pipe.cc\
+	../userprog/backingstore.cc\
 	../machine/console.cc\
 	../machine/machine.cc\
 	../machine/mipssim.cc\
@@ -112,7 +114,7 @@ USERPROG_C = ../userprog/addrspace.cc\
 
 USERPROG_O = addrspace.o bitmap.o exception.o progtest.o console.o machine.o \
 	mipssim.o translate.o memoryManager.o table.o process.o synchconsole.o\
-	pipe.o
+	pipe.o backingstore.o
 
 VM_H = 
 VM_C = 
