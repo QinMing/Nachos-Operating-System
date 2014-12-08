@@ -113,10 +113,10 @@ int AddrSpace::whichSeg(int virtAddr, Segment* segPtr) {
 			( virtAddr < noffH.uninitData.virtualAddr + noffH.uninitData.size ))
 		{
 			( *segPtr ) = noffH.uninitData;
-			return 0;
+			return 1;
 		}
 	}
-	return 1;
+	return 2;
 }
 
 //assume there's no bubble in the exe file.
