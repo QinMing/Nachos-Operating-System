@@ -19,8 +19,8 @@
 #include "synch.h"
 class Semaphore;
 
-#define UserStackNumPage	16
-#define UserStackSize		(UserStackNumPage*PageSize) 	// increase this as necessary!
+#define UserStackNumPage	16					// increase this as necessary!
+#define UserStackSize		(UserStackNumPage*PageSize) 	
 	//need to be a multiple of PageSize (128 B) 
 	//when allocating stack for user threads
 
@@ -40,10 +40,6 @@ public:
 
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch
-	
-	//look for a page. returns physical page number.
-	//return -1 if error 
-	//int AddrSpace::Translate(int vpn);
 
 	//functions for user level threads
 	int NewStack();

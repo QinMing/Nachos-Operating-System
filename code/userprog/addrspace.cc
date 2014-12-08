@@ -119,26 +119,40 @@ int AddrSpace::whichSeg(int virtAddr, Segment* segPtr) {
 	return 1;
 }
 
+//assume there's no bubble in the exe file.
+//Because when the first address in the page is not in code, initData or uninitData segment, 
+//the whole page will be zero-filled
 int AddrSpace::loadPage(int vpn) {
-	int readAddr, physAddr, size;
+	int readAddr, physAddr, size, segOffs;
 	int virtAddr = vpn * PageSize;
 	int offs = 0;
 	Segment seg;
 
 	do {
 		physAddr = pageTable[vpn].physicalPage * PageSize + offs;
-		if (whichSeg(virtAddr, &seg) == 0) {
-			int segOffs = virtAddr - seg.virtualAddr;
+		switch (whichSeg(virtAddr, &seg)) {
+		case 0://code or initData
+		{
+			segOffs = virtAddr - seg.virtualAddr;
 			readAddr = segOffs + seg.inFileAddr;
 			size = min(PageSize - offs, seg.size - segOffs);
 			exeFile->ReadAt(&( machine->mainMemory[physAddr] ), size, readAddr);
 			//printf("====LoadPage[%d]seg.virtualAddr=%d, physAddr=%d, size=%d, readAddr=%d\n", vpn, seg.virtualAddr, physAddr, size, readAddr);
+			break;
 		}
-		else
+		case 1://uninitData
+		{
+			size = min(PageSize - offs, seg.size + seg.virtualAddr - virtAddr);
+			bzero(&( machine->mainMemory[physAddr] ), size);
+			break;
+
+		}
+		case 2://stack or others
 		{
 			//printf("====ZeroPage[%d]physAddr=%d, size=%d\n", vpn, physAddr, PageSize - offs);
 			bzero(&( machine->mainMemory[physAddr] ), PageSize - offs);
-			return 0;
+			return 0;//don't use break
+		}
 		}
 		offs += size;
 		virtAddr += size;
@@ -233,13 +247,6 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 	}
 
 	//then, copy in the code and data segments into memory
-	//if (noffH.code.size > 0) {
-	//	DEBUG('a', "Initializing code segment, at 0x%x, size %d\n",
-	//		noffH.code.virtualAddr, noffH.code.size);
-	//	executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
-	//		noffH.code.size, noffH.code.inFileAddr);
-	//}
-
 	if (noffH.code.size > 0) {
 		int readAddr = noffH.code.inFileAddr;
 		int virtAddr = noffH.code.virtualAddr;
@@ -273,12 +280,7 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 			executable->ReadAt(&(machine->mainMemory[physAddr]),size,readAddr);
 		}
 	}
-	/*if (noffH.initData.size > 0) {
-		DEBUG('a', "Initializing data segment, at 0x%x, size %d\n",
-			noffH.initData.virtualAddr, noffH.initData.size);
-		executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
-			noffH.initData.size, noffH.initData.inFileAddr);
-	}*/
+
 	if (noffH.initData.size > 0) {
 		int readAddr = noffH.initData.inFileAddr;
 		int virtAddr = noffH.initData.virtualAddr;

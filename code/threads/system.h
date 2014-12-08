@@ -33,7 +33,7 @@ extern Timer *timer;				// the hardware alarm clock
 #include "machine.h"
 typedef int SpaceId;
 #define MaxNumProcess 1000
-#define MaxStringLength 256	// maximun string length of an argument
+#define MaxStringLength 128	// maximun string length of an argument
 extern Machine* machine;	// user program memory and registers
 #endif
 
