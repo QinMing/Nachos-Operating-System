@@ -141,7 +141,6 @@ int Process::Load(Thread* firstThread, char *filename, int argc, char **argv) {
 		space = NULL;
 		return -1;
 	}
-	delete executable;			// close file
 	firstThread->space = space;
 	firstThread->processId = pid;
 	numThread = 1;

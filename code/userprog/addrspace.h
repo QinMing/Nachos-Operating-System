@@ -50,7 +50,7 @@ public:
 	void InitNewThreadRegs(int func);
 
 	//functions for demand paging
-	int pagein(int vpn);
+	int pageFault(int vpn);
 
 
 private:
@@ -68,6 +68,8 @@ private:
 	//Added in project 3 Demand paging
 	NoffHeader noffH;
 	OpenFile *exeFile;
+
+	int loadPage(int vpn);
 	int whichSeg(int virtAddr, Segment* segPtr);
 };
 

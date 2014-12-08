@@ -81,6 +81,8 @@ AddrSpace::~AddrSpace()
 			mm->FreePage(pageTable[i].physicalPage);
 		delete[] pageTable;
 	}
+	delete exeFile;			// close file
+
 	//mm->Print();
 
 }
@@ -91,7 +93,7 @@ AddrSpace::~AddrSpace()
 //1 : stack
 int AddrSpace::whichSeg(int virtAddr, Segment* segPtr) {
 	if (noffH.code.size > 0) {
-		if (( virtAddr > noffH.code.virtualAddr ) &&
+		if (( virtAddr >= noffH.code.virtualAddr ) &&
 			( virtAddr < noffH.code.virtualAddr + noffH.code.size ))
 		{
 			( *segPtr ) = noffH.code;
@@ -99,7 +101,7 @@ int AddrSpace::whichSeg(int virtAddr, Segment* segPtr) {
 		}
 	}
 	if (noffH.initData.size > 0) {
-		if (( virtAddr > noffH.initData.virtualAddr ) &&
+		if (( virtAddr >= noffH.initData.virtualAddr ) &&
 			( virtAddr < noffH.initData.virtualAddr + noffH.initData.size ))
 		{
 			( *segPtr ) = noffH.initData;
@@ -107,7 +109,7 @@ int AddrSpace::whichSeg(int virtAddr, Segment* segPtr) {
 		}
 	}
 	if (noffH.uninitData.size > 0) {
-		if (( virtAddr > noffH.uninitData.virtualAddr ) &&
+		if (( virtAddr >= noffH.uninitData.virtualAddr ) &&
 			( virtAddr < noffH.uninitData.virtualAddr + noffH.uninitData.size ))
 		{
 			( *segPtr ) = noffH.uninitData;
@@ -117,13 +119,11 @@ int AddrSpace::whichSeg(int virtAddr, Segment* segPtr) {
 	return 1;
 }
 
-int AddrSpace::pagein(int vpn) {
+int AddrSpace::loadPage(int vpn) {
 	int readAddr, physAddr, size;
 	int virtAddr = vpn * PageSize;
 	int offs = 0;
 	Segment seg;
-
-	//to do: AllocPage
 
 	do {
 		physAddr = pageTable[vpn].physicalPage * PageSize + offs;
@@ -132,9 +132,11 @@ int AddrSpace::pagein(int vpn) {
 			readAddr = segOffs + seg.inFileAddr;
 			size = min(PageSize - offs, seg.size - segOffs);
 			exeFile->ReadAt(&( machine->mainMemory[physAddr] ), size, readAddr);
+			//printf("====LoadPage[%d]seg.virtualAddr=%d, physAddr=%d, size=%d, readAddr=%d\n", vpn, seg.virtualAddr, physAddr, size, readAddr);
 		}
 		else
 		{
+			//printf("====ZeroPage[%d]physAddr=%d, size=%d\n", vpn, physAddr, PageSize - offs);
 			bzero(&( machine->mainMemory[physAddr] ), PageSize - offs);
 			return 0;
 		}
@@ -142,6 +144,11 @@ int AddrSpace::pagein(int vpn) {
 		virtAddr += size;
 	} while (offs < PageSize);
 	return 0;
+}
+
+int AddrSpace::pageFault(int vpn) {
+	pageTable[vpn].valid = TRUE;
+	return loadPage(vpn);
 }
 
 int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
@@ -208,6 +215,10 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 		// a separate page, we could set its pages to be read-only
 	}
 
+	printf("noffH.code %d,%d\n", noffH.code.virtualAddr, noffH.code.size);
+	printf("noffH.initData %d,%d\n", noffH.initData.virtualAddr, noffH.initData.size);
+	printf("noffH.uninitData %d,%d\n", noffH.uninitData.virtualAddr, noffH.uninitData.size);
+
 	//debug
 	//printf("mmap:  First phys page=%d, size = %d\n",pageTable[0].physicalPage,size);
 
@@ -215,6 +226,7 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 	// zero out the entire address space, to zero the unitialized data segment
 	// and the stack segment
 	//bzero(machine->mainMemory, size);
+
 	for (i = 0; i < numPages; i++) {
 		int physAddr=pageTable[i].physicalPage * PageSize;
 		bzero(&(machine->mainMemory[physAddr]), PageSize);
@@ -227,6 +239,7 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 	//	executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
 	//		noffH.code.size, noffH.code.inFileAddr);
 	//}
+
 	if (noffH.code.size > 0) {
 		int readAddr = noffH.code.inFileAddr;
 		int virtAddr = noffH.code.virtualAddr;
@@ -260,7 +273,6 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 			executable->ReadAt(&(machine->mainMemory[physAddr]),size,readAddr);
 		}
 	}
-
 	/*if (noffH.initData.size > 0) {
 		DEBUG('a', "Initializing data segment, at 0x%x, size %d\n",
 			noffH.initData.virtualAddr, noffH.initData.size);
