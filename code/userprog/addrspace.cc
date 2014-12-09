@@ -63,10 +63,11 @@ SwapHeader (NoffHeader *noffH)
 //	"executable" is the file containing the object code to load into memory
 //----------------------------------------------------------------------
 
-AddrSpace::AddrSpace(int pid)
+AddrSpace::AddrSpace()
 {    	
 	pageTable = NULL;
 	createNewThread = NULL;
+	backingStore = NULL;
 }
 
 //----------------------------------------------------------------------
@@ -174,7 +175,7 @@ int AddrSpace::pageFault(int vpn) {
 	return loadPage(vpn);
 }
 
-int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
+int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv, int pid){
 	//NoffHeader noffH;
 	int size, i;
 

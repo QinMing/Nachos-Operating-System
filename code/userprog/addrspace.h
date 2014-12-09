@@ -29,12 +29,12 @@ class Semaphore;
 
 class AddrSpace {
 public:
-	AddrSpace(int pid);	// Create an address space,
+	AddrSpace();	// Create an address space,
 	// initializing it with the program
 	// stored in the file "executable"
 	~AddrSpace();			// De-allocate an address space
 
-	int Initialize(OpenFile *executable, int argc, char **argv);
+	int Initialize(OpenFile *executable, int argc, char **argv, int pid);
     void InitRegisters();		// Initialize user-level CPU registers,
     // before jumping to user code
 
