@@ -17,6 +17,7 @@
 #include "noff.h"
 #include "filesys.h"
 #include "synch.h"
+#include "backingstore.h"
 class Semaphore;
 
 #define UserStackNumPage	16					// increase this as necessary!
@@ -64,6 +65,8 @@ private:
 	//Added in project 3 Demand paging
 	NoffHeader noffH;
 	OpenFile *exeFile;
+
+	BackingStore* backingStore;
 
 	int loadPage(int vpn);
 	int whichSeg(int virtAddr, Segment* segPtr);
