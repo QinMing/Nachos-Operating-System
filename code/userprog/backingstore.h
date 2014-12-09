@@ -4,12 +4,21 @@
 #define BACKINGSTORE_H
 
 #include "addrspace.h"
+#include "filesys.h"
 
 class BackingStore {
  private:
-  public:
-  /* Create a backing store file for an AddrSpace */
-  BackingStore(AddrSpace *as);
+  OpenFile *bsFile;
+  int numPages;
+  char *bsFileName;
+ public:
+  /* Store file name for an AddrSpace backing store */
+  BackingStore(AddrSpace *as, int numPages, int pid);
+
+  ~BackingStore();
+
+  /* Actually create the backing store file (on first evict) */
+  void init();
 
   /* Write the virtual page referenced by PTE to the backing store
      Example invocation: PageOut(&machine->pagetTable[virtualPage] or
@@ -18,7 +27,7 @@ class BackingStore {
   void PageOut(TranslationEntry *pte);
 
   /* Read the virtual page referenced by PTE from the backing store */
-  void PageIn(TranslationEntry *pte);
+  int PageIn(TranslationEntry *pte);
 
 };
 

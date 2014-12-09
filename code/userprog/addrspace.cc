@@ -85,7 +85,8 @@ AddrSpace::~AddrSpace()
 	delete exeFile;			// close file
 
 	//mm->Print();
-
+	
+	if (backingStore) delete backingStore;
 }
 
 //determine which segment does a address located in
@@ -128,6 +129,8 @@ int AddrSpace::loadPage(int vpn) {
 	int virtAddr = vpn * PageSize;
 	int offs = 0;
 	Segment seg;
+	
+	stats->numPageIns++;
 
 	do {
 		physAddr = pageTable[vpn].physicalPage * PageSize + offs;
@@ -229,6 +232,8 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv, int pid){
 		pageTable[i].readOnly = FALSE;  // if the code segment was entirely on
 		// a separate page, we could set its pages to be read-only
 	}
+	// Create backing store
+	backingStore = new BackingStore(this, maxNumPages, pid);
 
 	printf("noffH.code %d,%d\n", noffH.code.virtualAddr, noffH.code.size);
 	printf("noffH.initData %d,%d\n", noffH.initData.virtualAddr, noffH.initData.size);
