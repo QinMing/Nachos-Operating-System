@@ -164,7 +164,7 @@ SpaceId exec(char *filename, int argc, char **argv, int opt) {
 	bool willJoin = opt & 0x1;
 	bool hasout = opt & 0x2;
 	bool hasin = opt & 0x4;
-	printf("%s,PC=%d\n",filename,machine->ReadRegister(PCReg));
+	//printf("%s,PC=%d\n",filename,machine->ReadRegister(PCReg));
 
 	Process* process = new Process("P", willJoin);
 	SpaceId pid = processTable->Alloc(process);
@@ -434,6 +434,8 @@ ExceptionHandler(ExceptionType which)
 	}
 	case PageFaultException: // No valid translation found
 	{
+		stats->numPageFaults++;
+		
 		int vpn = machine->ReadRegister(BadVAddrReg) / PageSize;
 		//printf("bad addr = %d\n",machine->ReadRegister(BadVAddrReg));
 		currentThread->space->pageFault(vpn);

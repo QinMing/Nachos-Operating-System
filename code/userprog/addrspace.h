@@ -16,9 +16,11 @@
 #include "copyright.h"
 #include "noff.h"
 #include "filesys.h"
+
 #include "synch.h"
 #include "backingstore.h"
 class Semaphore;
+
 
 #define UserStackNumPage	16					// increase this as necessary!
 #define UserStackSize		(UserStackNumPage*PageSize) 	
@@ -30,7 +32,7 @@ class Semaphore;
 
 class AddrSpace {
 public:
-	AddrSpace();	// Create an address space,
+	AddrSpace(int pid);	// Create an address space,
 	// initializing it with the program
 	// stored in the file "executable"
 	~AddrSpace();			// De-allocate an address space
