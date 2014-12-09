@@ -63,8 +63,11 @@ SwapHeader (NoffHeader *noffH)
 //	"executable" is the file containing the object code to load into memory
 //----------------------------------------------------------------------
 
-AddrSpace::AddrSpace()
+AddrSpace::AddrSpace(int pid)
 {    
+	char s[1];
+	sprintf(s,"3");
+	
 	pageTable = NULL;
 	createNewThread = NULL;
 }
@@ -161,7 +164,16 @@ int AddrSpace::loadPage(int vpn) {
 }
 
 int AddrSpace::pageFault(int vpn) {
+	pageTable[vpn].physicalPage = mm->AllocPage();
+	if (pageTable[vpn].physicalPage == -1){
+		printf("Error: run out of physical memory\n");
+		//to do:
+		//should yield and wait for memory space
+		//and try again
+		ASSERT(FALSE);//panic at this time
+	}
 	pageTable[vpn].valid = TRUE;
+	
 	return loadPage(vpn);
 }
 
@@ -211,17 +223,8 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 
 	// Set up the translation
 	pageTable = new TranslationEntry[maxNumPages];
-	for (i = 0; i < numPages; i++) {
+	for (i = 0; i < maxNumPages; i++) {
 		pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-		pageTable[i].physicalPage = mm->AllocPage();
-		if (pageTable[i].physicalPage == -1){
-			printf("Error: run out of physical memory\n");
-			for (int j=0;j<i;j++)
-				mm->FreePage(pageTable[j].physicalPage);
-			delete[] pageTable;
-			pageTable = NULL;
-			return -1;
-		}
 		pageTable[i].valid = FALSE;
 		pageTable[i].use = FALSE;
 		pageTable[i].dirty = FALSE;
@@ -241,12 +244,13 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 	// and the stack segment
 	//bzero(machine->mainMemory, size);
 
-	for (i = 0; i < numPages; i++) {
-		int physAddr=pageTable[i].physicalPage * PageSize;
-		bzero(&(machine->mainMemory[physAddr]), PageSize);
-	}
+	//for (i = 0; i < numPages; i++) {
+	//	int physAddr=pageTable[i].physicalPage * PageSize;
+	//	bzero(&(machine->mainMemory[physAddr]), PageSize);
+	//}
 
 	//then, copy in the code and data segments into memory
+	/*
 	if (noffH.code.size > 0) {
 		int readAddr = noffH.code.inFileAddr;
 		int virtAddr = noffH.code.virtualAddr;
@@ -279,46 +283,17 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 			physAddr = pageTable[page].physicalPage * PageSize;
 			executable->ReadAt(&(machine->mainMemory[physAddr]),size,readAddr);
 		}
-	}
-
-	if (noffH.initData.size > 0) {
-		int readAddr = noffH.initData.inFileAddr;
-		int virtAddr = noffH.initData.virtualAddr;
-		int page = virtAddr / PageSize;
-		int offs = virtAddr % PageSize;
-		int physAddr;
-
-		if (offs != 0){
-			size = PageSize - offs;
-			if (size > noffH.initData.size)
-				size = noffH.initData.size;
-			physAddr = pageTable[page].physicalPage * PageSize + offs;
-			executable->ReadAt(&(machine->mainMemory[physAddr]),size,readAddr);
-			readAddr += size;
-			virtAddr += size;
-			page++;
-			offs = 0;
-		}
-		size = PageSize;
-		while (virtAddr + PageSize <= noffH.initData.virtualAddr + noffH.initData.size) {
-			physAddr = pageTable[page].physicalPage * PageSize;
-			executable->ReadAt(&(machine->mainMemory[physAddr]), size, readAddr);
-			readAddr += PageSize;
-			virtAddr += PageSize;
-			page ++;
-		}
-		if (virtAddr < noffH.initData.virtualAddr + noffH.initData.size){
-			size = noffH.initData.virtualAddr + noffH.initData.size - virtAddr;
-			physAddr = pageTable[page].physicalPage * PageSize;
-			executable->ReadAt(&(machine->mainMemory[physAddr]),size,readAddr);
-		}
-	}
+	}*/
 
 	//Adding arguments into user memory
 	if (argc >0 ){
 		int virtAddr,physAddr;
 		for (i=0;i<argc;i++){
 			virtAddr = argHeadVirtAddr+ i*MaxStringLength;
+			if (!pageTable[virtAddr/PageSize].valid){
+				pageFault(virtAddr/PageSize);
+				ASSERT(pageTable[virtAddr/PageSize].valid);//panic for now
+			}
 			char* src=argv[i];
 			int j = 0;
 			while (src[j] != '\0'){
@@ -326,6 +301,10 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 				machine->mainMemory[physAddr] = src[j];
 				virtAddr ++;
 				j++;
+				if ((virtAddr % PageSize==0)&&(!pageTable[virtAddr/PageSize].valid)){
+					pageFault(virtAddr/PageSize);
+					ASSERT(pageTable[virtAddr/PageSize].valid);//panic for now
+				}
 			}
 			physAddr = pageTable[virtAddr / PageSize].physicalPage * PageSize + virtAddr % PageSize;
 			machine->mainMemory[physAddr] = '\0';
@@ -338,6 +317,10 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv){
 			virtAddr += 4-(virtAddr & 0x3);
 		argvAddrForMain = virtAddr;
 		for (i=0;i<argc;i++){
+			if (!pageTable[virtAddr/PageSize].valid){
+				pageFault(virtAddr/PageSize);
+				ASSERT(pageTable[virtAddr/PageSize].valid);//panic for now
+			}
 			physAddr = pageTable[virtAddr / PageSize].physicalPage * PageSize + virtAddr % PageSize;
 			*(char**) &machine->mainMemory[physAddr] = (char*)argHeadVirtAddr + i*MaxStringLength;
 			virtAddr += 4;
@@ -374,10 +357,27 @@ int AddrSpace::NewStack()
 		printf("Error: too many user threads!\n");
 		return -1;
 	}
+	numPages += UserStackNumPage;
+
+	return 0;
+}
+
+/* codes in project 2
+int AddrSpace::NewStack() 
+{
+	if (createNewThread == NULL)
+		createNewThread = new Semaphore("createNewThread",1);
+	createNewThread->P();
+	
+	//For now, only add space at the end, but will not free memory for finished threads.
+	if (numPages + UserStackNumPage > maxNumPages) {
+		printf("Error: too many user threads!\n");
+		return -1;
+	}
 	int i;
 	int oldNumPages = numPages;
 	numPages += UserStackNumPage;
-
+	
 	for (i = oldNumPages; i < numPages; i++) {
 		pageTable[i].virtualPage = i;
 		pageTable[i].physicalPage = mm->AllocPage();
@@ -393,14 +393,16 @@ int AddrSpace::NewStack()
 		pageTable[i].dirty = FALSE;
 		pageTable[i].readOnly = FALSE;  
 	}
-
+	
 	for (i = oldNumPages; i < numPages; i++) {
 		int physAddr = pageTable[i].physicalPage * PageSize;
 		bzero(&( machine->mainMemory[physAddr] ), PageSize);
 	}
-
+	
 	return 0;
 }
+end of codes in project 2
+*/
 
 //----------------------------------------------------------------------
 // AddrSpace::InitRegisters
