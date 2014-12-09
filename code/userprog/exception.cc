@@ -434,6 +434,8 @@ ExceptionHandler(ExceptionType which)
 	}
 	case PageFaultException: // No valid translation found
 	{
+		stats->numPageFaults++;
+		
 		int vpn = machine->ReadRegister(BadVAddrReg) / PageSize;
 		//printf("bad addr = %d\n",machine->ReadRegister(BadVAddrReg));
 		currentThread->space->pageFault(vpn);

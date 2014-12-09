@@ -127,6 +127,8 @@ int AddrSpace::loadPage(int vpn) {
 	int virtAddr = vpn * PageSize;
 	int offs = 0;
 	Segment seg;
+	
+	stats->numPageIns++;
 
 	do {
 		physAddr = pageTable[vpn].physicalPage * PageSize + offs;
