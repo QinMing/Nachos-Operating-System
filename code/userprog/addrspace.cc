@@ -64,10 +64,7 @@ SwapHeader (NoffHeader *noffH)
 //----------------------------------------------------------------------
 
 AddrSpace::AddrSpace(int pid)
-{    
-	char s[1];
-	sprintf(s,"3");
-	
+{    	
 	pageTable = NULL;
 	createNewThread = NULL;
 }
