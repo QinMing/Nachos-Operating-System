@@ -58,6 +58,6 @@ int BackingStore::PageIn(TranslationEntry *pte) {
 
   // Write buffer to memory
   for (int i = 0; i < PageSize; i++) {
-    machine->mainMemory[pte->physicalPage * PageSize + i] = (int)buffer[i];
+    machine->mainMemory[pte->physicalPage * PageSize + i] = (char)buffer[i];
   }  
 }
