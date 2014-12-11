@@ -19,7 +19,6 @@
 #include "system.h"
 #include "addrspace.h"
 #include "memoryManager.h"
-//#include "noff.h"
 #include "utility.h"
 #ifdef HOST_SPARC
 #include <strings.h>
