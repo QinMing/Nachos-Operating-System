@@ -268,6 +268,7 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv, int pid){
 	printf("noffH.code %d,%d\n", noffH.code.virtualAddr, noffH.code.size);
 	printf("noffH.initData %d,%d\n", noffH.initData.virtualAddr, noffH.initData.size);
 	printf("noffH.uninitData %d,%d\n", noffH.uninitData.virtualAddr, noffH.uninitData.size);
+	printf("numPages=%d\n",numPages);
 
 	//debug
 	//printf("mmap:  First phys page=%d, size = %d\n",pageTable[0].physicalPage,size);
@@ -513,4 +514,5 @@ void AddrSpace::RestoreState()
 {
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
+	printf("           processId=%d,numPages=%d\n",currentThread->processId,numPages);
 }

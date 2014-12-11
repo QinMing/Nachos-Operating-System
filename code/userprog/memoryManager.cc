@@ -99,11 +99,11 @@ int MemoryManager::victimPage() {
 
 	switch (EvictMethod) {
 	case FIFO:
-		do {
+		//do {
 			//ASSERT(!fifoList->IsEmpty());//Otherwise it will be trapped in dead loop.
 			//although impossible
 			ppn = (int)fifoList->Remove();
-		} while (memMap->Test(ppn));
+		//} while (!memMap->Test(ppn));
 		break;
 	case random:
 		ppn = Random() % numPhysPages;//change the seed using -rs

@@ -24,8 +24,12 @@ int main()
 	Yield();
 	Write("Enter a letter or a digit >> ", 29, output);
 	
-	int result=-111;
+	int result=1;
 	result=Join(pid);
+	Write("Process 1:After Join:",22,output);
+	result+=48;
+	Write((char*)&result,sizeof(int),output);
+	result-=48;
 
 	return result;
 }
