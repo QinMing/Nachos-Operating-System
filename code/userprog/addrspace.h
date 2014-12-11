@@ -22,7 +22,6 @@
 class Semaphore;
 class BackingStore;
 
-
 #define UserStackNumPage	16					// increase this as necessary!
 #define UserStackSize		(UserStackNumPage*PageSize) 	
 	//need to be a multiple of PageSize (128 B) 
@@ -51,6 +50,7 @@ public:
 
 	//functions for demand paging
 	int pageFault(int vpn);
+	int evictPage(int vpn);
 
 
 private:

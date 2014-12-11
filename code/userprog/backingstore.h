@@ -13,6 +13,7 @@ class BackingStore {
   OpenFile *bsFile;
   int numPages;
   char *bsFileName;
+  bool *valid;
  public:
   /* Store file name for an AddrSpace backing store */
   BackingStore(AddrSpace *as, int numPages, int pid);

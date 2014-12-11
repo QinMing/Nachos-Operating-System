@@ -5,20 +5,39 @@
 #include "bitmap.h"
 #include "synch.h"
 
-class MemoryManager{
+#include "list.h"
+#include "addrspace.h"
 
-  public:
-	  MemoryManager(int numPages);
-	  ~MemoryManager();
+enum EvictMethodType {
+	FIFO,
+	random,
+	LRU
+};
 
-	  int AllocPage();
-	  void FreePage(int physPageNum);
-	  bool PageIsAllocated(int physPageNum);
-	  void Print(){ memMap->Print(); }
-    
-  private:  
-	 BitMap* memMap;
-	 Lock* lock;
+class MemoryManager {
+
+public:
+	MemoryManager(int numPages);
+	~MemoryManager();
+
+	int AllocPage(AddrSpace* space, int vpn);
+	void FreePage(int physPageNum);
+	bool PageIsAllocated(int physPageNum);
+	void Print() { memMap->Print(); }
+
+private:
+	int numPhysPages;//now just a copy of NumPhysPages
+	BitMap* memMap;
+	Lock* lock;
+
+	//used by demand paging
+	AddrSpace** spaceTable;
+	int* vpnTable;
+	int victimPage();
+
+	//demand paging: evicting algorithm
+	EvictMethodType EvictMethod;
+	List* fifoList;
 };
 
 extern MemoryManager *mm;
