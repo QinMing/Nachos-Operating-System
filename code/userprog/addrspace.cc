@@ -90,8 +90,6 @@ AddrSpace::~AddrSpace()
 
 //determine which segment does a address located in
 //return value: 
-//0 : code, initData or uninitData
-//1 : stack
 int AddrSpace::whichSeg(int virtAddr, Segment* segPtr) {
 	if (noffH.code.size > 0) {
 		if (( virtAddr >= noffH.code.virtualAddr ) &&
@@ -106,7 +104,7 @@ int AddrSpace::whichSeg(int virtAddr, Segment* segPtr) {
 			( virtAddr < noffH.initData.virtualAddr + noffH.initData.size ))
 		{
 			( *segPtr ) = noffH.initData;
-			return 0;
+			return 1;
 		}
 	}
 	if (noffH.uninitData.size > 0) {
@@ -114,10 +112,10 @@ int AddrSpace::whichSeg(int virtAddr, Segment* segPtr) {
 			( virtAddr < noffH.uninitData.virtualAddr + noffH.uninitData.size ))
 		{
 			( *segPtr ) = noffH.uninitData;
-			return 1;
+			return 2;
 		}
 	}
-	return 2;
+	return 3;
 }
 
 //assume there's no bubble in the exe file.
@@ -129,7 +127,7 @@ int AddrSpace::loadPage(int vpn) {
 	int offs = 0;
 	Segment seg;
 	
-	stats->numPageIns++;
+	pageTable[vpn].readOnly = FALSE;
 
 	do {
 		physAddr = pageTable[vpn].physicalPage * PageSize + offs;
@@ -140,17 +138,30 @@ int AddrSpace::loadPage(int vpn) {
 			readAddr = segOffs + seg.inFileAddr;
 			size = min(PageSize - offs, seg.size - segOffs);
 			exeFile->ReadAt(&( machine->mainMemory[physAddr] ), size, readAddr);
+			if (size==PageSize){
+				pageTable[vpn].readOnly = TRUE;
+				return 0;
+			}
 			//printf("====LoadPage[%d]seg.virtualAddr=%d, physAddr=%d, size=%d, readAddr=%d\n", vpn, seg.virtualAddr, physAddr, size, readAddr);
 			break;
 		}
-		case 1://uninitData
+		case 1://initData
+		{
+			segOffs = virtAddr - seg.virtualAddr;
+			readAddr = segOffs + seg.inFileAddr;
+			size = min(PageSize - offs, seg.size - segOffs);
+			exeFile->ReadAt(&( machine->mainMemory[physAddr] ), size, readAddr);
+			//printf("====LoadPage[%d]seg.virtualAddr=%d, physAddr=%d, size=%d, readAddr=%d\n", vpn, seg.virtualAddr, physAddr, size, readAddr);
+			break;
+		}
+		case 2://uninitData
 		{
 			size = min(PageSize - offs, seg.size + seg.virtualAddr - virtAddr);
 			bzero(&( machine->mainMemory[physAddr] ), size);
 			break;
 
 		}
-		case 2://stack or others
+		case 3://stack or others
 		{
 			//printf("====ZeroPage[%d]physAddr=%d, size=%d\n", vpn, physAddr, PageSize - offs);
 			bzero(&( machine->mainMemory[physAddr] ), PageSize - offs);
@@ -163,6 +174,18 @@ int AddrSpace::loadPage(int vpn) {
 	return 0;
 }
 
+//called by memory manager
+int AddrSpace::evictPage(int vpn){
+	if (pageTable[vpn].dirty){
+		backingStore->PageOut(&pageTable[vpn]);
+	}		
+	pageTable[vpn].valid = FALSE;
+	pageTable[vpn].use = FALSE;
+	pageTable[vpn].dirty = FALSE;
+	
+	return 0;
+}
+
 int AddrSpace::pageFault(int vpn) {
 	pageTable[vpn].physicalPage = mm->AllocPage(this,vpn);
 	if (pageTable[vpn].physicalPage == -1){
@@ -172,9 +195,17 @@ int AddrSpace::pageFault(int vpn) {
 		//and try again
 		ASSERT(FALSE);//panic at this time
 	}
-	pageTable[vpn].valid = TRUE;
 	
-	return loadPage(vpn);
+	stats->numPageIns++;
+	
+	if(backingStore->PageIn(&pageTable[vpn])==-1)
+		loadPage(vpn);
+	
+	pageTable[vpn].valid = TRUE;
+	pageTable[vpn].use = FALSE;
+	pageTable[vpn].dirty = FALSE;
+	//pageTable[vpn].readOnly is modified in loadPage()
+	return 0;
 }
 
 int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv, int pid){
@@ -190,7 +221,7 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv, int pid){
 		printf("Error: The file may not be a good executable.\n");
 		return -1;
 	}
-	//Check if there is bubble in the virtual space of the executable
+	//Check if there is ibubble in the virtual space of the executable
 	//use i to keep the max possible virtual address
 	size = 0;
 	if (noffH.code.size > 0)
