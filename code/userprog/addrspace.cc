@@ -165,7 +165,7 @@ int AddrSpace::loadPage(int vpn) {
 }
 
 int AddrSpace::pageFault(int vpn) {
-	pageTable[vpn].physicalPage = mm->AllocPage();
+	pageTable[vpn].physicalPage = mm->AllocPage(this,vpn);
 	if (pageTable[vpn].physicalPage == -1){
 		printf("Error: run out of physical memory\n");
 		//to do:

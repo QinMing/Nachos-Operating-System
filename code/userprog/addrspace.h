@@ -20,6 +20,7 @@
 #include "synch.h"
 #include "backingstore.h"
 class Semaphore;
+class BackingStore;
 
 
 #define UserStackNumPage	16					// increase this as necessary!
@@ -50,6 +51,7 @@ public:
 
 	//functions for demand paging
 	int pageFault(int vpn);
+	int evictPage(int vpn);
 
 
 private:

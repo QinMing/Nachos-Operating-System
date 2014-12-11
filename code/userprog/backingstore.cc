@@ -9,6 +9,7 @@ BackingStore::BackingStore(AddrSpace *as, int numPages, int pid) {
 }
 
 /* Actually create the backing store file (on first evict) */
+void
 BackingStore::init() {
     fileSystem->Create(bsFileName, numPages * PageSize);
 }
