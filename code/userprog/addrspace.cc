@@ -232,7 +232,7 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv, int pid){
 		pageTable[i].readOnly = FALSE;  // if the code segment was entirely on
 		// a separate page, we could set its pages to be read-only
 	}
-	// Create backing store
+	 Create backing store
 	backingStore = new BackingStore(this, maxNumPages, pid);
 
 	printf("noffH.code %d,%d\n", noffH.code.virtualAddr, noffH.code.size);
