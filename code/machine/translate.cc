@@ -211,7 +211,7 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 
 // calculate the virtual page number, and offset within the page,
 // from the virtual address
-    vpn = (unsigned) virtAddr / PageSize;
+    vpn = (unsigned) virtAddr / PageSize;printf("\tTranslate %d, %s: ", vpn, writing ? "write" : "read");
     offset = (unsigned) virtAddr % PageSize;
 
     if (tlb == NULL) {		// => page table => vpn is index into table

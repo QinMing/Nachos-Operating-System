@@ -514,5 +514,5 @@ void AddrSpace::RestoreState()
 {
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
-	printf("           processId=%d,numPages=%d\n",currentThread->processId,numPages);
+	//printf("           processId=%d,numPages=%d\n",currentThread->processId,numPages);
 }
