@@ -7,6 +7,8 @@
 #include "filesys.h"
 class AddrSpace;
 
+class AddrSpace;
+
 class BackingStore {
  private:
   OpenFile *bsFile;
