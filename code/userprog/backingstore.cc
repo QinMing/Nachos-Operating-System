@@ -8,6 +8,8 @@ BackingStore::BackingStore(AddrSpace *as, int nPages, int pid) {
   sprintf(bsFileName, "Mem%d", pid);
   //printf("+++++++++++%s++++++++++++++",str);
 
+  bsFile = NULL;
+  
   this->numPages = nPages;
   valid = new bool[nPages];
   for (int i=0;i<nPages;i++){
@@ -41,6 +43,8 @@ void BackingStore::PageOut(TranslationEntry *pte) {
   //for (int i = 0; i < PageSize; i++) {
   //  buffer[i] = (char)machine->mainMemory[pte->physicalPage * PageSize + i]; 
   //}
+  if (bsFile==NULL)
+	  init();
 
   // virtual page n in the address space will be stored at n * PageSize in the file
   int offset = pte->virtualPage * PageSize;
@@ -48,6 +52,7 @@ void BackingStore::PageOut(TranslationEntry *pte) {
 
   // write buffer to backing store file
   bsFile->WriteAt(&machine->mainMemory[physAddr], PageSize, offset);
+  stats->numPageOuts++;
   
   //this is the non-stub version
   //bsFile->Seek(offset);
@@ -81,6 +86,7 @@ int BackingStore::PageIn(TranslationEntry *pte) {
 		int offset = pte->virtualPage * PageSize;
 		int physAddr = pte->physicalPage * PageSize;
 		bsFile->ReadAt(&machine->mainMemory[physAddr], PageSize, offset);
+		stats->numPageIns++;
 		return 0;
 	}else{
 		return -1;

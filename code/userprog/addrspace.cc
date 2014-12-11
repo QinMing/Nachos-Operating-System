@@ -126,21 +126,22 @@ int AddrSpace::loadPage(int vpn) {
 	int virtAddr = vpn * PageSize;
 	int offs = 0;
 	Segment seg;
+	bool readFromFile=FALSE;
 	
 	pageTable[vpn].readOnly = FALSE;
 
 	do {
 		physAddr = pageTable[vpn].physicalPage * PageSize + offs;
 		switch (whichSeg(virtAddr, &seg)) {
-		case 0://code or initData
+		case 0://code
 		{
 			segOffs = virtAddr - seg.virtualAddr;
 			readAddr = segOffs + seg.inFileAddr;
 			size = min(PageSize - offs, seg.size - segOffs);
 			exeFile->ReadAt(&( machine->mainMemory[physAddr] ), size, readAddr);
+			readFromFile=TRUE;
 			if (size==PageSize){
 				pageTable[vpn].readOnly = TRUE;
-				return 0;
 			}
 			//printf("====LoadPage[%d]seg.virtualAddr=%d, physAddr=%d, size=%d, readAddr=%d\n", vpn, seg.virtualAddr, physAddr, size, readAddr);
 			break;
@@ -151,6 +152,7 @@ int AddrSpace::loadPage(int vpn) {
 			readAddr = segOffs + seg.inFileAddr;
 			size = min(PageSize - offs, seg.size - segOffs);
 			exeFile->ReadAt(&( machine->mainMemory[physAddr] ), size, readAddr);
+			readFromFile=TRUE;
 			//printf("====LoadPage[%d]seg.virtualAddr=%d, physAddr=%d, size=%d, readAddr=%d\n", vpn, seg.virtualAddr, physAddr, size, readAddr);
 			break;
 		}
@@ -159,7 +161,6 @@ int AddrSpace::loadPage(int vpn) {
 			size = min(PageSize - offs, seg.size + seg.virtualAddr - virtAddr);
 			bzero(&( machine->mainMemory[physAddr] ), size);
 			break;
-
 		}
 		case 3://stack or others
 		{
@@ -171,6 +172,8 @@ int AddrSpace::loadPage(int vpn) {
 		offs += size;
 		virtAddr += size;
 	} while (offs < PageSize);
+	if (readFromFile)
+		stats->numPageIns++;
 	return 0;
 }
 
@@ -196,8 +199,6 @@ int AddrSpace::pageFault(int vpn) {
 		ASSERT(FALSE);//panic at this time
 	}
 	
-	stats->numPageIns++;
-	
 	if(backingStore->PageIn(&pageTable[vpn])==-1)
 		loadPage(vpn);
 	
@@ -205,6 +206,8 @@ int AddrSpace::pageFault(int vpn) {
 	pageTable[vpn].use = FALSE;
 	pageTable[vpn].dirty = FALSE;
 	//pageTable[vpn].readOnly is modified in loadPage()
+	
+	//printf("\tpage in. PID %d, vpn=%d\n",currentThread->processId,vpn);
 	return 0;
 }
 
@@ -511,8 +514,8 @@ void AddrSpace::SaveState()
 //----------------------------------------------------------------------
 
 void AddrSpace::RestoreState()
-{
+{	//if (currentThread->processId==1)numPages=25;
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
-	//printf("           processId=%d,numPages=%d\n",currentThread->processId,numPages);
+	//printf("\tprocessId=%d,numPages=%d\n",currentThread->processId,numPages);
 }

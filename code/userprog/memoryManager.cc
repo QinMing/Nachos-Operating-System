@@ -102,7 +102,7 @@ int MemoryManager::victimPage() {
 		//do {
 			//ASSERT(!fifoList->IsEmpty());//Otherwise it will be trapped in dead loop.
 			//although impossible
-			ppn = (int)fifoList->Remove();
+		ppn = (int)fifoList->Remove();
 		//} while (!memMap->Test(ppn));
 		break;
 	case random:
@@ -112,6 +112,6 @@ int MemoryManager::victimPage() {
 		break;
 	}
 
-	printf("Evicting %d\n",ppn);
+	//printf("Evicting %d\n",ppn);
 	return ppn;
 }
