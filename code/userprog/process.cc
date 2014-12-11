@@ -134,8 +134,8 @@ int Process::Load(Thread* firstThread, char *filename, int argc, char **argv) {
 		printf("Error: Unable to open file %s\n", filename);
 		return -1;
 	}
-	space = new AddrSpace((int)pid);
-	if (space->Initialize(executable,argc,argv) == -1){
+	space = new AddrSpace();
+	if (space->Initialize(executable,argc,argv,(int)pid) == -1){
 		delete executable;
 		delete space;
 		space = NULL;

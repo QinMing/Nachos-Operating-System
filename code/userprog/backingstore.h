@@ -5,6 +5,7 @@
 
 #include "addrspace.h"
 #include "filesys.h"
+class AddrSpace;
 
 class BackingStore {
  private:

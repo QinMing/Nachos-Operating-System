@@ -20,6 +20,7 @@
 #include "synch.h"
 #include "backingstore.h"
 class Semaphore;
+class BackingStore;
 
 
 #define UserStackNumPage	16					// increase this as necessary!
