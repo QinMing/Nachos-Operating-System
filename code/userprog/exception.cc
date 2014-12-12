@@ -131,6 +131,12 @@ void exit(int code) {
 		process->Finish();
 		processTable->Release(pid);
 		printf("##Process %d Exit(%d)\n", pid, process->exitStatus);
+		
+		//debug
+		if (pid==1)
+			printf("Statistics: Paging: faults %d, in %d, out %d\n", 
+				   stats->numPageFaults,stats->numPageIns,stats->numPageOuts);
+		
 		delete process;
 		currentThread->Finish();
 	}
@@ -436,6 +442,11 @@ ExceptionHandler(ExceptionType which)
 	{
 		stats->numPageFaults++;
 		
+		//?
+		int ret=machine->ReadRegister(2);
+		if (currentThread->processId==-1)
+			printf("===ret=%d===\n",ret);
+		
 		int vpn = machine->ReadRegister(BadVAddrReg) / PageSize;
 		//printf("bad addr = %d\n",machine->ReadRegister(BadVAddrReg));
 		currentThread->space->pageFault(vpn);
@@ -447,6 +458,11 @@ ExceptionHandler(ExceptionType which)
 		//	printf("PageFaultException: No valid translation found. Terminating process...\n");
 		//	exit(-65535);
 		//}
+		
+		
+		//?
+		machine->WriteRegister(2,ret);
+		
 		break;
 	}
 	case ReadOnlyException: // Write attempted to page marked "read-only"
