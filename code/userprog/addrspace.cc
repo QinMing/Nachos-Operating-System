@@ -128,7 +128,7 @@ int AddrSpace::loadPage(int vpn) {
 	Segment seg;
 	
 	pageTable[vpn].readOnly = FALSE;
-
+	stats->numPageIns++;
 	do {
 		physAddr = pageTable[vpn].physicalPage * PageSize + offs;
 		switch (whichSeg(virtAddr, &seg)) {
@@ -171,6 +171,7 @@ int AddrSpace::loadPage(int vpn) {
 		offs += size;
 		virtAddr += size;
 	} while (offs < PageSize);
+	
 	return 0;
 }
 
@@ -178,6 +179,8 @@ int AddrSpace::loadPage(int vpn) {
 int AddrSpace::evictPage(int vpn){
 	if (pageTable[vpn].dirty){
 		backingStore->PageOut(&pageTable[vpn]);
+		stats->numPageOuts++;
+		
 	}		
 	pageTable[vpn].valid = FALSE;
 	pageTable[vpn].use = FALSE;
@@ -196,7 +199,6 @@ int AddrSpace::pageFault(int vpn) {
 		ASSERT(FALSE);//panic at this time
 	}
 	
-	stats->numPageIns++;
 	
 	if(backingStore->PageIn(&pageTable[vpn])==-1)
 		loadPage(vpn);
@@ -262,7 +264,7 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv, int pid){
 		pageTable[i].readOnly = FALSE;  // if the code segment was entirely on
 		// a separate page, we could set its pages to be read-only
 	}
-	 Create backing store
+	// Create backing store
 	backingStore = new BackingStore(this, maxNumPages, pid);
 
 	printf("noffH.code %d,%d\n", noffH.code.virtualAddr, noffH.code.size);
@@ -351,7 +353,7 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv, int pid){
 		argvAddrForMain = virtAddr;
 		for (i=0;i<argc;i++){
 			if (!pageTable[virtAddr/PageSize].valid){
-				pageFault(virtAddr/PageSize);
+				pageFault(virtAddr/PageSize);stat
 				ASSERT(pageTable[virtAddr/PageSize].valid);//panic for now
 			}
 			physAddr = pageTable[virtAddr / PageSize].physicalPage * PageSize + virtAddr % PageSize;
@@ -372,7 +374,7 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv, int pid){
 	} else if (!pageTable[vpn].valid) {
 		DEBUG('a', "virtual page # %d invalid!\n",
 			  virtAddr);
-		return -1;
+		return -1;stat
 	}
 	return &pageTable[vpn];
 }

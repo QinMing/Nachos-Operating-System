@@ -82,6 +82,7 @@ int BackingStore::PageIn(TranslationEntry *pte) {
 		int offset = pte->virtualPage * PageSize;
 		int physAddr = pte->physicalPage * PageSize;
 		bsFile->ReadAt(&machine->mainMemory[physAddr], PageSize, offset);
+		stats->numPageIns++;
 		return 0;
 	}else{
 		return -1;
