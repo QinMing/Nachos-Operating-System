@@ -27,6 +27,9 @@ MemoryManager::MemoryManager(int numPages)
 	case LRU:
 		break;
 	}
+	
+	//debug 
+	printf("##NumPhysPages=%d\n",numPages);
 }
 
 MemoryManager::~MemoryManager()
