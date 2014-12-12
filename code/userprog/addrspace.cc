@@ -538,7 +538,7 @@ int AddrSpaceTest::Initialize(OpenFile *executable, int argc, char **argv){
 	maxNumPages = numPages + MaxUserThread*UserStackNumPage;
 	
 	// Set up the translation
-	pageTable = new TranslationEntry[maxNumPages];
+	//pageTable = new TranslationEntry[maxNumPages];
 	for (i = 0; i < numPages; i++) {
 		pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
 		pageTable[i].physicalPage = i;

@@ -29,7 +29,7 @@ class BackingStore;
 
 #define MaxUserThread		16
 
-//#define AddrSpaceTestToggle
+#define AddrSpaceTestToggle
 #ifdef AddrSpaceTestToggle
 
 class AddrSpaceTest {
