@@ -432,8 +432,9 @@ ExceptionHandler(ExceptionType which)
 		}
 
 		default:
-			printf("Unexpected exception type %d %d\n", which, type);
-			ASSERT(FALSE);
+			printf("Error: Unexpected exception type %d %d. Terminating process...\n", which, type);
+			exit(-65535);
+			//ASSERT(FALSE);modified in Dec 11 2014
 			return;
 		}
 		return;

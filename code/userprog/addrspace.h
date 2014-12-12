@@ -29,6 +29,25 @@ class BackingStore;
 
 #define MaxUserThread		16
 
+//#define AddrSpaceTestToggle
+#ifdef AddrSpaceTestToggle
+
+class AddrSpaceTest {
+	public:
+		char mainMemory[NumPhysPages*PageSize];
+		
+		TranslationEntry *pageTable;	
+		int maxNumPages;
+		int numPages;		// Number of pages in the virtual address space
+		
+		//arguments to be pass to main() function
+		int argcForMain;
+		int argvAddrForMain;	//location of char** argv, in virtual space
+		
+		int compare(int vpn, int physAddr);
+		int Initialize(OpenFile *executable, int argc, char **argv);
+};
+#endif
 
 class AddrSpace {
 public:
@@ -54,7 +73,7 @@ public:
 
 
 private:
-    TranslationEntry *pageTable;	
+    TranslationEntry *pageTable;
 	int maxNumPages;
     int numPages;		// Number of pages in the virtual address space
 
@@ -73,6 +92,10 @@ private:
 
 	int loadPage(int vpn);
 	int whichSeg(int virtAddr, Segment* segPtr);
+	
+	#ifdef AddrSpaceTestToggle
+	AddrSpaceTest addrSpaceTest;
+	#endif
 };
 
 #endif // ADDRSPACE_H
