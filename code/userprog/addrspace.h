@@ -34,7 +34,15 @@ class BackingStore;
 
 class AddrSpaceTest {
 	public:
-		char mainMemory[NumPhysPages*PageSize];
+		AddrSpaceTest(){
+			mainMemory = new char[128];
+			pageTable = new TranslationEntry[128];
+		}
+		~AddrSpaceTest(){
+			delete[] pageTable;
+			delete[] mainMemory;
+		}
+		char* mainMemory;
 		
 		TranslationEntry *pageTable;	
 		int maxNumPages;
@@ -94,7 +102,7 @@ private:
 	int whichSeg(int virtAddr, Segment* segPtr);
 	
 	#ifdef AddrSpaceTestToggle
-	AddrSpaceTest addrSpaceTest;
+	AddrSpaceTest* addrSpaceTest;
 	#endif
 };
 

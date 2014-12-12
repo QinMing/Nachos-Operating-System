@@ -67,6 +67,9 @@ AddrSpace::AddrSpace()
 	pageTable = NULL;
 	createNewThread = NULL;
 	backingStore = NULL;
+	#ifdef AddrSpaceTestToggle
+	addrSpaceTest = new AddrSpaceTest();
+	#endif
 }
 
 //----------------------------------------------------------------------
@@ -86,6 +89,10 @@ AddrSpace::~AddrSpace()
 	//mm->Print();
 	
 	if (backingStore) delete backingStore;
+	
+	#ifdef AddrSpaceTestToggle
+	delete addrSpaceTest;
+	#endif
 }
 
 //determine which segment does a address located in
@@ -172,8 +179,16 @@ int AddrSpace::loadPage(int vpn) {
 		offs += size;
 		virtAddr += size;
 	} while (offs < PageSize);
-	if (readFromFile)
+	if (readFromFile){
 		stats->numPageIns++;
+		#ifdef AddrSpaceTestToggle
+		if(addrSpaceTest->compare(vpn,pageTable[vpn].physicalPage*PageSize)!=99999){
+			printf("PID=%d, ",currentThread->processId);
+			printf("Page %d byte:%d corrupted\n",vpn,addrSpaceTest->compare(vpn,pageTable[vpn].physicalPage*PageSize));
+			//ASSERT(FALSE);
+		}
+		#endif
+	}
 	return 0;
 }
 
@@ -199,9 +214,6 @@ int AddrSpace::pageFault(int vpn) {
 	
 	if(backingStore->PageIn(&pageTable[vpn])==-1){
 		loadPage(vpn);
-		#ifdef AddrSpaceTestToggle
-		ASSERT(addrSpaceTest.compare(vpn,pageTable[vpn].physicalPage*PageSize));
-		#endif
 	}
 	
 	pageTable[vpn].valid = TRUE;
@@ -215,7 +227,7 @@ int AddrSpace::pageFault(int vpn) {
 
 int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv, int pid){
 	#ifdef AddrSpaceTestToggle
-	addrSpaceTest.Initialize(executable, argc, argv);
+	addrSpaceTest->Initialize(executable, argc, argv);
 	#endif
 	//NoffHeader noffH;
 	int size, i;
@@ -292,6 +304,8 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv, int pid){
 			virtAddr = argHeadVirtAddr+ i*MaxStringLength;
 			if (!pageTable[virtAddr/PageSize].valid){
 				pageFault(virtAddr/PageSize);
+				pageTable[virtAddr/PageSize].use = TRUE;
+				pageTable[virtAddr/PageSize].dirty = TRUE;
 				ASSERT(pageTable[virtAddr/PageSize].valid);//panic for now
 			}
 			char* src=argv[i];
@@ -303,6 +317,8 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv, int pid){
 				j++;
 				if ((virtAddr % PageSize==0)&&(!pageTable[virtAddr/PageSize].valid)){
 					pageFault(virtAddr/PageSize);
+					pageTable[virtAddr/PageSize].use = TRUE;
+					pageTable[virtAddr/PageSize].dirty = TRUE;
 					ASSERT(pageTable[virtAddr/PageSize].valid);//panic for now
 				}
 			}
@@ -319,6 +335,8 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv, int pid){
 		for (i=0;i<argc;i++){
 			if (!pageTable[virtAddr/PageSize].valid){
 				pageFault(virtAddr/PageSize);
+				pageTable[virtAddr/PageSize].use = TRUE;
+				pageTable[virtAddr/PageSize].dirty = TRUE;
 				ASSERT(pageTable[virtAddr/PageSize].valid);//panic for now
 			}
 			physAddr = pageTable[virtAddr / PageSize].physicalPage * PageSize + virtAddr % PageSize;
@@ -540,21 +558,12 @@ int AddrSpaceTest::Initialize(OpenFile *executable, int argc, char **argv){
 		// a separate page, we could set its pages to be read-only
 	}
 	
-	//debug
-	//printf("mmap:  First phys page=%d, size = %d\n",pageTable[0].physicalPage,size);
-	printf("noffH.code %d,%d\n", noffH.code.virtualAddr, noffH.code.size);
-	printf("noffH.initData %d,%d\n", noffH.initData.virtualAddr, noffH.initData.size);
-	printf("noffH.uninitData %d,%d\n", noffH.uninitData.virtualAddr, noffH.uninitData.size);
-	printf("numPages=%d\n",numPages);
-	
-	
 	// zero out the entire address space, to zero the unitialized data segment
 	// and the stack segment
 	//bzero(machine->mainMemory, size);
-	for (i = 0; i < numPages; i++) {
-		int physAddr=pageTable[i].physicalPage * PageSize;
-		bzero(&(machine->mainMemory[physAddr]), PageSize);
-	}
+ 	for (i = 0; i < numPages; i++) {
+		mainMemory[i]=0;
+ 	}
 	
 	//then, copy in the code and data segments into memory
 	//if (noffH.code.size > 0) {
@@ -672,8 +681,8 @@ int AddrSpaceTest::Initialize(OpenFile *executable, int argc, char **argv){
 int AddrSpaceTest::compare(int vpn, int physAddr){
 	int virtAddr=vpn*PageSize;
 	for (int i=0;i<PageSize;i++)
-		if(mainMemory[virtAddr+i]!=machine->mainMemory[physAddr+i])
+		if(mainMemory[virtAddr+i] != machine->mainMemory[physAddr+i])
 			return i;
-	return -1;
+	return 99999;
 }
 #endif
