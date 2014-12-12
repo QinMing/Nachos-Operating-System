@@ -17,7 +17,7 @@ MemoryManager::MemoryManager(int numPages)
 	vpnTable = new int[numPages];
 
 	//for demand paging: evicting algorithm
-	EvictMethod = FIFO;
+	EvictMethod = random;
 	switch (EvictMethod) {
 	case FIFO:
 		fifoList = new List();
@@ -27,6 +27,9 @@ MemoryManager::MemoryManager(int numPages)
 	case LRU:
 		break;
 	}
+	
+	//debug 
+	printf("##NumPhysPages=%d\n",numPages);
 }
 
 MemoryManager::~MemoryManager()
@@ -52,25 +55,22 @@ MemoryManager::~MemoryManager()
 if there are no free pages available. */
 int MemoryManager::AllocPage(AddrSpace* space, int vpn) {
 	lock->Acquire();
-	int physNum = memMap->Find();
-	if (physNum != -1) {
-		spaceTable[physNum] = space;
-		vpnTable[physNum] = vpn;
-	}
-	else 
-	{
-		physNum = victimPage();
+	
+	int physNum = memMap->Find();	
+	if (physNum ==-1){
 		
+		physNum = victimPage();		
 		//ask victim addrspace to evict its page
+		//assuming no error		
 		spaceTable[physNum]->evictPage(vpnTable[physNum]);
-		//assuming no error
-
-		spaceTable[physNum] = space;
-		vpnTable[physNum] = vpn;
-
 	}
+	
+	spaceTable[physNum] = space;
+	vpnTable[physNum] = vpn;
+
 	if (EvictMethod==FIFO)
 		fifoList->Append((void*)physNum);
+	
 	lock->Release();
 	return physNum;
 }
@@ -99,11 +99,12 @@ int MemoryManager::victimPage() {
 
 	switch (EvictMethod) {
 	case FIFO:
-		do {
+		//do {
 			//ASSERT(!fifoList->IsEmpty());//Otherwise it will be trapped in dead loop.
 			//although impossible
-			ppn = (int)fifoList->Remove();
-		} while (memMap->Test(ppn));
+		ppn = (int)fifoList->Remove();
+		//} while (!memMap->Test(ppn));
+		ASSERT(!fifoList->IsEmpty());
 		break;
 	case random:
 		ppn = Random() % numPhysPages;//change the seed using -rs
@@ -112,6 +113,6 @@ int MemoryManager::victimPage() {
 		break;
 	}
 
-	printf("Evicting %d\n",ppn);
+	//printf("Evicting %d\n",ppn);
 	return ppn;
 }

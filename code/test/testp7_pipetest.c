@@ -24,8 +24,8 @@ int main()
 	Yield();
 	Write("Enter a letter or a digit >> ", 29, output);
 	
-	int result=-111;
-	result=Join(pid);
+	int result=1;
+	result=Join(pid);	
 
-	return result;
+	Exit(result);
 }

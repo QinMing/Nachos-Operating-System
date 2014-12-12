@@ -16,5 +16,7 @@ int main(){
 	Write("Results: ",9,ConsoleOutput);
 	Write(buffer, i+1, ConsoleOutput);
 	Write("(Demo end)\n", 11, ConsoleOutput);
-	Exit(0);
+	
+	//return the length of the string
+	Exit(i);
 }

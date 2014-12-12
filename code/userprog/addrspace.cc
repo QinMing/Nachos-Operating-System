@@ -126,21 +126,21 @@ int AddrSpace::loadPage(int vpn) {
 	int virtAddr = vpn * PageSize;
 	int offs = 0;
 	Segment seg;
+	bool readFromFile=FALSE;
 	
 	pageTable[vpn].readOnly = FALSE;
-	stats->numPageIns++;
 	do {
 		physAddr = pageTable[vpn].physicalPage * PageSize + offs;
 		switch (whichSeg(virtAddr, &seg)) {
-		case 0://code or initData
+		case 0://code
 		{
 			segOffs = virtAddr - seg.virtualAddr;
 			readAddr = segOffs + seg.inFileAddr;
 			size = min(PageSize - offs, seg.size - segOffs);
 			exeFile->ReadAt(&( machine->mainMemory[physAddr] ), size, readAddr);
+			readFromFile=TRUE;
 			if (size==PageSize){
 				pageTable[vpn].readOnly = TRUE;
-				return 0;
 			}
 			//printf("====LoadPage[%d]seg.virtualAddr=%d, physAddr=%d, size=%d, readAddr=%d\n", vpn, seg.virtualAddr, physAddr, size, readAddr);
 			break;
@@ -151,6 +151,7 @@ int AddrSpace::loadPage(int vpn) {
 			readAddr = segOffs + seg.inFileAddr;
 			size = min(PageSize - offs, seg.size - segOffs);
 			exeFile->ReadAt(&( machine->mainMemory[physAddr] ), size, readAddr);
+			readFromFile=TRUE;
 			//printf("====LoadPage[%d]seg.virtualAddr=%d, physAddr=%d, size=%d, readAddr=%d\n", vpn, seg.virtualAddr, physAddr, size, readAddr);
 			break;
 		}
@@ -159,7 +160,6 @@ int AddrSpace::loadPage(int vpn) {
 			size = min(PageSize - offs, seg.size + seg.virtualAddr - virtAddr);
 			bzero(&( machine->mainMemory[physAddr] ), size);
 			break;
-
 		}
 		case 3://stack or others
 		{
@@ -171,17 +171,18 @@ int AddrSpace::loadPage(int vpn) {
 		offs += size;
 		virtAddr += size;
 	} while (offs < PageSize);
+
+	if (readFromFile)
+		stats->numPageIns++;
 	
 	return 0;
 }
 
 //called by memory manager
 int AddrSpace::evictPage(int vpn){
-	if (pageTable[vpn].dirty){
+	if (pageTable[vpn].dirty)
 		backingStore->PageOut(&pageTable[vpn]);
-		stats->numPageOuts++;
-		
-	}		
+
 	pageTable[vpn].valid = FALSE;
 	pageTable[vpn].use = FALSE;
 	pageTable[vpn].dirty = FALSE;
@@ -193,13 +194,11 @@ int AddrSpace::pageFault(int vpn) {
 	pageTable[vpn].physicalPage = mm->AllocPage(this,vpn);
 	if (pageTable[vpn].physicalPage == -1){
 		printf("Error: run out of physical memory\n");
-		//to do:
-		//should yield and wait for memory space
-		//and try again
+		//to do://should yield and wait for memory space and try again?
 		ASSERT(FALSE);//panic at this time
 	}
 	
-	
+
 	if(backingStore->PageIn(&pageTable[vpn])==-1)
 		loadPage(vpn);
 	
@@ -207,6 +206,8 @@ int AddrSpace::pageFault(int vpn) {
 	pageTable[vpn].use = FALSE;
 	pageTable[vpn].dirty = FALSE;
 	//pageTable[vpn].readOnly is modified in loadPage()
+	
+	//printf("\tpage in. PID %d, vpn=%d\n",currentThread->processId,vpn);
 	return 0;
 }
 
@@ -270,55 +271,10 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv, int pid){
 	printf("noffH.code %d,%d\n", noffH.code.virtualAddr, noffH.code.size);
 	printf("noffH.initData %d,%d\n", noffH.initData.virtualAddr, noffH.initData.size);
 	printf("noffH.uninitData %d,%d\n", noffH.uninitData.virtualAddr, noffH.uninitData.size);
+	printf("numPages=%d\n",numPages);
 
 	//debug
 	//printf("mmap:  First phys page=%d, size = %d\n",pageTable[0].physicalPage,size);
-
-
-	// zero out the entire address space, to zero the unitialized data segment
-	// and the stack segment
-	//bzero(machine->mainMemory, size);
-
-	//for (i = 0; i < numPages; i++) {
-	//	int physAddr=pageTable[i].physicalPage * PageSize;
-	//	bzero(&(machine->mainMemory[physAddr]), PageSize);
-	//}
-
-	//then, copy in the code and data segments into memory
-	/*
-	if (noffH.code.size > 0) {
-		int readAddr = noffH.code.inFileAddr;
-		int virtAddr = noffH.code.virtualAddr;
-		int page = virtAddr / PageSize;
-		int offs = virtAddr % PageSize;
-		int physAddr;
-
-		if (offs != 0){
-			size = PageSize - offs;
-			if (size > noffH.code.size)
-				size = noffH.code.size;
-			physAddr = pageTable[page].physicalPage * PageSize + offs;
-			executable->ReadAt(&(machine->mainMemory[physAddr]),size,readAddr);
-			readAddr += size;
-			virtAddr += size;
-			page++;
-			offs = 0;
-		}
-		size = PageSize;
-		while (virtAddr + PageSize <= noffH.code.virtualAddr + noffH.code.size) {
-			physAddr = pageTable[page].physicalPage * PageSize;
-			executable->ReadAt(&(machine->mainMemory[physAddr]), size, readAddr);
-			pageTable[page].readOnly = TRUE;//a page of entire code
-			readAddr += PageSize;
-			virtAddr += PageSize;
-			page ++;
-		}
-		if (virtAddr < noffH.code.virtualAddr + noffH.code.size){
-			size = noffH.code.virtualAddr + noffH.code.size - virtAddr;
-			physAddr = pageTable[page].physicalPage * PageSize;
-			executable->ReadAt(&(machine->mainMemory[physAddr]),size,readAddr);
-		}
-	}*/
 
 	//Adding arguments into user memory
 	if (argc >0 ){
@@ -379,6 +335,7 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv, int pid){
 	return &pageTable[vpn];
 }
 */
+
 
 //create new stack space for a new user level thread
 int AddrSpace::NewStack() 
@@ -515,4 +472,5 @@ void AddrSpace::RestoreState()
 {
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
+	//printf("\tprocessId=%d,numPages=%d\n",currentThread->processId,numPages);
 }

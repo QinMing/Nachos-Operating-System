@@ -115,14 +115,13 @@ int Process::Join() {
 		this -> promotePriority( currentThread->getPriority() );
 	}
 	*/
-
 	// add currentThread to the queue
 	joinedOnMe->Wait(lock);
     
 	//currentThread->dependThread = NULL;
-
 	joinedOnMe->Signal(lock);
 
+	//printf("in Process %d Join(), returning %d\n",pid,exitStatus);
 	// release lock
 	lock->Release();
 	return exitStatus;
