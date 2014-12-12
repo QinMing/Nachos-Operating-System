@@ -646,6 +646,7 @@ int AddrSpaceTest::Initialize(OpenFile *executable, int argc, char **argv){
 		   while (src[j] != '\0'){
 			   physAddr = pageTable[virtAddr / PageSize].physicalPage * PageSize + virtAddr % PageSize;
 			   mainMemory[physAddr] = src[j];
+// 			   printf("src[%d] = %d\n", j, src[j]);
 			   virtAddr ++;
 			   j++;
 		   }
