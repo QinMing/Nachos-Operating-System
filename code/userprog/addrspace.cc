@@ -197,8 +197,12 @@ int AddrSpace::pageFault(int vpn) {
 		ASSERT(FALSE);//panic at this time
 	}
 	
-	if(backingStore->PageIn(&pageTable[vpn])==-1)
+	if(backingStore->PageIn(&pageTable[vpn])==-1){
 		loadPage(vpn);
+		#ifdef AddrSpaceTestToggle
+		ASSERT(addrSpaceTest.compare(vpn,pageTable[vpn].physicalPage*PageSize));
+		#endif
+	}
 	
 	pageTable[vpn].valid = TRUE;
 	pageTable[vpn].use = FALSE;
@@ -210,6 +214,9 @@ int AddrSpace::pageFault(int vpn) {
 }
 
 int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv, int pid){
+	#ifdef AddrSpaceTestToggle
+	addrSpaceTest.Initialize(executable, argc, argv);
+	#endif
 	//NoffHeader noffH;
 	int size, i;
 
@@ -239,14 +246,18 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv, int pid){
 		printf("noffH.uninitData %d,%d\n", noffH.uninitData.virtualAddr, noffH.uninitData.size);
 		return -1;
 	}
-
-	//Adding arguments at the end of these three part
-	int argHeadVirtAddr = size;
+	
+// 	int argHeadVirtAddr = size;
+// 	int argSize = argc * MaxStringLength + argc * sizeof(char*) + 3;// add 4 for alignment problems
+// 	size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
+// 		+ argSize + UserStackSize;
+		
+	//Adding arguments at the end of these three part	
+	int argHeadVirtAddr = divRoundUp(size, PageSize)*PageSize;
 	int argSize = argc * MaxStringLength + argc * sizeof(char*) + 3;// add 4 for alignment problems
-
+	
 	// how big is address space?
-	size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
-		+ argSize + UserStackSize;
+	size = argHeadVirtAddr + argSize + UserStackSize;
 
 	numPages = divRoundUp(size, PageSize);
 
@@ -269,7 +280,7 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv, int pid){
 	printf("noffH.code %d,%d\n", noffH.code.virtualAddr, noffH.code.size);
 	printf("noffH.initData %d,%d\n", noffH.initData.virtualAddr, noffH.initData.size);
 	printf("noffH.uninitData %d,%d\n", noffH.uninitData.virtualAddr, noffH.uninitData.size);
-	printf("numPages=%d\n",numPages);
+	printf("space numPages=%d\n",numPages);
 
 	//debug
 	//printf("mmap:  First phys page=%d, size = %d\n",pageTable[0].physicalPage,size);
@@ -456,3 +467,212 @@ void AddrSpace::RestoreState()
     machine->pageTableSize = numPages;
 	//printf("\tprocessId=%d,numPages=%d\n",currentThread->processId,numPages);
 }
+
+#ifdef AddrSpaceTestToggle
+int AddrSpaceTest::Initialize(OpenFile *executable, int argc, char **argv){
+	NoffHeader noffH;
+	int size, i;
+	
+	executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
+	if ((noffH.noffMagic != NOFFMAGIC) &&
+		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
+		SwapHeader(&noffH);
+	if (noffH.noffMagic != NOFFMAGIC) {
+		printf("Error: The file may not be a good executable.\n");
+		return -1;
+	}
+	//Check if there is bubble in the virtual space of the executable
+	//use i to keep the max possible virtual address
+	size = 0;
+	if (noffH.code.size > 0)
+		size = max(noffH.code.virtualAddr + noffH.code.size, size);
+	if (noffH.initData.size > 0)
+		size = max(noffH.initData.virtualAddr + noffH.initData.size, size);
+	if (noffH.uninitData.size > 0)
+		size = max(noffH.uninitData.virtualAddr + noffH.uninitData.size, size);
+	if (size != noffH.code.size + noffH.initData.size + noffH.uninitData.size){
+		printf("ERROR: There's bubble or overlap in program memory space\n");
+		printf("size = %d\n", size);
+		printf("noffH.code %d,%d\n", noffH.code.virtualAddr, noffH.code.size);
+		printf("noffH.initData %d,%d\n", noffH.initData.virtualAddr, noffH.initData.size);
+		printf("noffH.uninitData %d,%d\n", noffH.uninitData.virtualAddr, noffH.uninitData.size);
+		return -1;
+	}
+	
+// 	//Adding arguments at the end of these three part
+// 	int argHeadVirtAddr = size;
+// 	int argSize = argc * MaxStringLength + argc * sizeof(char*) + 3;// add 4 for alignment problems
+// 	
+// 	// how big is address space?
+// 	size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
+// 	+ argSize + UserStackSize;
+	
+	//Adding arguments at the end of these three part
+	int argHeadVirtAddr = divRoundUp(size, PageSize)*PageSize;
+	int argSize = argc * MaxStringLength + argc * sizeof(char*) + 3;// add 4 for alignment problems
+	
+	// how big is address space?
+	size = argHeadVirtAddr + argSize + UserStackSize;
+	
+	numPages = divRoundUp(size, PageSize);
+	
+	// to leave room for future user threads
+	maxNumPages = numPages + MaxUserThread*UserStackNumPage;
+	
+	// Set up the translation
+	pageTable = new TranslationEntry[maxNumPages];
+	for (i = 0; i < numPages; i++) {
+		pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
+		pageTable[i].physicalPage = i;
+		if (pageTable[i].physicalPage == -1){
+// 			printf("Error: run out of physical memory\n");
+// 			for (int j=0;j<i;j++)
+// 				mm->FreePage(pageTable[j].physicalPage);
+// 			delete[] pageTable;
+// 			pageTable = NULL;
+// 			return -1;
+			ASSERT(FALSE);
+		}
+		pageTable[i].valid = TRUE;
+		pageTable[i].use = FALSE;
+		pageTable[i].dirty = FALSE;
+		pageTable[i].readOnly = FALSE;  // if the code segment was entirely on
+		// a separate page, we could set its pages to be read-only
+	}
+	
+	//debug
+	//printf("mmap:  First phys page=%d, size = %d\n",pageTable[0].physicalPage,size);
+	printf("noffH.code %d,%d\n", noffH.code.virtualAddr, noffH.code.size);
+	printf("noffH.initData %d,%d\n", noffH.initData.virtualAddr, noffH.initData.size);
+	printf("noffH.uninitData %d,%d\n", noffH.uninitData.virtualAddr, noffH.uninitData.size);
+	printf("numPages=%d\n",numPages);
+	
+	
+	// zero out the entire address space, to zero the unitialized data segment
+	// and the stack segment
+	//bzero(machine->mainMemory, size);
+	for (i = 0; i < numPages; i++) {
+		int physAddr=pageTable[i].physicalPage * PageSize;
+		bzero(&(machine->mainMemory[physAddr]), PageSize);
+	}
+	
+	//then, copy in the code and data segments into memory
+	//if (noffH.code.size > 0) {
+   //	DEBUG('a', "Initializing code segment, at 0x%x, size %d\n",
+   //		noffH.code.virtualAddr, noffH.code.size);
+   //	executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
+   //		noffH.code.size, noffH.code.inFileAddr);
+   //}
+   if (noffH.code.size > 0) {
+	   int readAddr = noffH.code.inFileAddr;
+	   int virtAddr = noffH.code.virtualAddr;
+	   int page = virtAddr / PageSize;
+	   int offs = virtAddr % PageSize;
+	   int physAddr;
+	   
+	   if (offs != 0){
+		   size = PageSize - offs;
+		   if (size > noffH.code.size)
+			   size = noffH.code.size;
+		   physAddr = pageTable[page].physicalPage * PageSize + offs;
+		   executable->ReadAt(&(mainMemory[physAddr]),size,readAddr);
+		   readAddr += size;
+		   virtAddr += size;
+		   page++;
+		   offs = 0;
+	   }
+	   size = PageSize;
+	   while (virtAddr + PageSize <= noffH.code.virtualAddr + noffH.code.size) {
+		   physAddr = pageTable[page].physicalPage * PageSize;
+		   executable->ReadAt(&(mainMemory[physAddr]), size, readAddr);
+		   pageTable[page].readOnly = TRUE;//a page of entire code
+		   readAddr += PageSize;
+		   virtAddr += PageSize;
+		   page ++;
+	   }
+	   if (virtAddr < noffH.code.virtualAddr + noffH.code.size){
+		   size = noffH.code.virtualAddr + noffH.code.size - virtAddr;
+		   physAddr = pageTable[page].physicalPage * PageSize;
+		   executable->ReadAt(&(mainMemory[physAddr]),size,readAddr);
+	   }
+   }
+   
+   /*if (noffH.initData.size > 0) {
+   DEBUG('a', "Initializing data segment, at 0x%x, size %d\n",
+   noffH.initData.virtualAddr, noffH.initData.size);
+   executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
+   noffH.initData.size, noffH.initData.inFileAddr);
+   }*/
+   if (noffH.initData.size > 0) {
+	   int readAddr = noffH.initData.inFileAddr;
+	   int virtAddr = noffH.initData.virtualAddr;
+	   int page = virtAddr / PageSize;
+	   int offs = virtAddr % PageSize;
+	   int physAddr;
+	   
+	   if (offs != 0){
+		   size = PageSize - offs;
+		   if (size > noffH.initData.size)
+			   size = noffH.initData.size;
+		   physAddr = pageTable[page].physicalPage * PageSize + offs;
+		   executable->ReadAt(&(mainMemory[physAddr]),size,readAddr);
+		   readAddr += size;
+		   virtAddr += size;
+		   page++;
+		   offs = 0;
+	   }
+	   size = PageSize;
+	   while (virtAddr + PageSize <= noffH.initData.virtualAddr + noffH.initData.size) {
+		   physAddr = pageTable[page].physicalPage * PageSize;
+		   executable->ReadAt(&(mainMemory[physAddr]), size, readAddr);
+		   readAddr += PageSize;
+		   virtAddr += PageSize;
+		   page ++;
+	   }
+	   if (virtAddr < noffH.initData.virtualAddr + noffH.initData.size){
+		   size = noffH.initData.virtualAddr + noffH.initData.size - virtAddr;
+		   physAddr = pageTable[page].physicalPage * PageSize;
+		   executable->ReadAt(&(mainMemory[physAddr]),size,readAddr);
+	   }
+   }
+   
+   //Adding arguments into user memory
+   if (argc >0 ){
+	   int virtAddr,physAddr;
+	   for (i=0;i<argc;i++){
+		   virtAddr = argHeadVirtAddr + i*MaxStringLength;
+		   char* src=argv[i];
+		   int j = 0;
+		   while (src[j] != '\0'){
+			   physAddr = pageTable[virtAddr / PageSize].physicalPage * PageSize + virtAddr % PageSize;
+			   mainMemory[physAddr] = src[j];
+			   virtAddr ++;
+			   j++;
+		   }
+		   physAddr = pageTable[virtAddr / PageSize].physicalPage * PageSize + virtAddr % PageSize;
+		   mainMemory[physAddr] = '\0';
+		   //debug
+		   //printf("finish loading ""%s""\n",src);
+	   }
+	   argcForMain = argc;
+	   virtAddr = argHeadVirtAddr + argc*MaxStringLength;
+	   if (virtAddr & 0x3)//alignment
+		   virtAddr += 4-(virtAddr & 0x3);
+	   argvAddrForMain = virtAddr;
+	   for (i=0;i<argc;i++){
+		   physAddr = pageTable[virtAddr / PageSize].physicalPage * PageSize + virtAddr % PageSize;
+		   *(char**) &mainMemory[physAddr] = (char*)argHeadVirtAddr + i*MaxStringLength;
+		   virtAddr += 4;
+	   }
+   }
+   return 0;
+}
+
+int AddrSpaceTest::compare(int vpn, int physAddr){
+	int virtAddr=vpn*PageSize;
+	for (int i=0;i<PageSize;i++)
+		if(mainMemory[virtAddr+i]!=machine->mainMemory[physAddr+i])
+			return i;
+	return -1;
+}
+#endif

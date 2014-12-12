@@ -13,7 +13,7 @@ BackingStore::BackingStore(AddrSpace *as, int nPages, int pid) {
   this->numPages = nPages;
   valid = new bool[nPages];
   for (int i=0;i<nPages;i++){
-	  valid[i]=false;
+	  valid[i]=FALSE;
   }
 }
 
@@ -58,7 +58,7 @@ void BackingStore::PageOut(TranslationEntry *pte) {
   //bsFile->Seek(offset);
   //bsFile->Write(buffer, PageSize);  
   
-  valid[pte->virtualPage]=true;
+  valid[pte->virtualPage]=TRUE;
 }
 
 /* Read the virtual page referenced by PTE from the backing store */
