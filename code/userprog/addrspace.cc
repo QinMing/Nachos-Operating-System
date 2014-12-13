@@ -309,7 +309,7 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv, int pid){
 		argvAddrForMain = virtAddr;
 		for (i=0;i<argc;i++){
 			if (!pageTable[virtAddr/PageSize].valid){
-				pageFault(virtAddr/PageSize);stat
+				pageFault(virtAddr/PageSize);
 				ASSERT(pageTable[virtAddr/PageSize].valid);//panic for now
 			}
 			physAddr = pageTable[virtAddr / PageSize].physicalPage * PageSize + virtAddr % PageSize;

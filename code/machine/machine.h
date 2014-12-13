@@ -45,7 +45,7 @@ enum ExceptionType { NoException,           // Everything ok!
                      BusErrorException,     // Translation resulted in an
                      // invalid physical address
                      AddressErrorException, // Unaligned reference or one that
-                     // was beyond the end of the
+                     // was beyond the end of theOneInstruction
                      // address space
                      OverflowException,     // Integer overflow in add or sub.
                      IllegalInstrException, // Unimplemented or reserved instr.
@@ -72,7 +72,7 @@ enum ExceptionType { NoException,           // Everything ok!
 
 #define NumTotalRegs 	40
 
-// The following class defines an instruction, represented in both
+// The following class defines an instruction, represented in bothOneInstruction
 // 	undecoded binary form
 //      decoded to identify
 //	    operation to do
@@ -132,7 +132,8 @@ public:
     // Read or write 1, 2, or 4 bytes of virtual
     // memory (at addr).  Return FALSE if a
     // correct translation couldn't be found.
-
+    //
+    int LRUcounter[NumPhysPages];
     ExceptionType Translate(int virtAddr, int* physAddr, int size,bool writing);
     // Translate an address, and check for
     // alignment.  Set the use and dirty bits in
