@@ -1,5 +1,6 @@
 #include "copyright.h"
 #include "memoryManager.h"
+#include "system.h"
 
 #include "sysdep.h"
 
@@ -21,7 +22,7 @@ MemoryManager::MemoryManager(int numPages)
 	}
 
 	//for demand paging: evicting algorithm
-	EvictMethod = random;
+	EvictMethod = LRU;
 	switch (EvictMethod) {
 	case FIFO:
 		fifoList = new List();
@@ -29,6 +30,8 @@ MemoryManager::MemoryManager(int numPages)
 	case random:
 		break;
 	case LRU:
+		//int counter[numPhysPages];
+		//int i;
 		break;
 	}
 	
@@ -80,7 +83,7 @@ int MemoryManager::AllocPage(AddrSpace* space, int vpn) {
 
 	if (EvictMethod==FIFO)
 		fifoList->Append((void*)physNum);
-	
+		
 	lock->Release();
 	return physNum;
 }
@@ -121,6 +124,12 @@ int MemoryManager::victimPage() {
 		ppn = Random() % numPhysPages;//change the seed using -rs
 		break;
 	case LRU:
+		ppn=0;
+		int i;
+		for(i=1;i<numPhysPages;i++){
+		    if(machine->LRUcounter[i]>machine->LRUcounter[ppn])
+		      ppn=i;
+		}
 		break;
 	}
 

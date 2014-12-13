@@ -252,6 +252,14 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
         return BusErrorException;
     }
     entry->use = TRUE;		// set the use, dirty bits
+    //
+ 
+    for(i=0;i<NumPhysPages;i++){
+		    LRUcounter[i]++;
+		}
+	      LRUcounter[pageFrame]=0;
+    
+    
     if (writing)
         entry->dirty = TRUE;
     *physAddr = pageFrame * PageSize + offset;

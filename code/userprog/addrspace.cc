@@ -24,11 +24,6 @@
 #include <strings.h>
 #endif
 
-#ifdef AddrSpaceTestToggle
-//AddrSpaceTest addrSpaceTest;
-#endif
-
-
 //----------------------------------------------------------------------
 // SwapHeader
 // 	Do little endian to big endian conversion on the bytes in the
@@ -134,7 +129,6 @@ int AddrSpace::loadPage(int vpn) {
 	bool readFromFile=FALSE;
 	
 	pageTable[vpn].readOnly = FALSE;
-
 	do {
 		physAddr = pageTable[vpn].physicalPage * PageSize + offs;
 		switch (whichSeg(virtAddr, &seg)) {
@@ -183,7 +177,6 @@ int AddrSpace::loadPage(int vpn) {
 
 //called by memory manager
 int AddrSpace::evictPage(int vpn){
-	
 	if (pageTable[vpn].dirty){
 		backingStore->PageOut(&pageTable[vpn]);
 	}
@@ -203,10 +196,9 @@ int AddrSpace::pageFault(int vpn) {
 		//to do://should yield and wait for memory space and try again?
 		ASSERT(FALSE);//panic at this time
 	}
-	
-	if(backingStore->PageIn(&pageTable[vpn])==-1){
+
+	if(backingStore->PageIn(&pageTable[vpn])==-1)
 		loadPage(vpn);
-	}
 	
 	pageTable[vpn].valid = TRUE;
 	pageTable[vpn].use = FALSE;
