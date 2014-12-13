@@ -29,6 +29,8 @@
 #include "process.h"
 #include "synchconsole.h"
 
+Lock* memoryPagingLock=NULL;
+
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -130,13 +132,7 @@ void exit(int code) {
 		process->exitStatus = code;
 		process->Finish();
 		processTable->Release(pid);
-		printf("##Process %d Exit(%d)\n", pid, process->exitStatus);
-		
-		//debug
-		if (pid==1)
-			printf("Statistics: Paging: faults %d, in %d, out %d\n", 
-				   stats->numPageFaults,stats->numPageIns,stats->numPageOuts);
-		
+		printf("##Process %d Exit(%d)\n", pid, process->exitStatus);		
 		delete process;
 		currentThread->Finish();
 	}
@@ -149,7 +145,7 @@ void exit(int code) {
 	ASSERT(FALSE);
 }
 
-void ProcessStart(int arg) {
+void ProcessStart(int arg) {	
 	printf("##Process %d starts\n", ( (Process*)processTable->Get(currentThread->processId) )->GetId());
 	currentThread->space->InitRegisters();		// set the initial register values
 	currentThread->space->RestoreState();		// load page table register
@@ -313,11 +309,11 @@ ExceptionHandler(ExceptionType which)
 
 			//read 4th argument
 			int opt = machine->ReadRegister(7);
-#if 0
+			#if 0
 			for (i = 0; i < argc; i++)
 				printf("[%d]""%s""\n", i, argv[i]);
 			printf("name=%s\n", name);
-#endif
+			#endif
 			result = exec(name, argc, (char**)argv, opt);
 
 			if (argc > 0) {
@@ -332,7 +328,7 @@ ExceptionHandler(ExceptionType which)
 
 		case SC_Read:
 		case SC_Write:
-		{
+		{		
 			Process* currentProcess = (Process*)processTable->Get(currentThread->processId);
 			int size = machine->ReadRegister(5);
 			if (size <= 0) {
@@ -424,8 +420,6 @@ ExceptionHandler(ExceptionType which)
 
 		case SC_Yield:
 		{
-			//printf("{yield}");
-			//DEBUG('b', "{yield}");
 			currentThread->Yield();
 			returnSyscall(0);
 			return;
@@ -441,28 +435,15 @@ ExceptionHandler(ExceptionType which)
 	}
 	case PageFaultException: // No valid translation found
 	{
+		if (memoryPagingLock == NULL)
+			memoryPagingLock = new Lock("memoryPagingLock");
 		stats->numPageFaults++;
 		
-		//?
-		int ret=machine->ReadRegister(2);
-		if (currentThread->processId==-1)
-			printf("===ret=%d===\n",ret);
-		
 		int vpn = machine->ReadRegister(BadVAddrReg) / PageSize;
-		//printf("bad addr = %d\n",machine->ReadRegister(BadVAddrReg));
+		
+		memoryPagingLock->Acquire();
 		currentThread->space->pageFault(vpn);
-		//if (currentThread->isInSyscall) {
-		//	printf("PageFaultException: In system call, no valid translation found.\n");
-		//}
-		//else 
-		//{
-		//	printf("PageFaultException: No valid translation found. Terminating process...\n");
-		//	exit(-65535);
-		//}
-		
-		
-		//?
-		machine->WriteRegister(2,ret);
+		memoryPagingLock->Release();
 		
 		break;
 	}

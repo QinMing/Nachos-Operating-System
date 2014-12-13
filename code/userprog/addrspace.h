@@ -21,41 +21,14 @@
 #include "backingstore.h"
 class Semaphore;
 class BackingStore;
+class Lock;
 
-#define UserStackNumPage	16					// increase this as necessary!
+#define UserStackNumPage	64					// increase this as necessary!
 #define UserStackSize		(UserStackNumPage*PageSize) 	
 	//need to be a multiple of PageSize (128 B) 
 	//when allocating stack for user threads
 
 #define MaxUserThread		16
-
-//#define AddrSpaceTestToggle
-#ifdef AddrSpaceTestToggle
-
-class AddrSpaceTest {
-	public:
-		AddrSpaceTest(){
-			mainMemory = new char[128];
-			pageTable = new TranslationEntry[128];
-		}
-		~AddrSpaceTest(){
-			delete[] pageTable;
-			delete[] mainMemory;
-		}
-		char* mainMemory;
-		
-		TranslationEntry *pageTable;	
-		int maxNumPages;
-		int numPages;		// Number of pages in the virtual address space
-		
-		//arguments to be pass to main() function
-		int argcForMain;
-		int argvAddrForMain;	//location of char** argv, in virtual space
-		
-		int compare(int vpn, int physAddr);
-		int Initialize(OpenFile *executable, int argc, char **argv);
-};
-#endif
 
 class AddrSpace {
 public:
@@ -78,7 +51,13 @@ public:
 	//functions for demand paging
 	int pageFault(int vpn);
 	int evictPage(int vpn);
-
+	
+	//debug function
+	int printPage(int vpn);
+	int debugPid;
+	int debugIsValid(int vpn){
+		return pageTable[vpn].valid;
+	}
 
 private:
     TranslationEntry *pageTable;
@@ -101,9 +80,7 @@ private:
 	int loadPage(int vpn);
 	int whichSeg(int virtAddr, Segment* segPtr);
 	
-	#ifdef AddrSpaceTestToggle
-	AddrSpaceTest* addrSpaceTest;
-	#endif
+	
 };
 
 #endif // ADDRSPACE_H

@@ -10,9 +10,11 @@ class AddrSpace;
 class BackingStore {
  private:
   OpenFile *bsFile;
+  int debugPid;
   int numPages;
   char *bsFileName;
   bool *valid;
+  char test[3200];
  public:
   /* Store file name for an AddrSpace backing store */
   BackingStore(AddrSpace *as, int numPages, int pid);
