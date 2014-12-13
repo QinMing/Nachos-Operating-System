@@ -9,7 +9,7 @@ Group 44 - Ming Qin, Xinyu Qian, Evan Carey, Kevin Caasi
 
 #### Members of Group 44
 - Ming Qin - Addrspace, MemoryManager.
-- Xinyu Qian - Replacement algorithm report.
+- Xinyu Qian - Replacement algorithm report, test cases.
 - Evan Carey - BackingStore, test cases, debuging.
 - Kevin Caasi - Readme, test cases, debuging.
 
