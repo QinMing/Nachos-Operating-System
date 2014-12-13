@@ -3,8 +3,43 @@
 CSE 120 Project for UCSD
 
 Group 44 - Ming Qin, Xinyu Qian, Evan Carey, Kevin Caasi
+---------------------
+
+# Project 3: Virtual Memory
+
+#### Members of Group 44
+- Ming Qin - Addrspace, MemoryManager.
+- Xinyu Qian - Replacement algorithm report.
+- Evan Carey - BackingStore, test cases, debuging.
+- Kevin Caasi - Readme, test cases, debuging.
 
 ---------------------
+##1. Preliminary Changes
+
+
+
+---------------------
+##2. Page Replacement
+
+
+
+---------------------
+##3. Testing
+
+
+
+---------------------
+##4. Replacement Algorithm Report
+
+
+
+---------------------
+##5. LRU 
+
+
+
+---------------------
+
 # Project 2: Multiprogramming
 
 #### Members of Group 44
@@ -214,20 +249,6 @@ completed it will print "match NO.# completed"
 
 ## Nachos Installation Guide
 
-### Install on the Lab Machines
-
-To start and test:
-
-```
-$ git clone https://github.com/h8liu/nachos.git
-$ cd nachos/code
-$ make
-$ cd threads
-$ ./nachos
-```
-
-This should work on the ieng machines.
-
 ### Install on a 64-bit Ubuntu 
 
 Nachos requires 32-bit headers and libraries. To install these on
@@ -236,5 +257,3 @@ a Ubuntu 14.4 LTS 64-bit:
 ```
 $ sudo apt-get install gcc-multilib g++-multilib lib32stdc++6
 ```
-
-(Not sure if this works with other versions of Ubuntu or Linux dists.)
