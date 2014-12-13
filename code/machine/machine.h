@@ -45,7 +45,7 @@ enum ExceptionType { NoException,           // Everything ok!
                      BusErrorException,     // Translation resulted in an
                      // invalid physical address
                      AddressErrorException, // Unaligned reference or one that
-                     // was beyond the end of theOneInstruction
+                     // was beyond the end of the
                      // address space
                      OverflowException,     // Integer overflow in add or sub.
                      IllegalInstrException, // Unimplemented or reserved instr.
@@ -72,7 +72,7 @@ enum ExceptionType { NoException,           // Everything ok!
 
 #define NumTotalRegs 	40
 
-// The following class defines an instruction, represented in bothOneInstruction
+// The following class defines an instruction, represented in both
 // 	undecoded binary form
 //      decoded to identify
 //	    operation to do
