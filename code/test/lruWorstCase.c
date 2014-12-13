@@ -5,7 +5,7 @@
 #include "syscall.h"
 
 #define numPhysPages 32
-#define size (numPhysPages*128)
+#define size (numPhysPages*32)
 int arr[size - 1];
 
 int main() {
@@ -17,7 +17,7 @@ int main() {
   
   int sum = 0;
   int j;
-  for (j = 0; j < 1000000; j += 128) {
+  for (j = 0; j < 1000000; j += 32) {
     sum += arr[j%(size - 1)];
   }
   
