@@ -4,7 +4,7 @@
 #include "copyright.h"
 #include "bitmap.h"
 #include "synch.h"
-
+#include "machine.h"
 #include "list.h"
 #include "addrspace.h"
 

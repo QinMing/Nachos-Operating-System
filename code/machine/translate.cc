@@ -212,7 +212,6 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 // calculate the virtual page number, and offset within the page,
 // from the virtual address
     vpn = (unsigned) virtAddr / PageSize;
-	//if(currentThread->processId==1)printf("\tPID%d,vpn%d%s",currentThread->processId, vpn, writing ? "write" : "read");
     offset = (unsigned) virtAddr % PageSize;
 
     if (tlb == NULL) {		// => page table => vpn is index into table
@@ -253,6 +252,14 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
         return BusErrorException;
     }
     entry->use = TRUE;		// set the use, dirty bits
+    //
+ 
+    for(i=0;i<NumPhysPages;i++){
+		    LRUcounter[i]++;
+		}
+	      LRUcounter[pageFrame]=0;
+    
+    
     if (writing)
         entry->dirty = TRUE;
     *physAddr = pageFrame * PageSize + offset;

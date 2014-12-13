@@ -42,7 +42,6 @@ int
 main ()
 {
     int sum;
-
     verify_array(48);
     sum = add_array(48);
     verify_array(48);

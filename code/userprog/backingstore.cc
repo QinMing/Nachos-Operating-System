@@ -1,6 +1,7 @@
 #include "backingstore.h"
 #include "system.h"
 
+
  /* Store file name for an AddrSpace backing store */
 BackingStore::BackingStore(AddrSpace *as, int nPages, int pid) {
   // set file name to PID
@@ -13,7 +14,7 @@ BackingStore::BackingStore(AddrSpace *as, int nPages, int pid) {
   this->numPages = nPages;
   valid = new bool[nPages];
   for (int i=0;i<nPages;i++){
-	  valid[i]=FALSE;
+	valid[i]=FALSE;
   }
 }
 
@@ -37,21 +38,25 @@ BackingStore::~BackingStore() {
    PageOut(&space->pageTable[virtualPage])
 */
 void BackingStore::PageOut(TranslationEntry *pte) {
-  //char buffer[PageSize];
   
-  // Read from memory belonging to pte, and store it in a buffer
-  //for (int i = 0; i < PageSize; i++) {
-  //  buffer[i] = (char)machine->mainMemory[pte->physicalPage * PageSize + i]; 
-  //}
-  if (bsFile==NULL)
+  if (bsFile==NULL){
 	  init();
+  }
 
   // virtual page n in the address space will be stored at n * PageSize in the file
   int offset = pte->virtualPage * PageSize;
   int physAddr = pte->physicalPage * PageSize;
 
-  // write buffer to backing store file
+
   bsFile->WriteAt(&machine->mainMemory[physAddr], PageSize, offset);
+  
+// 	// Read from memory belonging to pte, and store it in a buffer
+// 	char buffer[PageSize];
+// 	for (int i = 0; i < PageSize; i++) {
+// 		buffer[i] = (char)machine->mainMemory[physAddr + i]; 
+// 	}
+// 	bsFile->WriteAt(buffer, PageSize, offset);
+  
   stats->numPageOuts++;
   
   //this is the non-stub version
@@ -65,7 +70,6 @@ void BackingStore::PageOut(TranslationEntry *pte) {
 int BackingStore::PageIn(TranslationEntry *pte) {
 	/*
   int pageInFile;
-  char buffer[PageSize];
 
   // Open file in the init()
   //bsFile = fileSystem->Open(bsFileName);
@@ -77,15 +81,21 @@ int BackingStore::PageIn(TranslationEntry *pte) {
   // Read page into buffer
   pageInFile = bsFile->Read(buffer, PageSize);
 
-  // Write buffer to memory
-  for (int i = 0; i < PageSize; i++) {
-    machine->mainMemory[pte->physicalPage * PageSize + i] = (char)buffer[i];
-  }  
+
   */
 	if (valid[pte->virtualPage]){
 		int offset = pte->virtualPage * PageSize;
 		int physAddr = pte->physicalPage * PageSize;
+		
 		bsFile->ReadAt(&machine->mainMemory[physAddr], PageSize, offset);
+		
+// 		char buffer[PageSize];
+// 		bsFile->ReadAt(buffer, PageSize, offset);
+// 		// Write buffer to memory
+// 		for (int i = 0; i < PageSize; i++) {
+// 			machine->mainMemory[physAddr + i] = (char)buffer[i];
+// 		}
+		
 		stats->numPageIns++;
 		return 0;
 	}else{
