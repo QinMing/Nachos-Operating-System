@@ -61,15 +61,19 @@ Lock* memoryPagingLock=NULL;
 int strUser2Kernel(char* src, char** dst) {
 	char buff[MaxStringLength];
 	int virtAddr = (int)src;
-	char ch;
+	//char ch;
+	int data;
+	//fix on Dec 13 2014. Should never pass in a pointer of char to ReadMem.
+	//The bytes beside it will be overwritten when runing with g++ 4.8.2 on a 64-bit Ubuntu machine
+	//here used to be if (!machine->ReadMem(virtAddr, sizeof(char), (int*)&ch))
 	int count = 0;
 	do {
-		if (!machine->ReadMem(virtAddr, sizeof(char), (int*)&ch))//try twice
-			if (!machine->ReadMem(virtAddr, sizeof(char), (int*)&ch))
-				return -1;	//In fact ReadMem() itself will call machine->RaiseException.
-		buff[count] = ch;
+		if (!machine->ReadMem(virtAddr, sizeof(char), &data))//try twice
+			if (!machine->ReadMem(virtAddr, sizeof(char), &data))
+				return -1;
+		buff[count] = (char)data;
 		count++;
-		if (ch == '\0')
+		if ((char)data == '\0')
 			break;
 		virtAddr++;
 		if (count >= MaxStringLength) {
@@ -94,10 +98,12 @@ int strUser2Kernel(char* src, char** dst) {
 //This is an overload function that knows the size of data being copied
 int strUser2Kernel(char* src, char* dst, int size) {
 	int virtAddr = (int)src;
+	int data;
 	for (int i = 0; i < size; i++) {
-		if (!machine->ReadMem(virtAddr, sizeof(char), (int*)&dst[i]))//try twice
-			if (!machine->ReadMem(virtAddr, sizeof(char), (int*)&dst[i]))
+		if (!machine->ReadMem(virtAddr, sizeof(char), &data))//try twice
+			if (!machine->ReadMem(virtAddr, sizeof(char), &data))
 				return -1;
+		dst[i] = (char)data;
 		virtAddr++;
 	}
 	dst[size] = '\0';
@@ -191,6 +197,7 @@ SpaceId exec(char *filename, int argc, char **argv, int opt) {
 		return 0;	//Return SpaceId 0 as error code
 	}
 	t->Fork(ProcessStart, 0);	//thread's willJoin is always set to 0
+	currentThread->Yield();		//according to project2 grading report, at 10:03:32 12/13/2014
 	return pid;
 }
 
