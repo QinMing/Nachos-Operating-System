@@ -52,6 +52,7 @@
 
 #include "utility.h"
 #include "system.h"
+#include "memoryManager.h"
 
 #ifdef THREADS
 extern int testnum;
@@ -61,7 +62,7 @@ extern int testnum;
 
 extern void ThreadTest(void), Copy(char *unixFile, char *nachosFile);
 extern void Print(char *file), PerformanceTest(void);
-extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
+extern void StartProcess(char *file,EvictMethodType replacementMethod), ConsoleTest(char *in, char *out);
 extern void MailTest(int networkID);
 
 //----------------------------------------------------------------------
@@ -104,14 +105,25 @@ main(int argc, char **argv)
     ThreadTest();
 #endif
 
+#ifdef USER_PROGRAM
+	EvictMethodType replacementMethod = FIFO;//default algorithm
+#endif 
+
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
         argCount = 1;
         if (!strcmp(*argv, "-z"))               // print copyright
             printf("%s", copyright);
-#ifdef USER_PROGRAM
+#ifdef USER_PROGRAM		
+		if (!strcmp(*argv, "-lru")){
+			replacementMethod = LRU;
+		}else if (!strcmp(*argv, "-random")){
+			replacementMethod = random;
+		}else if (!strcmp(*argv, "-fifo")){
+			replacementMethod = FIFO;
+		}
         if (!strcmp(*argv, "-x")) {        	// run a user program
-            ASSERT(argc > 1);
-            StartProcess(*(argv + 1));
+            ASSERT(argc > 1);			
+			StartProcess(*(argv + 1),replacementMethod);
             argCount = 2;
         } else if (!strcmp(*argv, "-c")) {      // test the console
             if (argc == 1)

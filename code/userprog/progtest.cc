@@ -30,9 +30,9 @@ SynchConsole * sConsole = NULL;
 //	memory, and jump to it.
 //----------------------------------------------------------------------
 
-void StartProcess(char *filename)
+void StartProcess(char *filename,EvictMethodType replacementMethod)
 {
-	mm=new MemoryManager(NumPhysPages);
+	mm=new MemoryManager(NumPhysPages,replacementMethod);
 	processTable = new Table(MaxNumProcess);
 	
 	Process* process = new Process("FirstProcess",0);

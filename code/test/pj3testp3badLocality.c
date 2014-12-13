@@ -29,6 +29,8 @@ main()
 		for (i = 0; i < 50; i++){
 			for (j = 0; j < 50; j++){
 				sum += arrayA[i][j];
+				sum += arrayA[1][1];
+				sum += arrayA[40][40];
 			}
 		}
 	}
