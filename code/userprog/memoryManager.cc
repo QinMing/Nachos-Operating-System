@@ -7,7 +7,7 @@
 /* Create a manager to track the allocation of numPages of physical memory.
 You will create one by calling the constructor with NumPhysPages as
 the parameter.  All physical pages start as free, unallocated pages. */
-MemoryManager::MemoryManager(int numPages)
+MemoryManager::MemoryManager(int numPages,EvictMethodType replacementMethod)
 {
 	numPhysPages = numPages;
 	memMap = new BitMap(numPages);
@@ -22,7 +22,7 @@ MemoryManager::MemoryManager(int numPages)
 	}
 
 	//for demand paging: evicting algorithm
-	EvictMethod = LRU;
+	EvictMethod = replacementMethod;
 	switch (EvictMethod) {
 	case FIFO:
 		fifoList = new List();

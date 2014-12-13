@@ -17,7 +17,7 @@ enum EvictMethodType {
 class MemoryManager {
 
 public:
-	MemoryManager(int numPages);
+	MemoryManager(int numPages,EvictMethodType replacementMethod);
 	~MemoryManager();
 
 	int AllocPage(AddrSpace* space, int vpn);
