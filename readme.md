@@ -17,7 +17,7 @@ Group 44 - Ming Qin, Xinyu Qian, Evan Carey, Kevin Caasi
 ---------------------
 ##1. Preliminary Trail
 
-In the class of AddrSpace, several functions were added to support demand paging. AddrSpace::pageFault(int vpn) is called by exception handler. It will again call AddrSpace::LoadPage(int vpn) to copy data from executable file, or BackingStore:PageIn() to load data from swap file.
+In the class of AddrSpace, several functions were added to support demand paging. AddrSpace::pageFault(int vpn) is called by exception handler. It will then call AddrSpace::LoadPage(int vpn) to copy data from executable file, or BackingStore:PageIn() to load data from swap file.
 
 In the destructor of AddrSpace, unlike project 2, we need to check the valid bit before free up memory in the page table. Just this single bug kept us debugging for two days.
 
@@ -35,7 +35,16 @@ The MemoryManager class is enhanced. Now it has variables to keep pointers to Ad
 ---------------------
 ##3. Testing
 
-> Referencing all of the pages in memory
+>
+1. Referencing all of the pages in memory.    ......
+2. Referencing some of the pages only.    ......
+3. Demonstrating correct handling of dirty pages   ......
+
+We also implemented test programs that are:
+>
+1. Generating good locality   ......
+2. Generating poor locality   ......
+3. Generating random locality   ......
 
 
 ---------------------
