@@ -58,7 +58,7 @@ The test results are in the test statistic table .
 ---------------------
 ##4. Replacement Algorithm Report
 
-We implemented `numPageOuts` and `numPageIns` to calculate the number of pages writing into BackingStore and the number of pages writing into physical memory. Together with `numPageFaults` we are able to get an idea of the work load of our virtual memory and furthermore to test the performance of different page replacement algorithms.
+We use `numPageOuts` and `numPageIns` to calculate the number of pages writing into BackingStore and the number of pages writing into physical memory. Together with `numPageFaults` we are able to keep track of the work load of our virtual memory and furthermore to test the performance of different page replacement algorithms.
 
 We tested every algorithms with every test cases. And for most cases LRU performs better than the other two. Random and FIFO's performence are quite the same.
 
@@ -68,9 +68,7 @@ Check test statistics below part 5 for details.
 ---------------------
 ##5. LRU 
 
-We implemented LRU. We set a counter for every physical pages. Each time a page is referenced, the counter of that page is set to zero and all the other counters are increased by one. When we have to evict a page, the page with the largest counter is evicted.
-A worse case for LRU is that if a array is just larger than the physical page size and we are referencing the array one by one recursively. LRU will cause a page fault on every reference, since it evict the least recently used paged and that's the page we are referencing next.
-This test is `lruWorstCase`, in which random works better than LRU, and LRU FIFO perform quite the same(since the least recently used page is the first page comes in in this case). And for other test cases LRU works better than then other two.
+We implemented LRU. We set a counter for every physical pages. Every time a page is referenced, the counter of that page is set to zero and all the other counters are increased by one. When we have to evict a page, the page with the largest counter is evicted.
 
 The following 3 command switches are used for replacement algorithms.
 
@@ -78,53 +76,58 @@ The following 3 command switches are used for replacement algorithms.
 2. `-random` : Random replacement algorithm.
 3. `-lru` : Least Recently Used algorithm.
 
-There's one extreme condition that will cause the time counter overflow, which is when a program has referenced the memory for "max integer" times but still haven't evicted any page. The maximum 32-bit integer is `2147483647`.
+A worse case for LRU is that if an array is just larger than the physical page size and we are referencing the array one by one repeatedly. LRU will cause a page fault on every reference, since it evict the least recently used paged and that's the page it needs next.
+
+The command to run this case is `./nachos -lru -x ../test/lruWorstCase`. The programs mainly read from memory, so please look at `numPageIns`. The random works better than LRU, and FIFO performs quite the same (since the least recently used page is the first page comes in in this case).
+
+There's one extreme condition that will cause the LRU time counter overflow, which is when a program has referenced the memory for "max integer" times but still haven't evicted any page. The maximum 32-bit integer is `2147483647`.
 
 Check test statistics below for details.
 
 ---------------------
 ###Test statistics
 
-Physical memory size: 32 pages.
+(1)
 
+Physical memory size: 32 pages. 
 Page replacement policy: Random.
 
-Program				|	PageFaults	|PageOuts	|PageIns
----------------------------------|--------------------------|--------------------|----------------
-pj3testp3part			|23			|0			|6
+Program					|	PageFaults	|PageOuts		|PageIns
+------------------------|---------------|---------------|-----
+pj3testp3part			|23				|0				|6
 pj3testp3write			|352			|232			|273
-pj3testp3badLocality	|95576		|5909		|95497						
-pj3testp3goodLocality	|114			|65			|35
-pj3testp3randomLocality	|59493		|3645		|59414
-lruWorstCase			|6234		|199			|6201
+pj3testp3badLocality	|95576			|5909			|95497						
+pj3testp3goodLocality	|114			|65				|35
+pj3testp3randomLocality	|59493			|3645			|59414
+lruWorstCase			|6234			|199			|6201
 
+(2)
 
-Physical memory size: 32 pages.
-
+Physical memory size: 32 pages. 
 Page replacement policy: FIFO.
 
-Program				|	PageFaults	|PageOuts	|PageIns
----------------------------------|--------------------------|--------------------|----------------
-pj3testp3part			|23 			|0			|6
+Program					|	PageFaults	|PageOuts		|PageIns
+------------------------|---------------|---------------|----------------
+pj3testp3part			|23 			|0				|6
 pj3testp3write			|370			|248			|291
-pj3testp3badLocality	|98335		|5997		|98256
-pj3testp3goodLocality	|108			|61			|29
-pj3testp3randomLocality	|59683		|3693		|59604
-lruWorstCase			|34279		|1071		|34246
+pj3testp3badLocality	|98335			|5997			|98256
+pj3testp3goodLocality	|108			|61				|29
+pj3testp3randomLocality	|59683			|3693			|59604
+lruWorstCase			|34279			|1071			|34246
 
+(3)
 
-Physical memory size: 32 pages.
-
+Physical memory size: 32 pages. 
 Page replacement policy: LRU.
 
-Program				|	PageFaults	|PageOuts	|PageIns
----------------------------------|--------------------------|--------------------|----------------
-pj3testp3part			|26			|0			|6
+Program					|	PageFaults	|PageOuts		|PageIns
+------------------------|---------------|---------------|----------------
+pj3testp3part			|26				|0				|6
 pj3testp3write			|328			|223			|249
-pj3testp3badLocality	|65793		|77			|65714
-pj3testp3goodLocality	|93			|59			|14
-pj3testp3randomLocality	|41663		|77			|41584
-lruWorstCase			|31165		|33			|31132
+pj3testp3badLocality	|65793			|77				|65714
+pj3testp3goodLocality	|93				|59				|14
+pj3testp3randomLocality	|41663			|77				|41584
+lruWorstCase			|31165			|33				|31132
 
 ---------------------
 
