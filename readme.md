@@ -55,11 +55,13 @@ We also implemented test programs that are:
 ---------------------
 ##5. LRU 
 
-The following 3 command line switches are used for replacement algorithms.
+The following 3 command switches are used for replacement algorithms.
 
-1. `-fifo` will choose FIFO algorithm, which is also the default option.
+1. `-fifo` will choose FIFO algorithm, which is also the default option if no option is specified.
 2. `-random` : Random replacement algorithm.
 3. `-lru` : Least Recently Used algorithm.
+
+
 
 There's one extreme condition that will cause the time counter overflow, which is when a program has referenced the memory for "max integer" times but still haven't evicted any page. The maximum 32-bit integer is `2147483647`.
 
