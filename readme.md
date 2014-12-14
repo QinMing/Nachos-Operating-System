@@ -3,32 +3,39 @@
 CSE 120 Project for UCSD
 
 Group 44 - Ming Qin, Xinyu Qian, Evan Carey, Kevin Caasi
+
 ---------------------
 
 # Project 3: Virtual Memory
 
 #### Members of Group 44
-- Ming Qin - Addrspace, MemoryManager.
-- Xinyu Qian - Replacement algorithm report, test cases.
-- Evan Carey - BackingStore, test cases, debuging.
+- Ming Qin    - Addrspace, MemoryManager.
+- Xinyu Qian  - Replacement algorithm report, test cases.
+- Evan Carey  - BackingStore, test cases, debuging.
 - Kevin Caasi - Readme, test cases, debuging.
 
 ---------------------
-##1. Preliminary Changes
+##1. Preliminary Trail
 
 In the class of AddrSpace, several functions were added to support demand paging. AddrSpace::pageFault(int vpn) is called by exception handler. It will again call AddrSpace::LoadPage(int vpn) to copy data from executable file, or BackingStore:PageIn() to load data from swap file.
+
 In the destructor of AddrSpace, unlike project 2, we need to check the valid bit before free up memory in the page table. Just this single bug kept us debugging for two days.
+
 
 ---------------------
 ##2. Page Replacement
 
 In addition to part 1, function AddrSpace::evictPage(int vpn) is added. It will be called by memory manager when memory is full.
+
 A new class is added, named BackingStore. It copies data from and to the swap file.
+
 The MemoryManager class is enhanced. Now it has variables to keep pointers to AddrSpace. It will figure out which page to evict using designated algorithm, and then call AddrSpace:evictPage().
+
 
 ---------------------
 ##3. Testing
 
+> Referencing all of the pages in memory
 
 
 ---------------------
@@ -36,8 +43,10 @@ The MemoryManager class is enhanced. Now it has variables to keep pointers to Ad
 
 
 
+
 ---------------------
 ##5. LRU 
+
 
 
 
