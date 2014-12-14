@@ -61,13 +61,13 @@ Check test statistics for details.
 
 ---------------------
 ##5. LRU 
+
 We implemented LRU. We set a counter for every physical pages. Each time a page is referenced, the counter of that page is set to zero and all the other counters are increased by one. When we have to evict a page, the page with the largest counter is evicted.
 A worse case for LRU is that if a array is just larger than the physical page size and we are referenceing the array one by one recursively. LRU will cause a page fault on every reference, since it evict the least recently used paged and that's the page we are referencing next.
 This test is lruWorstCase, in which random works better than LRU, and LRU FIFO perform quite the same(since the least recently used page is the first page comes in in this case). And for other test cases LRU works better than then other two.
 
-The following 3 command line switches are used for replacement algorithms.
-
-1. `-fifo` will choose FIFO algorithm, which is also the default option.
+The following 3 command switches are used for replacement algorithms.
+1. `-fifo` will choose FIFO algorithm, which is also the default option if no option is specified.
 2. `-random` : Random replacement algorithm.
 3. `-lru` : Least Recently Used algorithm.
 
