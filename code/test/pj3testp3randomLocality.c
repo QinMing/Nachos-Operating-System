@@ -1,6 +1,6 @@
 #include "syscall.h"
 
-
+#define NumPhysPages    32
 int array[50] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
@@ -48,13 +48,15 @@ main()
 	
 	int rand1;
 	int rand2;
-	
+	irand_init();
 	
 	
 	for (i = 0; i <60000; i++){	//in total 60 000 references
 		rand1 = irand(0,50);	//random number 0-49
 		rand2 = irand(0,50);	//random number 0-49
 		sum += arrayA[rand1][rand2];
+		sum += arrayA[1][1];
+		sum += arrayA[40][40];
 	}
 
 	Exit(sum);

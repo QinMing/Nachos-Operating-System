@@ -1,5 +1,5 @@
 #include "syscall.h"
-
+#define NumPhysPages    32
 
 int array[50] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
@@ -24,19 +24,19 @@ main()
 		}
 	}
 
-	for (i = 0; i < 50; i++) {
+	for (i = 0; i <50; i++){		//rewrite the arrayA to show correct handling of dirty pages
 		for (j = 0; j < 50; j++){
-			sum += arrayA[i][j];
+			arrayA[i][j]++;
 		}
 	}
 
-	for (i = 0; i <50; i++){
+	for (i = 0; i <50; i++){		//rewrite the arrayA to show correct handling of dirty pages
 		for (j = 0; j < 50; j++){
-			arrayA[i][j] = array[j] + 1;
+			arrayA[i][j]++;
 		}
 	}
 
-	for (i = 0; i < 50; i++) {
+	for (i = 0; i < 50; i++) {		//adding the arrayA up the sum should be 1225*50+2500+2500=66250
 		for (j = 0; j < 50; j++){
 			sum += arrayA[i][j];
 		}
