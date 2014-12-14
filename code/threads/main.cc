@@ -52,7 +52,13 @@
 
 #include "utility.h"
 #include "system.h"
-#include "memoryManager.h"
+
+//copied from "userprog/memoryManager.h"
+enum EvictMethodType {
+	FIFO,
+	random,
+	LRU
+};
 
 #ifdef THREADS
 extern int testnum;

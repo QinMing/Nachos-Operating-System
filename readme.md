@@ -16,12 +16,15 @@ Group 44 - Ming Qin, Xinyu Qian, Evan Carey, Kevin Caasi
 ---------------------
 ##1. Preliminary Changes
 
-
+In the class of AddrSpace, several functions were added to support demand paging. AddrSpace::pageFault(int vpn) is called by exception handler. It will again call AddrSpace::LoadPage(int vpn) to copy data from executable file, or BackingStore:PageIn() to load data from swap file.
+In the destructor of AddrSpace, unlike project 2, we need to check the valid bit before free up memory in the page table. Just this single bug kept us debugging for two days.
 
 ---------------------
 ##2. Page Replacement
 
-
+In addition to part 1, function AddrSpace::evictPage(int vpn) is added. It will be called by memory manager when memory is full.
+A new class is added, named BackingStore. It copies data from and to the swap file.
+The MemoryManager class is enhanced. Now it has variables to keep pointers to AddrSpace. It will figure out which page to evict using designated algorithm, and then call AddrSpace:evictPage().
 
 ---------------------
 ##3. Testing

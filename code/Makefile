@@ -25,10 +25,7 @@ all:
 
 # don't delete executables in "test" in case there is no cross-compiler
 clean:
-	#original
 	 rm -f *~ */{core,nachos,DISK,*.o,swtch.s,*~} test/{*.coff} bin/{coff2flat,coff2noff,disassemble,out}
-	#Ming 
-	#rm -f *~ */{core,nachos,DISK,*.o,swtch.s,*~} test/{*.coff} bin/{coff2flat,disassemble,out}
 
 .PHONY: tags fmt ubuntu
 

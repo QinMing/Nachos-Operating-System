@@ -124,11 +124,11 @@ int MemoryManager::victimPage() {
 		ppn = Random() % numPhysPages;//change the seed using -rs
 		break;
 	case LRU:
-		ppn=0;
+		ppn = 0;
 		int i;
-		for(i=1;i<numPhysPages;i++){
-		    if(machine->LRUcounter[i]>machine->LRUcounter[ppn])
-		      ppn=i;
+		for (i = 1; i<numPhysPages; i++) {
+			if (machine->LRUcounter[i]>machine->LRUcounter[ppn])
+				ppn = i;
 		}
 		break;
 	}
