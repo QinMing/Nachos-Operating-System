@@ -56,6 +56,7 @@ THREAD_H =../threads/copyright.h\
 	../machine/stats.h\
 	../machine/timer.h
 
+
 THREAD_C =../threads/main.cc\
 	../threads/list.cc\
 	../threads/scheduler.cc\

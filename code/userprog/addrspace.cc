@@ -261,6 +261,7 @@ int AddrSpace::Initialize(OpenFile *executable, int argc, char **argv, int pid){
 	pageTable = new TranslationEntry[maxNumPages];
 	for (i = 0; i < maxNumPages; i++) {		
 		pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
+		pageTable[i].physicalPage = -1;
 		pageTable[i].valid = FALSE;
 		pageTable[i].use = FALSE;
 		pageTable[i].dirty = FALSE;
