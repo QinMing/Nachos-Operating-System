@@ -17,63 +17,70 @@ Group 44 - Ming Qin, Xinyu Qian, Evan Carey, Kevin Caasi
 ---------------------
 ##1. Preliminary Trial
 
-In the class of AddrSpace, several functions were added to support demand paging. AddrSpace::pageFault(int vpn) is called by exception handler. It will then call AddrSpace::LoadPage(int vpn) to copy data from executable file, or BackingStore:PageIn() to load data from swap file.
+In the class of `AddrSpace`, several functions were added to support demand paging. `AddrSpace::pageFault(int vpn)` is called by exception handler. It will then call `AddrSpace::LoadPage(int vpn)` to copy data from executable file, or `BackingStore::PageIn()` to load data from swap file.
 
-In the destructor of AddrSpace, unlike project 2, we need to check the valid bit before free up memory in the page table. Just this single bug kept us debugging for two days.
+In the destructor of `AddrSpace`, unlike project 2, we need to check the valid bit before free up memory in the page table. Just this single bug kept us debugging for two days.
 
+After finishing this part, we use test codes in project 2 to test the newly implemented virtual memory.
 
 ---------------------
 ##2. Page Replacement
 
-In addition to part 1, function AddrSpace::evictPage(int vpn) is added. It will be called by memory manager when memory is full.
+In addition to part 1, function `AddrSpace::evictPage(int vpn)` is added. It will be called by memory manager when memory is full.
 
-A new class is added, named BackingStore. It copies data from and to the swap file.
+A new class is added, named `BackingStore`. It copies data from and to the swap file.
 
-The MemoryManager class is enhanced. Now it has variables to keep pointers to AddrSpace. It will figure out which page to evict using designated algorithm, and then call AddrSpace:evictPage().
-
+The MemoryManager class is enhanced. Now it has variables to keep pointers to AddrSpace. It will figure out which page to evict using designated algorithm, and then call `AddrSpace:evictPage()`.
 
 ---------------------
 ##3. Testing
 
-We tested our virtual memory in this part. With the help of numPageOuts and numPageIns implemented in part 4. We are able to check the correctness of our virtual memory.
+We tested our virtual memory in this part. With the help of `numPageOuts` and `numPageIns` implemented in part 4. We are able to check the correctness of our virtual memory. To call the tests, execute `./nachos -x ../test/{testname}`
 
-Tests:(called from userprog by executing ./nachos -x ../test/{testname})
+* **pj3testp3part**: A test program that only references some of the pages.
 
-	pj3testp3part:a test program that only references some of the pages(all the other tests use all of the pages)
-	pj3testp3write: to test if we handle the dirty pages correctly. Fisrt create an array larger than the physical memory size, then we write every element of the array one by one for three times. At last we sum the elements of the array up to check the correctness. And we get the expected answer.
+* All the other tests below use all of the pages.
+
+* **pj3testp3write**: Testing if we handle the dirty pages correctly. First create an array larger than the physical memory size, then we write every element of the array one by one for three times. At last we sum up the the array to check the correctness. And we get the expected answer.
 	
-	tests for different locality£º
-	We are using an array and reference to it with different patterns to show the compare the number of faults and pageIns and pageOuts. To guarantee the correctness of the comparison, we set every test with 180 000 references to the same array. And all the tests are generateing the same number of random integers(but only randomLocality uses these numbers). 
-	pj3testp3badLocality:We create an array larger than the physical memory size. Then referrence the array elements one by one. To make the case more common, we add two elements that are frequently referenced(to show that LRU works better than others).
-	pj3testp3goodLocality:We create an array larger than the physical memory size. Then referrence only three of the elements in the array. So there will be much less page faults than other tests.
-	pj3testp3randomLocality:We create an array larger than the physical memory size. Then reference the elements randomly. So two random numbers are generated and used on each reference(the other two tests are also genernating random numbers but not use them). And also there are two elements frequnted referenced. The number of page faults and pageIns is larger than it in goodLocality but less than it in badLocality .
+Tests for different locality.
 
-	the test results are in the table test statistics.
+We set an array and reference it with different patterns and compare the number of faults, pageIns and pageOuts. To guarantee the correctness of the comparison, we set every test with 180 000 references to the same array. And all the tests are generating the same number of random integers, although only `randomLocality` is really using these numbers. Besides, to make the cases more general, we added two additional memory references in all three tests to show that LRU works better than others.
+
+* **pj3testp3badLocality**: Creating an array larger than the physical memory size. Then reference the array elements one by one. 
+
+* **pj3testp3goodLocality**: Creating an array larger than the physical memory size. Then reference only three of the elements in the array. So there will be much less page faults than other tests.
+
+* **pj3testp3randomLocality**: Creating an array larger than the physical memory size. Then reference the elements randomly. So two random numbers are generated and used on each reference(the other two tests are also generating random numbers but not using them). And also there are two elements frequently referenced. The number of page faults and pageIns is larger than those in `goodLocality` but less than those in `badLocality`.
+
+The test results are in the test statistic table .
 
 ---------------------
 ##4. Replacement Algorithm Report
 
-We implemented numPageOuts and numPageIns to calculate the number of pages writing into BackingStore and the number of pages writing into physical memory. Together with numPageFaults we are able to get an idea of the work load of our virtual memory and furthermore to test the performence of different page replacement algorithms
+We implemented `numPageOuts` and `numPageIns` to calculate the number of pages writing into BackingStore and the number of pages writing into physical memory. Together with `numPageFaults` we are able to get an idea of the work load of our virtual memory and furthermore to test the performance of different page replacement algorithms.
+
 We tested every algorithms with every test cases. And for most cases LRU performs better than the other two. Random and FIFO's performence are quite the same.
 
-Check test statistics for details.
+Check test statistics below part 5 for details.
 
 
 ---------------------
 ##5. LRU 
 
 We implemented LRU. We set a counter for every physical pages. Each time a page is referenced, the counter of that page is set to zero and all the other counters are increased by one. When we have to evict a page, the page with the largest counter is evicted.
-A worse case for LRU is that if a array is just larger than the physical page size and we are referenceing the array one by one recursively. LRU will cause a page fault on every reference, since it evict the least recently used paged and that's the page we are referencing next.
-This test is lruWorstCase, in which random works better than LRU, and LRU FIFO perform quite the same(since the least recently used page is the first page comes in in this case). And for other test cases LRU works better than then other two.
+A worse case for LRU is that if a array is just larger than the physical page size and we are referencing the array one by one recursively. LRU will cause a page fault on every reference, since it evict the least recently used paged and that's the page we are referencing next.
+This test is `lruWorstCase`, in which random works better than LRU, and LRU FIFO perform quite the same(since the least recently used page is the first page comes in in this case). And for other test cases LRU works better than then other two.
 
 The following 3 command switches are used for replacement algorithms.
+
 1. `-fifo` will choose FIFO algorithm, which is also the default option if no option is specified.
 2. `-random` : Random replacement algorithm.
 3. `-lru` : Least Recently Used algorithm.
 
 There's one extreme condition that will cause the time counter overflow, which is when a program has referenced the memory for "max integer" times but still haven't evicted any page. The maximum 32-bit integer is `2147483647`.
 
-Check test statistics for details.
+Check test statistics below for details.
 
 ---------------------
 test statistics
