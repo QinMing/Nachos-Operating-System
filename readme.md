@@ -11,11 +11,11 @@ Group 44 - Ming Qin, Xinyu Qian, Evan Carey, Kevin Caasi
 #### Members of Group 44
 - Ming Qin    - Addrspace, MemoryManager.
 - Xinyu Qian  - Replacement algorithm report, test cases.
-- Evan Carey  - BackingStore, test cases, debuging.
-- Kevin Caasi - Readme, test cases, debuging.
+- Evan Carey  - BackingStore, test cases, debugging.
+- Kevin Caasi - Readme, test cases, debugging.
 
 ---------------------
-##1. Preliminary Trail
+##1. Preliminary Trial
 
 In the class of AddrSpace, several functions were added to support demand paging. AddrSpace::pageFault(int vpn) is called by exception handler. It will then call AddrSpace::LoadPage(int vpn) to copy data from executable file, or BackingStore:PageIn() to load data from swap file.
 
@@ -35,13 +35,12 @@ The MemoryManager class is enhanced. Now it has variables to keep pointers to Ad
 ---------------------
 ##3. Testing
 
->
 1. Referencing all of the pages in memory.    ......
 2. Referencing some of the pages only.    ......
 3. Demonstrating correct handling of dirty pages   ......
 
 We also implemented test programs that are:
->
+
 1. Generating good locality   ......
 2. Generating poor locality   ......
 3. Generating random locality   ......
@@ -56,8 +55,13 @@ We also implemented test programs that are:
 ---------------------
 ##5. LRU 
 
+The following 3 command line switches are used for replacement algorithms.
 
+1. `-fifo` will choose FIFO algorithm, which is also the default option.
+2. `-random` : Random replacement algorithm.
+3. `-lru` : Least Recently Used algorithm.
 
+There's one extreme condition that will cause the time counter overflow, which is when a program has referenced the memory for "max integer" times but still haven't evicted any page. The maximum 32-bit integer is `2147483647`.
 
 ---------------------
 
