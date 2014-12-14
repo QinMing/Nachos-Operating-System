@@ -50,8 +50,8 @@ main()
 	irand_init();
 
 	for (i = 0; i <60000; i++){		//in total 180 000 references
-		rand1 = irand(0, 50);	//random number 0-49
-		rand2 = irand(0, 50);	//random number 0-49
+		rand1 = irand(0, 50);	//random number 0-49,to guarantee the comparison
+		rand2 = irand(0, 50);	//random number 0-49,to guarantee the comparison
 		sum += arrayA[1][1];
 		sum += arrayA[25][25];
 		sum += arrayA[49][49];

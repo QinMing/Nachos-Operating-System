@@ -55,8 +55,8 @@ main()
 		rand1 = irand(0,50);	//random number 0-49
 		rand2 = irand(0,50);	//random number 0-49
 		sum += arrayA[rand1][rand2];
-		sum += arrayA[1][1];
-		sum += arrayA[40][40];
+		sum += arrayA[1][1];	//frequently referenced element
+		sum += arrayA[40][40];	///frequently referenced element
 	}
 
 	Exit(sum);

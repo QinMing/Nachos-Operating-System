@@ -51,12 +51,12 @@ main()
 
 	for (k = 0; k < 900; k++){			//in total 180 000 references
 		for (i = 0; i < 50; i++){
-				rand1 = irand(0, 50);	//random number 0-49
-				rand2 = irand(0, 50);	//random number 0-49
-				sum += arrayA[i][1];
-				sum += arrayA[i][35];
-				sum += arrayA[1][1];
-				sum += arrayA[40][40];
+				rand1 = irand(0, 50);	//random number 0-49,to guarantee the comparison
+				rand2 = irand(0, 50);	//random number 0-49,to guarantee the comparison
+				sum += arrayA[i][1];	// choose element 1 and 35 to make sure they are on different pages, since every page is 128 contenting 32 integers
+				sum += arrayA[i][35];	
+				sum += arrayA[1][1];	//frequently referenced element
+				sum += arrayA[40][40];	//frequently referenced element
 		}
 	}
 
