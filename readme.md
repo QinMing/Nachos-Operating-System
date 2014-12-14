@@ -3,28 +3,34 @@
 CSE 120 Project for UCSD
 
 Group 44 - Ming Qin, Xinyu Qian, Evan Carey, Kevin Caasi
+
 ---------------------
 
 # Project 3: Virtual Memory
 
 #### Members of Group 44
-- Ming Qin - Addrspace, MemoryManager.
-- Xinyu Qian - Replacement algorithm report, test cases.
-- Evan Carey - BackingStore, test cases, debuging.
-- Kevin Caasi - Readme, test cases, debuging.
+- Ming Qin    - Addrspace, MemoryManager.
+- Xinyu Qian  - Replacement algorithm report, test cases.
+- Evan Carey  - BackingStore, test cases, debugging.
+- Kevin Caasi - Readme, test cases, debugging.
 
 ---------------------
-##1. Preliminary Changes
+##1. Preliminary Trial
 
-In the class of AddrSpace, several functions were added to support demand paging. AddrSpace::pageFault(int vpn) is called by exception handler. It will again call AddrSpace::LoadPage(int vpn) to copy data from executable file, or BackingStore:PageIn() to load data from swap file.
+In the class of AddrSpace, several functions were added to support demand paging. AddrSpace::pageFault(int vpn) is called by exception handler. It will then call AddrSpace::LoadPage(int vpn) to copy data from executable file, or BackingStore:PageIn() to load data from swap file.
+
 In the destructor of AddrSpace, unlike project 2, we need to check the valid bit before free up memory in the page table. Just this single bug kept us debugging for two days.
+
 
 ---------------------
 ##2. Page Replacement
 
 In addition to part 1, function AddrSpace::evictPage(int vpn) is added. It will be called by memory manager when memory is full.
+
 A new class is added, named BackingStore. It copies data from and to the swap file.
+
 The MemoryManager class is enhanced. Now it has variables to keep pointers to AddrSpace. It will figure out which page to evict using designated algorithm, and then call AddrSpace:evictPage().
+
 
 ---------------------
 ##3. Testing
@@ -52,11 +58,20 @@ We tested every algorithms with every test cases. And for most cases LRU perform
 
 Check test statistics for details.
 
+
 ---------------------
 ##5. LRU 
 We implemented LRU. We set a counter for every physical pages. Each time a page is referenced, the counter of that page is set to zero and all the other counters are increased by one. When we have to evict a page, the page with the largest counter is evicted.
 A worse case for LRU is that if a array is just larger than the physical page size and we are referenceing the array one by one recursively. LRU will cause a page fault on every reference, since it evict the least recently used paged and that's the page we are referencing next.
 This test is lruWorstCase, in which random works better than LRU, and LRU FIFO perform quite the same(since the least recently used page is the first page comes in in this case). And for other test cases LRU works better than then other two.
+
+The following 3 command line switches are used for replacement algorithms.
+
+1. `-fifo` will choose FIFO algorithm, which is also the default option.
+2. `-random` : Random replacement algorithm.
+3. `-lru` : Least Recently Used algorithm.
+
+There's one extreme condition that will cause the time counter overflow, which is when a program has referenced the memory for "max integer" times but still haven't evicted any page. The maximum 32-bit integer is `2147483647`.
 
 Check test statistics for details.
 
