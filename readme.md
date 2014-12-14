@@ -83,39 +83,48 @@ There's one extreme condition that will cause the time counter overflow, which i
 Check test statistics below for details.
 
 ---------------------
-test statistics
+###Test statistics
 
 Physical memory size: 32 pages.
+
 Page replacement policy: Random.
-Program					PageFaults	PageOuts	PageIns
-pj3testp3part			23			0			6
-pj3testp3write			352			232			273
-pj3testp3badLocality	95576		5909		95497						
-pj3testp3goodLocality	114			65			35
-pj3testp3randomLocality	59493		3645		59414
-lruWorstCase			6234		199			6201
+
+Program				|	PageFaults	|PageOuts	|PageIns
+---------------------------------|--------------------------|--------------------|----------------
+pj3testp3part			|23			|0			|6
+pj3testp3write			|352			|232			|273
+pj3testp3badLocality	|95576		|5909		|95497						
+pj3testp3goodLocality	|114			|65			|35
+pj3testp3randomLocality	|59493		|3645		|59414
+lruWorstCase			|6234		|199			|6201
 
 
 Physical memory size: 32 pages.
+
 Page replacement policy: FIFO.
-Program					PageFaults	PageOuts	PageIns
-pj3testp3part			23 			0			6
-pj3testp3write			370			248			291
-pj3testp3badLocality	98335		5997		98256
-pj3testp3goodLocality	108			61			29
-pj3testp3randomLocality	59683		3693		59604
-lruWorstCase			34279		1071		34246
+
+Program				|	PageFaults	|PageOuts	|PageIns
+---------------------------------|--------------------------|--------------------|----------------
+pj3testp3part			|23 			|0			|6
+pj3testp3write			|370			|248			|291
+pj3testp3badLocality	|98335		|5997		|98256
+pj3testp3goodLocality	|108			|61			|29
+pj3testp3randomLocality	|59683		|3693		|59604
+lruWorstCase			|34279		|1071		|34246
 
 
 Physical memory size: 32 pages.
+
 Page replacement policy: LRU.
-Program					PageFaults	PageOuts	PageIns
-pj3testp3part			26			0			6
-pj3testp3write			328			223			249
-pj3testp3badLocality	65793		77			65714
-pj3testp3goodLocality	93			59			14
-pj3testp3randomLocality	41663		77			41584
-lruWorstCase			31165		33			31132
+
+Program				|	PageFaults	|PageOuts	|PageIns
+---------------------------------|--------------------------|--------------------|----------------
+pj3testp3part			|26			|0			|6
+pj3testp3write			|328			|223			|249
+pj3testp3badLocality	|65793		|77			|65714
+pj3testp3goodLocality	|93			|59			|14
+pj3testp3randomLocality	|41663		|77			|41584
+lruWorstCase			|31165		|33			|31132
 
 ---------------------
 
