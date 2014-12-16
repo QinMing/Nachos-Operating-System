@@ -146,6 +146,8 @@ void Lock::Release() {
 
 	// release the lock
 	held = 0;
+
+	//Bring its briority back
 	currentThread->setPriority(holderPriority);
 	holderPriority = 0;
 	thread = NULL;

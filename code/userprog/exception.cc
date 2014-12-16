@@ -444,7 +444,6 @@ ExceptionHandler(ExceptionType which)
 	{
 		if (memoryPagingLock == NULL)
 			memoryPagingLock = new Lock("memoryPagingLock");
-		stats->numPageFaults++;
 		
 		int vpn = machine->ReadRegister(BadVAddrReg) / PageSize;
 		

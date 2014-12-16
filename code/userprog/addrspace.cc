@@ -189,8 +189,8 @@ int AddrSpace::evictPage(int vpn){
 }
 
 int AddrSpace::pageFault(int vpn) {
+	stats->numPageFaults++;
 	pageTable[vpn].physicalPage = mm->AllocPage(this,vpn);
-	
 	if (pageTable[vpn].physicalPage == -1){
 		printf("Error: run out of physical memory\n");
 		//to do://should yield and wait for memory space and try again?
