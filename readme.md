@@ -138,6 +138,7 @@ lruWorstCase			|31165			|33				|31132
 - Xinyu Qian - MemoryManager, Exec and Exit, Join, Testing
 - Evan Carey - Console Read/Write, Exception Handling, Testing
 - Kevin Caasi - Exception Handling, Testing
+
 -------------------
 
 ##1. Load processes into the memory
@@ -242,6 +243,7 @@ There's a test program named "sort". To run this test, please increase the UserS
 - Xinyu Qian - Whales, CV, Mailbox, Testing
 - Evan Carey - Join, CV, Locks, Testing
 - Kevin Caasi - Join, CV, Locks, Testing
+
 -------------------
 
 ###Locks And Conditions
